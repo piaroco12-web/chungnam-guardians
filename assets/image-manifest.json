@@ -1,6 +1,6 @@
 {
-  "version": "2.2.4",
-  "count": 88,
+  "version": "2.3.2",
+  "count": 92,
   "images": [
     {
       "path": "assets/img/bg_asan.png",
@@ -966,6 +966,50 @@
       "bytes": 1235108,
       "grid": [
         3,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/boon_duo_3d_sheet.png",
+      "width": 1983,
+      "height": 793,
+      "bytes": 2443022,
+      "grid": [
+        5,
+        2
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/boon_legend_3d_sheet.png",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 3100318,
+      "grid": [
+        3,
+        2
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/region_landmarks_sheet.png",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 2513875,
+      "grid": [
+        3,
+        2
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/menu_nav_3d_sheet.png",
+      "width": 2172,
+      "height": 724,
+      "bytes": 1356798,
+      "grid": [
+        5,
         1
       ],
       "hasTransparency": true
