@@ -121,7 +121,8 @@ h2.ol{font-size:calc(var(--u)*38);margin:calc(var(--u)*6) 0 calc(var(--u)*14);te
 .ccard{aspect-ratio:3/4;border-radius:calc(var(--u)*10);border:calc(var(--u)*3) solid var(--ink);background:linear-gradient(#26306a,#1b2550);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--u)*4);padding:calc(var(--u)*6);cursor:pointer;text-align:center}
 .ccard.got{background:linear-gradient(145deg,#355d92,#182743);color:#fff;border-color:#8bdfff;box-shadow:inset 0 calc(var(--u)*3) 0 #ffffff40,0 calc(var(--u)*4) 0 #0b1632}
 .ccard .k{font-size:calc(var(--u)*14);font-weight:800;color:#fff;line-height:1.5;text-shadow:0 calc(var(--u)*2) calc(var(--u)*2) #080e26}
-.ccard b{font-family:var(--display);font-weight:400;font-size:calc(var(--u)*19);line-height:1.15}
+.ccard b{font-family:var(--display);font-weight:400;font-size:calc(var(--u)*19);line-height:1.15;text-align:center;word-break:keep-all;overflow-wrap:break-word;width:100%}
+.ccard b small{display:block;margin-top:calc(var(--u)*3);font-size:calc(var(--u)*16);color:#ffe39a}
 .ccard .e{font-size:calc(var(--u)*36)}
 .ccard .e:has(img){width:calc(var(--u)*100);height:calc(var(--u)*100);border-radius:50%;background:radial-gradient(#fff4d2,#b9eeff);border:calc(var(--u)*2) solid #fff0b5;box-shadow:0 calc(var(--u)*3) 0 #0b1632}
 .card-character{display:block;width:100%;height:100%;object-fit:contain}

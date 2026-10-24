@@ -12,7 +12,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.3.0';
+export const VERSION = '2.3.1';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -137,11 +137,13 @@ function codex(bb) {
   }, bb);
 }
 
+// 카드첩 칸 제목: "끝까지 해내기 (끈기)"는 키워드를 다음 줄로 내린다
+const gridTitle = t => { const m = /^(.*?)\s*\((.+)\)$/.exec(t); return m ? `${esc(m[1])}<small>(${esc(m[2])})</small>` : esc(t); };
 function cardsTab(bb) {
   const groups = ['지역 상식', 'SW·AI 개념', '예방 수칙', 'AI 역량'];
   const n = CARDS.filter(c => view.hasCard(c.id)).length;
   bb.innerHTML = `<h2 class="ol">카드첩 ${n}/${totalCards()}</h2>${groups.map(gname => `<div class="sec-label">${gname}</div><div class="grid cards">${CARDS.filter(c => c.kind === gname).map(c => view.hasCard(c.id)
-    ? `<div class="ccard got" data-c="${c.id}"><span class="e">${cardArt(c)}</span><b>${esc(c.title)}</b></div>`
+    ? `<div class="ccard got" data-c="${c.id}"><span class="e">${cardArt(c)}</span><b>${gridTitle(c.title)}</b></div>`
     : `<div class="ccard"><span class="e">❔</span><span class="k">${hintFor(c)}</span></div>`).join('')}</div>`).join('')}`;
   const opened = STORY.filter(st => save.teacher || save.story.includes(st.id));
   bb.insertAdjacentHTML('beforeend', `<div class="sec-label">이야기 조각 ${opened.length}/${STORY.length}</div><div class="rows">${STORY.map(st => (save.teacher || save.story.includes(st.id))
