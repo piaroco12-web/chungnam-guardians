@@ -92,9 +92,9 @@ export class Battle {
     } else {
       const id = kind === 'mid' ? this.region.mid : this.region.boss;
       this.queue = [];
-      this.introT = 2.2;
+      this.introT = 2.8;
       const b = BOSSES[id];
-      this.showBanner('⚠ 경고 ⚠', `${b.name}\n${b.issue}`, 2.2, true);
+      this.showBanner('⚠ 경고 ⚠', `${b.name} · ${b.issue}`, 2.8, true, `“${b.line}”`);
       sfx.warn();
       this.pendingBoss = id;
     }
@@ -151,7 +151,7 @@ export class Battle {
     this.enemies.push(this.boss);
   }
 
-  showBanner(title, sub = '', time = 1.8, warn = false) { this.banner = { title, sub, t: time, max: time, warn }; }
+  showBanner(title, sub = '', time = 1.8, warn = false, line = '') { this.banner = { title, sub, t: time, max: time, warn, line }; }
 
   stageCleared() {
     const kind = this.stageKind;

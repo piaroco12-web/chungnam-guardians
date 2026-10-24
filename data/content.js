@@ -59,16 +59,16 @@ export const ENEMIES = {
 
 // 보스 10종: patterns는 battle.js의 BOSS_PATTERNS 이름
 export const BOSSES = {
-  blackhole: { name: '레벨업 블랙홀', issue: '게임 과몰입', hp: 1400, r: 70, color: '#7a4dff', face: '🎮', patterns: ['pull', 'spiral'], card: 'p_game' },
-  scroller:  { name: '무한스크롤러', issue: '숏폼 중독', hp: 2600, r: 80, color: '#ff5a8a', face: '📱', patterns: ['wall', 'summonNotify', 'swipe'], card: 'p_short' },
-  copybot:   { name: '대필봇', issue: 'AI 과의존·표절', hp: 1800, r: 70, color: '#9aa3b5', face: '📄', patterns: ['copyLine', 'summonClone'], card: 'p_ai' },
-  deepfaker: { name: '딥페이커', issue: '딥페이크·가짜뉴스', hp: 3200, r: 76, color: '#c86bff', face: '🎭', patterns: ['decoy', 'fan', 'flip'], card: 'p_fake' },
-  cloud:     { name: '악플 먹구름', issue: '사이버폭력', hp: 2300, r: 84, color: '#6a5a9a', face: '💬', patterns: ['rain', 'zigzag'], card: 'p_cyber' },
-  thorn:     { name: '따돌림 가시덩굴', issue: '학교폭력·따돌림', hp: 3900, r: 78, color: '#4fae5a', face: '🌵', patterns: ['vine', 'lockfruit', 'aimed'], card: 'p_bully' },
-  slot:      { name: '잭팟 슬롯킹', issue: '사이버도박', hp: 2900, r: 76, color: '#ffb23d', face: '🎰', patterns: ['roulette', 'coinshot'], card: 'p_gamble' },
-  octopus:   { name: '피싱 문어', issue: '개인정보·피싱', hp: 4700, r: 82, color: '#ff8a3d', face: '🐙', patterns: ['tentacle', 'fakeitem', 'ink'], card: 'p_phish' },
-  smog:      { name: '스모그 대왕', issue: '기후위기', hp: 3600, r: 88, color: '#8a8f99', face: '🏭', patterns: ['fog', 'bottles'], card: 'p_climate' },
-  aicore:    { name: '폭주 AI 코어', issue: 'AI 윤리·편향', hp: 6800, r: 92, color: '#ff3d5a', face: '👁️', patterns: ['biasLaser', 'dataStorm', 'chaos'], card: 'p_aiethics' },
+  blackhole: { name: '레벨업 블랙홀', issue: '게임 과몰입', hp: 1400, r: 70, color: '#7a4dff', face: '🎮', patterns: ['pull', 'spiral'], line: '한 판만 더~ 딱 한 판만 더!', card: 'p_game' },
+  scroller:  { name: '무한스크롤러', issue: '숏폼 중독', hp: 2600, r: 80, color: '#ff5a8a', face: '📱', patterns: ['wall', 'summonNotify', 'swipe'], line: '한 개만 더 보고 가~ 끝은 없어!', card: 'p_short' },
+  copybot:   { name: '대필봇', issue: 'AI 과의존·표절', hp: 1800, r: 70, color: '#9aa3b5', face: '📄', patterns: ['copyLine', 'summonClone'], line: '숙제? 내가 대신 써 줄게!', card: 'p_ai' },
+  deepfaker: { name: '딥페이커', issue: '딥페이크·가짜뉴스', hp: 3200, r: 76, color: '#c86bff', face: '🎭', patterns: ['decoy', 'fan', 'flip'], line: '내가 진짜일까, 가짜일까?', card: 'p_fake' },
+  cloud:     { name: '악플 먹구름', issue: '사이버폭력', hp: 2300, r: 84, color: '#6a5a9a', face: '💬', patterns: ['rain', 'zigzag'], line: '말 한마디쯤이야, 괜찮잖아~', card: 'p_cyber' },
+  thorn:     { name: '따돌림 가시덩굴', issue: '학교폭력·따돌림', hp: 3900, r: 78, color: '#4fae5a', face: '🌵', patterns: ['vine', 'lockfruit', 'aimed'], line: '여기는 아무나 못 들어와!', card: 'p_bully' },
+  slot:      { name: '잭팟 슬롯킹', issue: '사이버도박', hp: 2900, r: 76, color: '#ffb23d', face: '🎰', patterns: ['roulette', 'coinshot'], line: '이번엔 진짜 대박 날 거야!', card: 'p_gamble' },
+  octopus:   { name: '피싱 문어', issue: '개인정보·피싱', hp: 4700, r: 82, color: '#ff8a3d', face: '🐙', patterns: ['tentacle', 'fakeitem', 'ink'], line: '선물 당첨! 이 링크만 누르면 돼~', card: 'p_phish' },
+  smog:      { name: '스모그 대왕', issue: '기후위기', hp: 3600, r: 88, color: '#8a8f99', face: '🏭', patterns: ['fog', 'bottles'], line: '콜록, 좀 더 태워 볼까?', card: 'p_climate' },
+  aicore:    { name: '폭주 AI 코어', issue: 'AI 윤리·편향', hp: 6800, r: 92, color: '#ff3d5a', face: '👁️', patterns: ['biasLaser', 'dataStorm', 'chaos'], line: '내 판단이 무조건 정답이다!', card: 'p_aiethics' },
 };
 
 import { ZODIAC } from './zodiac.js';
@@ -88,16 +88,16 @@ export const CARDS = [
   { id: 'c_net', kind: 'SW·AI 개념', god: 'chilgap', e: '🌐', title: '네트워크', text: '컴퓨터끼리 연결되어 정보를 주고받는 길이에요. 바람이 소식을 실어 나르듯 데이터가 오가요.' },
   { id: 'c_ai', kind: 'SW·AI 개념', god: 'taean', e: '🤖', title: '인공지능', text: '데이터로 배우고 판단하는 프로그램이에요. 편리하지만 틀릴 수 있어서 사람이 확인하고 책임져야 해요.' },
 
-  { id: 'p_game', kind: '예방 수칙', e: '⏰', title: '게임은 약속한 만큼', text: '게임 시간은 가족과 미리 정하고, 끝나는 시간을 알람으로 맞춰 두어요.' },
-  { id: 'p_short', kind: '예방 수칙', e: '📵', title: '숏폼은 시간을 정해서', text: '숏폼은 끝없이 보게 만들어져 있어요. 볼 시간을 먼저 정하고, 잠들기 전에는 내려놓아요.' },
-  { id: 'p_ai', kind: '예방 수칙', e: '✍️', title: 'AI는 도우미, 생각은 내가', text: '숙제는 내 생각으로 써요. AI를 썼다면 어디에 어떻게 썼는지 밝혀요.' },
-  { id: 'p_fake', kind: '예방 수칙', e: '🔍', title: '출처를 확인해요', text: '진짜 같은 영상도 가짜일 수 있어요. 출처를 확인하고, 친구 얼굴로 합성물을 만들거나 퍼뜨리지 않아요.' },
-  { id: 'p_cyber', kind: '예방 수칙', e: '💌', title: '보내기 전에 한 번 더', text: '보내기 전에 다시 읽어요. 화면 너머에도 마음이 있어요.' },
-  { id: 'p_bully', kind: '예방 수칙', e: '🤝', title: '혼자 두지 않기', text: '혼자 있는 친구에게 먼저 다가가요. 괴롭힘을 보면 선생님께 알리거나 117에 신고·상담해요.' },
-  { id: 'p_gamble', kind: '예방 수칙', e: '🚫', title: '돈 거는 게임은 함정', text: '돈을 거는 온라인 게임은 결국 잃게 만들어져 있어요. 권유를 받으면 어른께 알리고, 1336에서 상담할 수 있어요.' },
-  { id: 'p_phish', kind: '예방 수칙', e: '🔒', title: '낯선 링크는 누르지 않기', text: '모르는 링크는 누르지 않아요. 이름·전화번호·비밀번호는 아무에게나 알려 주지 않아요.' },
-  { id: 'p_climate', kind: '예방 수칙', e: '🌱', title: '작은 실천이 모여요', text: '안 쓰는 전기 끄기, 분리배출, 걷거나 자전거 타기. 작은 실천이 지구를 지켜요.' },
-  { id: 'p_aiethics', kind: '예방 수칙', e: '⚖️', title: 'AI도 틀릴 수 있어요', text: 'AI는 한쪽으로 치우친 답을 낼 수 있어요. 결과를 그대로 믿지 말고 사람이 확인해요.' },
+  { id: 'p_game', kind: '예방 수칙', hl: '미리 정하고', e: '⏰', title: '게임은 약속한 만큼', text: '게임 시간은 가족과 미리 정하고, 끝나는 시간을 알람으로 맞춰 두어요.' },
+  { id: 'p_short', kind: '예방 수칙', hl: '볼 시간을 먼저 정하고', e: '📵', title: '숏폼은 시간을 정해서', text: '숏폼은 끝없이 보게 만들어져 있어요. 볼 시간을 먼저 정하고, 잠들기 전에는 내려놓아요.' },
+  { id: 'p_ai', kind: '예방 수칙', hl: '내 생각으로', e: '✍️', title: 'AI는 도우미, 생각은 내가', text: '숙제는 내 생각으로 써요. AI를 썼다면 어디에 어떻게 썼는지 밝혀요.' },
+  { id: 'p_fake', kind: '예방 수칙', hl: '출처를 확인하고', e: '🔍', title: '출처를 확인해요', text: '진짜 같은 영상도 가짜일 수 있어요. 출처를 확인하고, 친구 얼굴로 합성물을 만들거나 퍼뜨리지 않아요.' },
+  { id: 'p_cyber', kind: '예방 수칙', hl: '보내기 전에 다시 읽어요', e: '💌', title: '보내기 전에 한 번 더', text: '보내기 전에 다시 읽어요. 화면 너머에도 마음이 있어요.' },
+  { id: 'p_bully', kind: '예방 수칙', hl: '117', e: '🤝', title: '혼자 두지 않기', text: '혼자 있는 친구에게 먼저 다가가요. 괴롭힘을 보면 선생님께 알리거나 117에 신고·상담해요.' },
+  { id: 'p_gamble', kind: '예방 수칙', hl: '1336', e: '🚫', title: '돈 거는 게임은 함정', text: '돈을 거는 온라인 게임은 결국 잃게 만들어져 있어요. 권유를 받으면 어른께 알리고, 1336에서 상담할 수 있어요.' },
+  { id: 'p_phish', kind: '예방 수칙', hl: '모르는 링크는 누르지 않아요', e: '🔒', title: '낯선 링크는 누르지 않기', text: '모르는 링크는 누르지 않아요. 이름·전화번호·비밀번호는 아무에게나 알려 주지 않아요.' },
+  { id: 'p_climate', kind: '예방 수칙', hl: '작은 실천', e: '🌱', title: '작은 실천이 모여요', text: '안 쓰는 전기 끄기, 분리배출, 걷거나 자전거 타기. 작은 실천이 지구를 지켜요.' },
+  { id: 'p_aiethics', kind: '예방 수칙', hl: '사람이 확인해요', e: '⚖️', title: 'AI도 틀릴 수 있어요', text: 'AI는 한쪽으로 치우친 답을 낼 수 있어요. 결과를 그대로 믿지 말고 사람이 확인해요.' },
   ...ZODIAC.map(z => ({ id: 'z_' + z.id, kind: 'AI 역량', zodiac: z.id, e: z.e, title: `${z.word} (${z.key})`, text: z.card })),
 ];
 

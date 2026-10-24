@@ -10,6 +10,7 @@ import { levelChoices, applyLevelChoice, altarChoices, applyAltarChoice, godOf }
 import { PILOTS, DIFFS, REGIONS, BOSSES, CARDS } from '../data/content.js';
 import { BOONS } from '../data/boons.js';
 import * as ui from './ui.js';
+import { FlowArt } from './bgart.js';
 
 const stage = document.getElementById('stage');
 const canvas = document.getElementById('game');
@@ -17,6 +18,7 @@ const g = canvas.getContext('2d');
 let scale = fitStage(stage, canvas);
 window.addEventListener('resize', () => { scale = fitStage(stage, canvas); });
 initInput(stage);
+ui.initUi();
 
 const state = { scene: 'loading', tab: 'sortie', pilot: 'chungnami', ship: 'byeolbit', diff: 'sprout', battle: null, sel: {} };
 let menuBg = null;
@@ -129,6 +131,11 @@ function showCards(list, done) {
 
 function onBossDefeated(b, id, isRegion) {
   b.paused = true;
+  // M06 도장 쾅: 정화 완료 도장을 찍고 나서 카드로
+  return ui.stamp('정화<br>완료!', () => afterStamp(b, id, isRegion));
+}
+
+function afterStamp(b, id, isRegion) {
   const cards = [];
   b.run.bossesBeaten.push(id);
   giveCard(b, BOSSES[id].card, cards);
@@ -220,15 +227,11 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 
-// 메뉴 뒤 배경: 별이 흐르는 하늘
+// 메뉴 뒤 배경: 시드로 고정된 흐름장 위를 노랑·민트 빛 알갱이가 흘러간다 (algorithmic-art)
 function drawMenuBg(dt) {
-  if (!menuBg) menuBg = { t: 0, stars: Array.from({ length: 60 }, () => ({ x: Math.random() * W, y: Math.random() * H, s: Math.random() * 2 + 1 })) };
-  menuBg.t += dt;
+  if (!menuBg) menuBg = new FlowArt(W, H, { seed: 2026, colors: ['#ffc53d', '#3fe0c0', '#8fd4ff', '#ffffff'], base: '#1f2b66', count: 260, fade: 0.06 });
   g.setTransform(scale, 0, 0, scale, 0, 0);
-  const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#2b6fd6'); gr.addColorStop(1, '#1b2550');
-  g.fillStyle = gr; g.fillRect(0, 0, W, H);
-  g.fillStyle = 'rgba(255,255,255,.7)';
-  for (const s of menuBg.stars) { s.y = (s.y + s.s * 40 * dt) % H; g.fillRect(s.x, s.y, s.s, s.s * 3); }
+  menuBg.draw(g, dt);
 }
 
 document.addEventListener('visibilitychange', () => { const b = state.battle; if (document.hidden && b && state.scene === 'battle' && !b.paused && !b.over) openPause(b); });

@@ -241,6 +241,13 @@ export function render(g, b, scale) {
     g.font = '46px "Black Han Sans", sans-serif'; g.lineWidth = 8; g.strokeStyle = '#141414';
     g.strokeText(b.banner.title, W / 2, 430); g.fillStyle = b.banner.warn ? '#fff' : '#ffc53d'; g.fillText(b.banner.title, W / 2, 430);
     if (b.banner.sub) { g.font = '26px "Black Han Sans", sans-serif'; b.banner.sub.split('\n').forEach((s, i) => { g.lineWidth = 6; g.strokeText(s, W / 2, 480 + i * 32); g.fillStyle = '#fff'; g.fillText(s, W / 2, 480 + i * 32); }); }
+    // M03 한 자씩 타자: 보스 대사가 한 글자씩
+    if (b.banner.line) {
+      const chars = [...b.banner.line], n = Math.min(chars.length, Math.floor((b.banner.max - b.banner.t) * 22));
+      const txt = chars.slice(0, n).join('') + (n < chars.length && Math.floor(b.t * 6) % 2 ? '▌' : '');
+      g.font = '24px "Black Han Sans", sans-serif'; g.lineWidth = 6; g.strokeStyle = '#141414';
+      g.strokeText(txt, W / 2, 512); g.fillStyle = '#ffe14a'; g.fillText(txt, W / 2, 512);
+    }
     g.globalAlpha = 1; void k;
   }
 }

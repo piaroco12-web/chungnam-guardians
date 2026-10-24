@@ -193,7 +193,7 @@ h2.ol{font-size:calc(var(--u)*38);margin:calc(var(--u)*6) 0 calc(var(--u)*14);te
 .altar-foot{margin-top:auto;margin-bottom:calc(var(--u)*90);display:flex;gap:calc(var(--u)*14);align-items:center}
 
 /* 카드 획득 */
-.bigcard{margin-top:calc(var(--u)*170);width:calc(var(--u)*360);min-height:calc(var(--u)*480);border-radius:calc(var(--u)*20);border:calc(var(--u)*5) solid var(--ink);background:var(--cream);color:var(--ink);padding:calc(var(--u)*24);display:flex;flex-direction:column;gap:calc(var(--u)*12);align-items:center;text-align:center;animation:flip .6s ease-out;box-shadow:0 0 0 calc(var(--u)*6) var(--amber),0 calc(var(--u)*14) 0 calc(var(--u)*6) var(--ink)}
+.bigcard{margin-top:calc(var(--u)*170);width:calc(var(--u)*360);min-height:calc(var(--u)*480);border-radius:calc(var(--u)*20);border:calc(var(--u)*5) solid var(--ink);background:var(--cream);color:var(--ink);padding:calc(var(--u)*24);display:flex;flex-direction:column;gap:calc(var(--u)*12);align-items:center;text-align:center;box-shadow:0 0 0 calc(var(--u)*6) var(--amber),0 calc(var(--u)*14) 0 calc(var(--u)*6) var(--ink)}
 .bigcard .k{font-weight:900;font-size:calc(var(--u)*17);background:var(--ink);color:var(--amber);border-radius:calc(var(--u)*8);padding:calc(var(--u)*2) calc(var(--u)*12)}
 .bigcard .e{font-size:calc(var(--u)*90);line-height:1.1}
 .bigcard b{font-family:var(--display);font-weight:400;font-size:calc(var(--u)*34);line-height:1.2}
@@ -217,6 +217,19 @@ h2.ol{font-size:calc(var(--u)*38);margin:calc(var(--u)*6) 0 calc(var(--u)*14);te
 .modal .box{width:calc(var(--u)*440);background:var(--navy2);border:calc(var(--u)*4) solid var(--ink);border-radius:calc(var(--u)*16);padding:calc(var(--u)*22);display:grid;gap:calc(var(--u)*14);text-align:center}
 .modal input{font:inherit;font-size:calc(var(--u)*22);padding:calc(var(--u)*10);border-radius:calc(var(--u)*8);border:calc(var(--u)*3) solid var(--ink);text-align:center}
 .modal .acts{display:flex;gap:calc(var(--u)*12);justify-content:center}
-.toast{position:absolute;left:50%;top:calc(var(--u)*300);transform:translateX(-50%);background:var(--ink);border:calc(var(--u)*3) solid var(--amber);border-radius:calc(var(--u)*12);padding:calc(var(--u)*10) calc(var(--u)*20);font-weight:900;font-size:calc(var(--u)*20);white-space:nowrap;animation:toast 2.2s forwards;pointer-events:none;z-index:9}
-@keyframes toast{0%{opacity:0;transform:translate(-50%,10px)}10%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
-@media (prefers-reduced-motion:reduce){.tap,.ult.ready{animation:none}.bigcard{animation:none}}
+.toast{position:absolute;right:calc(var(--u)*14);top:calc(var(--u)*126);background:var(--ink);border:calc(var(--u)*3) solid var(--amber);border-left-width:calc(var(--u)*10);border-radius:calc(var(--u)*12);padding:calc(var(--u)*10) calc(var(--u)*18);font-weight:900;font-size:calc(var(--u)*20);max-width:calc(var(--u)*420);animation:toast 2.4s forwards;pointer-events:none;z-index:9}
+/* M18 알림 미끄러져 오기: 오른쪽 밖에서 스프링처럼 들어와 2초 뒤 사라짐 */
+@keyframes toast{0%{transform:translateX(120%)}12%{transform:translateX(-4%)}18%{transform:translateX(1%)}22%,82%{transform:translateX(0);opacity:1}100%{transform:translateX(0);opacity:0}}
+/* M06 도장 쾅 */
+.stampwrap{position:absolute;inset:0;display:grid;place-items:center;z-index:8;pointer-events:none}
+.stamp{width:calc(var(--u)*270);height:calc(var(--u)*270);border-radius:50%;border:calc(var(--u)*12) double #e0344f;background:rgba(255,255,255,.9);color:#e0344f;display:grid;place-items:center;text-align:center;font-size:calc(var(--u)*58);line-height:1.05;transform:rotate(-8deg);text-shadow:none}
+/* M10 형광펜 */
+.hl{font-style:normal;position:relative;display:inline-block}
+.hl i{position:absolute;left:-3px;right:-3px;bottom:.1em;height:.62em;background:#ffe14a;border-radius:3px;transform:scaleX(0);transform-origin:left center;z-index:0}
+.hl span{position:relative;z-index:1}
+/* M13 고개 젓기 */
+.nope{outline:calc(var(--u)*4) solid var(--red);outline-offset:calc(var(--u)*2)}
+/* 움직이는 배경 */
+.flowbg{position:absolute;inset:0;width:100%;height:100%;opacity:.55;pointer-events:none}
+.altar > *:not(.flowbg){position:relative}
+@media (prefers-reduced-motion:reduce){.tap,.ult.ready{animation:none}}

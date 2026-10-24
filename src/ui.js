@@ -6,6 +6,10 @@ import { ZODIAC } from '../data/zodiac.js';
 import { save, view, persist, TEACHER_CODE, totalCodex, totalCards, resetAll } from './save.js';
 import { pic } from './assets.js';
 import { sfx, refreshBgm } from './audio.js';
+import { scatterText, stagger, stamp as stampFx, unfold, highlight, countUp, bouncy, jelly, nope } from './motion.js';
+import { mountFlow } from './bgart.js';
+
+export function initUi() { bouncy(root()); }
 
 export const VERSION = '2.0.0';
 const root = () => document.getElementById('ui');
@@ -37,13 +41,14 @@ export function loading(p = 0) {
 // ───────── 타이틀 ─────────
 export function title({ onStart, hasRun, onContinue }) {
   const art = pic.keyart(), logo = pic.logo();
-  const r = show(`<div class="screen" style="background:linear-gradient(#4aa8ff,#2b6fd6 60%,#1b2550)">
+  const r = show(`<div class="screen" style="background:linear-gradient(rgba(74,168,255,.35),rgba(27,37,80,.15) 60%,rgba(27,37,80,.6))">
     ${art ? `<div class="title-art" style="background-image:url(${art})"></div>` : ''}
     <div class="version ol">버전 ${VERSION}</div>
     ${logo ? `<img class="logo-img" src="${logo}" alt="충남 수호대">` : `<div class="logo ol">충남 수호대<small class="ol">코딩 블라스터</small></div>`}
     <div class="tap ol">화면을 터치해서 시작</div>
     <div class="title-btns">${hasRun ? '<button class="btn blue sm" id="cont">이어하기</button>' : ''}</div>
   </div>`);
+  scatterText(r.querySelector('.logo'));
   r.querySelector('.screen').addEventListener('click', e => { if (e.target.id === 'cont') return; sfx.click(); onStart(); });
   click('#cont', onContinue);
 }
@@ -52,7 +57,7 @@ export function title({ onStart, hasRun, onContinue }) {
 export function base(state, act) {
   const tabs = [['sortie', '🚀', '출격'], ['meta', '⬆️', '강화'], ['codex', '📖', '도감'], ['cards', '🃏', '카드첩'], ['settings', '⚙️', '설정']];
   const bg = pic.base();
-  const r = show(`<div class="screen" style="background:${bg ? `url(${bg}) center/cover` : 'linear-gradient(#26306a,#1b2550)'}">
+  const r = show(`<div class="screen" style="background:${bg ? `url(${bg}) center/cover` : 'rgba(20,26,58,.55)'}">
     <div class="base-top"><div class="ol" style="font-size:calc(var(--u)*26)">기지${save.teacher ? ' · 교사 모드' : ''}</div><div class="coinbox ol">${coinIcon}${save.coins}</div></div>
     <div class="base-body" id="bb"></div>
     <nav class="tabs">${tabs.map(([id, e, n]) => `<button class="tab ${state.tab === id ? 'on' : ''}" data-t="${id}"><b>${e}</b>${n}</button>`).join('')}</nav>
@@ -84,11 +89,13 @@ function metaTab(bb, state, act) {
     const lv = save.meta[m.id], max = lv >= m.max, cost = m.cost(lv);
     return `<div class="row"><div class="ic">${m.icon}</div><div class="tx"><b>${m.name}</b><p>${m.desc(Math.max(lv, 1))}${lv ? '' : ' (다음 단계)'}</p>
       <div class="pips">${Array.from({ length: m.max }, (_, i) => `<i class="${i < lv ? 'on' : ''}"></i>`).join('')}</div></div>
-      <button class="btn sm" data-m="${m.id}" ${max || save.coins < cost ? 'disabled' : ''}>${max ? '최대' : coinIcon + ' ' + cost}</button></div>`;
+      <button class="btn sm ${save.coins < cost && !max ? 'gray' : ''}" data-m="${m.id}" ${max ? 'disabled' : ''}>${max ? '최대' : coinIcon + ' ' + cost}</button></div>`;
   }).join('')}</div>${save.teacher ? '<p class="note" style="margin-top:calc(var(--u)*12)">교사 모드에서는 강화가 저장되지 않아요.</p>' : ''}`;
   click('[data-m]', (e, el) => {
     const m = META_UPGRADES.find(x => x.id === el.dataset.m), lv = save.meta[m.id], cost = m.cost(lv);
-    if (lv >= m.max || save.coins < cost || save.teacher) return;
+    if (lv >= m.max) return;
+    if (save.teacher) return toast('교사 모드에서는 강화가 저장되지 않아요');
+    if (save.coins < cost) { nope(el.closest('.row')); return toast(`코인이 ${cost - save.coins}개 모자라요`); }
     save.coins -= cost; save.meta[m.id]++; persist(); sfx.levelup(); act.refresh();
   }, bb);
 }
@@ -143,7 +150,7 @@ function settings(bb, state, act) {
   on('#ver', 'click', () => {
     if (++taps < 7) return; taps = 0;
     modal(`<b class="ol" style="font-size:calc(var(--u)*26)">교사 모드</b><p>비밀번호를 입력하세요.</p><input id="tcode" type="password" autocomplete="off" aria-label="교사 모드 비밀번호">`,
-      [['켜기', '', () => { const v = document.getElementById('tcode').value.trim(); if (v === TEACHER_CODE) { save.teacher = true; persist(); toast('교사 모드를 켰어요'); act.refresh(); } else toast('비밀번호가 달라요'); }], ['취소', 'gray']]);
+      [['켜기', '', () => { const inp = document.getElementById('tcode'); const v = inp.value.trim(); if (v === TEACHER_CODE) { save.teacher = true; persist(); toast('교사 모드를 켰어요'); act.refresh(); return true; } nope(inp.closest('.box')); inp.value = ''; return false; }], ['취소', 'gray']]);
   }, bb);
 }
 
@@ -152,7 +159,7 @@ export function modal(html, buttons = [['닫기', 'gray']]) {
   m.innerHTML = `<div class="box">${html}<div class="acts">${buttons.map(([t, c], i) => `<button class="btn sm ${c}" data-i="${i}">${t}</button>`).join('')}</div></div>`;
   root().appendChild(m);
   m.addEventListener('click', e => { if (e.target === m) m.remove(); });
-  m.querySelectorAll('[data-i]').forEach(b => b.addEventListener('click', () => { sfx.click(); const f = buttons[+b.dataset.i][2]; f && f(); m.remove(); }));
+  m.querySelectorAll('[data-i]').forEach(b => b.addEventListener('click', () => { sfx.click(); const f = buttons[+b.dataset.i][2]; if (f && f() === false) return; m.remove(); }));
   const inp = m.querySelector('input'); if (inp) setTimeout(() => inp.focus(), 50);
 }
 
@@ -174,9 +181,10 @@ export function select(step, sel, act) {
       <p>${ok ? `${esc(d.desc)} · 코인 ×${d.coin} · 슬로우 ${Math.round(d.slow * 100)}%` : '🔒 전설 난이도를 끝까지 깨면 열려요'}</p></div></button>`;
   }).join('')}</div>`;
   if (step === 'region') body = head(4, '시작 지역 (교사 모드)') + `<div class="picks">${REGIONS.map((rg, i) => `<button class="pick diff" data-v="${i}"><div class="tx"><b>${i + 1}. ${rg.name}</b><p>중간 보스 ${BOSSES[rg.mid].name} · 지역 보스 ${BOSSES[rg.boss].name}</p></div></button>`).join('')}</div>`;
-  const r = show(`<div class="screen" style="background:linear-gradient(#26306a,#1b2550);overflow-y:auto">${body}</div>`);
+  const r = show(`<div class="screen" style="background:rgba(20,26,58,.6);overflow-y:auto">${body}</div>`);
   click('#back', act.back);
-  click('.pick', (e, el) => { if (el.classList.contains('lock')) return toast('아직 잠겨 있어요'); act.pick(step, el.dataset.v); });
+  click('.pick', (e, el) => { if (el.classList.contains('lock')) { nope(el); return toast('아직 잠겨 있어요'); } act.pick(step, el.dataset.v); });
+  stagger(r.querySelectorAll('.pick'));
   void sel; return r;
 }
 
@@ -264,7 +272,8 @@ export function levelUp(run, choices, ship, onPick) {
     else { name = '응급 수리'; icon = '🔧'; desc = '체력 30% 회복'; elem = '보너스'; }
     return `<div class="choicewrap">${badge ? `<span class="badge">${badge}</span>` : ''}<button class="choice ${cls}" data-i="${i}"><div class="top"><div class="name">${esc(name)}</div><div class="art">${icon}</div></div>${dots(lv)}<div class="desc">${desc}</div><div class="elem"><i>${ei}</i>${elem}</div></button></div>`;
   };
-  show(`<div class="screen dim"><div class="upttl ol">업그레이드</div>${ownBar(run)}<div class="choices">${choices.map(card).join('')}</div><div class="hint ol">위에서 <em>스킬</em>을 하나 선택해 습득하세요.</div></div>`);
+  const r = show(`<div class="screen dim"><div class="upttl ol">업그레이드</div>${ownBar(run)}<div class="choices">${choices.map(card).join('')}</div><div class="hint ol">위에서 <em>스킬</em>을 하나 선택해 습득하세요.</div></div>`);
+  stagger(r.querySelectorAll('.choicewrap'), 110, 30);
   click('.choice', (e, el) => onPick(choices[+el.dataset.i]));
 }
 
@@ -281,10 +290,12 @@ export function altar(run, choices, onPick, onReroll) {
     const icon = c.def ? boonIcon(c.def.id) : g.e;
     return `<div class="choicewrap">${badge ? `<span class="badge">${badge}</span>` : ''}<button class="choice ${cls}" data-i="${i}"><div class="top"><div class="name">${esc(name)}</div><div class="art">${icon}</div></div><div class="dots" style="color:#fff;font-size:calc(var(--u)*14);font-weight:900">${rar} · ${slot}</div><div class="desc">${desc}</div><div class="elem"><i style="background:${g.color}">${g.e}</i>${g.elem}</div></button></div>`;
   };
-  show(`<div class="screen dim altar"><div class="upttl ol" style="margin-top:calc(var(--u)*70)">수호신 제단</div>
+  const r = show(`<div class="screen dim altar"><div class="upttl ol" style="margin-top:calc(var(--u)*70)">수호신 제단</div>
     <div class="godrow">${choices.map(c => `<div class="god"><div class="face" style="background:${c.god.color}"><img src="${pic.god(c.god)}" alt=""></div><b class="ol">${c.god.name}</b></div>`).join('')}</div>
     <div class="choices" style="padding-top:calc(var(--u)*14)">${choices.map(card).join('')}</div>
     <div class="altar-foot">${run.rerolls > 0 ? `<button class="btn blue sm" id="rr">🎲 다시 뽑기 (${run.rerolls})</button>` : ''}<span class="ol" style="font-size:calc(var(--u)*20)">수호신의 가호를 하나 받으세요</span></div></div>`);
+  mountFlow(r.querySelector('.altar'), { seed: run.region * 97 + 11, colors: choices.map(c => c.god.color), base: '#141a3a', count: 160 });
+  stagger(r.querySelectorAll('.god'), 140, 20); stagger(r.querySelectorAll('.choicewrap'), 140, 30);
   click('.choice', (e, el) => onPick(choices[+el.dataset.i]));
   click('#rr', onReroll);
 }
@@ -292,8 +303,10 @@ export function altar(run, choices, onPick, onReroll) {
 // ───────── 카드 획득 ─────────
 export function cardReveal(c, onNext) {
   sfx.levelup();
-  show(`<div class="screen dim"><div class="bigcard"><span class="k">${c.kind} 카드 획득!</span><span class="e">${c.e}</span><b>${esc(c.title)}</b><p>${esc(c.text)}</p></div>
+  const r = show(`<div class="screen dim"><div class="bigcard"><span class="k">${c.kind} 카드 획득!</span><span class="e">${c.e}</span><b>${esc(c.title)}</b><p>${esc(c.text)}</p></div>
     <button class="btn cardbtn" id="cn">확인</button></div>`);
+  unfold(r.querySelector('.bigcard'));
+  highlight(r.querySelector('.bigcard p'), c.hl);
   click('#cn', onNext);
 }
 
@@ -303,13 +316,15 @@ export function result(r, act) {
     <div class="stats">
       <div class="stat"><span>도달 지역</span><span>${r.region}</span></div>
       <div class="stat"><span>난이도</span><span>${r.diff}</span></div>
-      <div class="stat"><span>처치</span><span>${r.kills}</span></div>
+      <div class="stat"><span>처치</span><span data-count="${r.kills}">0</span></div>
       <div class="stat"><span>레벨</span><span>${r.level}</span></div>
-      <div class="stat"><span>얻은 코인</span><span>${r.coins}${r.teacher ? ' (저장 안 됨)' : ''}</span></div>
+      <div class="stat"><span>얻은 코인</span><span><span data-count="${r.coins}">0</span>${r.teacher ? ' (저장 안 됨)' : ''}</span></div>
       ${r.cards ? `<div class="stat"><span>새 카드</span><span>${r.cards}장</span></div>` : ''}
       ${r.unlocks.map(u => `<div class="stat"><span>해금</span><span>${esc(u)}</span></div>`).join('')}
     </div>
     <div class="btns"><button class="btn" id="again">다시 출격</button><button class="btn blue" id="tobase">기지로</button></div></div>`);
+  stagger(root().querySelectorAll('.stat'), 90, 14);
+  root().querySelectorAll('[data-count]').forEach((el, i) => setTimeout(() => countUp(el, +el.dataset.count, 1400), 300 + i * 200));
   click('#again', act.again); click('#tobase', act.base);
 }
 
@@ -326,9 +341,15 @@ export function zodiacPick(choices, onPick) {
     return `<div class="choicewrap"><button class="choice" data-i="${i}"><div class="top" style="background:${z.color}"><div class="name">${z.name}</div><div class="art" style="background:#fff">${img ? `<img src="${img}" alt="">` : z.e}</div></div>
       <div class="dots" style="color:#fff;font-size:calc(var(--u)*15);font-weight:900">${esc(z.word)}</div><div class="desc">${esc(z.desc)}</div><div class="elem"><i>🤖</i>${esc(z.key)}</div></button></div>`;
   };
-  show(`<div class="screen dim altar"><div class="upttl ol" style="margin-top:calc(var(--u)*110);font-size:calc(var(--u)*34);width:calc(var(--u)*440)">AI 12지신 수호대</div>
+  const r = show(`<div class="screen dim altar"><div class="upttl ol" style="margin-top:calc(var(--u)*110);font-size:calc(var(--u)*34);width:calc(var(--u)*440)">AI 12지신 수호대</div>
     <p class="ol" style="margin-top:calc(var(--u)*18);font-size:calc(var(--u)*22);text-align:center">이 지역 끝까지 함께 날아 줄<br>동료를 한 마리 고르세요</p>
     <div class="choices">${choices.map(card).join('')}</div></div>`);
-  click('.choice', (e, el) => onPick(choices[+el.dataset.i]));
+  mountFlow(r.querySelector('.altar'), { seed: 12, colors: choices.map(z => z.color), base: '#141a3a', count: 140 });
+  stagger(r.querySelectorAll('.choicewrap'), 140, 30);
+  let picked = false;
+  click('.choice', (e, el) => { if (picked) return; picked = true; jelly(el, () => onPick(choices[+el.dataset.i])); });
 }
+
+// 보스 정화 도장 (M06)
+export function stamp(html, done) { stampFx(root(), html, done); }
 export function zodiacChoices() { const a = [...ZODIAC]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a.slice(0, 3); }
