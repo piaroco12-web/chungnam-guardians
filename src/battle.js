@@ -634,7 +634,7 @@ export class Battle {
 
   // ───────── 적 탄 ─────────
   ebSpeed() { let m = this.diff.bspd; if (!isActive() && this.slowBoon === 'gg_slow') m *= 1 - 0.3 * this.rr('gg_slow'); return m; }
-  shot(x, y, a, sp, o = {}) { const s = sp * this.diff.bspd * (this.pact('fastShots') ? 1.25 : 1); this.eb.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: o.r || 8, c: o.c || '#ff3d5a', t: 0, src: this.shooter || null, ...o }); }
+  shot(x, y, a, sp, o = {}) { const s = sp * this.diff.bspd * (this.pact('fastShots') ? 1.25 : 1); this.eb.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: 0, src: this.shooter || null, ...o, r: o.r || 8, c: o.c || '#ff3d5a' }); }
   aim(x, y, sp, o) { this.shot(x, y, Math.atan2(this.p.y - y, this.p.x - x), sp, o); }
   fan(x, y, n, spread, sp, c) { const base = Math.atan2(this.p.y - y, this.p.x - x); for (let i = 0; i < n; i++) this.shot(x, y, base + (i - (n - 1) / 2) * spread / Math.max(1, n - 1) * 2, sp, { c }); }
   ring(x, y, n, sp, c, off = 0) { for (let i = 0; i < n; i++) this.shot(x, y, off + i / n * Math.PI * 2, sp, { c }); }

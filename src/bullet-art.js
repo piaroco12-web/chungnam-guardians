@@ -164,6 +164,8 @@ function sprite(kind, r, c, ch) {
 }
 
 export function drawEnemyBullet(g, b) {
+  if (typeof b.c !== 'string' || !/^#[0-9a-f]{6}$/i.test(b.c)) b.c = '#ff3d5a';   // 색이 빠진 탄도 멈추지 않고 그린다
+  if (!(b.r > 0)) b.r = 8;
   const kind = kindOf(b);
   if (kind === 'bit' && b.ch == null) b.ch = Math.random() < 0.5 ? '0' : '1';
   const cv = sprite(kind, b.r, b.c, kind === 'bit' ? b.ch : '');

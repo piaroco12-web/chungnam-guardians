@@ -319,7 +319,16 @@ function nextStudent() {
 
 // ───────── 루프 ─────────
 let last = performance.now();
+// 한 프레임에서 오류가 나도 다음 프레임은 계속 돈다 (화면이 멈추고 음악만 남는 일을 막는다)
+let loopErrors = 0;
 function loop(now) {
+  requestAnimationFrame(loop);
+  try { frame(now); } catch (err) {
+    if (++loopErrors <= 5) console.error('[충남 수호대] 프레임 오류', err);
+    try { g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.filter = 'none'; g.shadowBlur = 0; } catch { /* 무시 */ }
+  }
+}
+function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   const b = state.battle;
   input.enabled = !!b && state.scene === 'battle';
@@ -334,7 +343,6 @@ function loop(now) {
     drawMenuBg(dt);
   }
   updateSide(dt, state.scene === 'battle' ? b : null);
-  requestAnimationFrame(loop);
 }
 
 // 메뉴 뒤 배경: 시드로 고정된 흐름장 위를 노랑·민트 빛 알갱이가 흘러간다 (algorithmic-art)
