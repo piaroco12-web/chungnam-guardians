@@ -1,0 +1,9 @@
+<!doctype html><meta charset="utf-8"><title>미사일 디자인 검토</title><style>@font-face{font-family:Game;src:url('../assets/fonts/BlackHanSans-Regular.woff2')}body{margin:0;background:#0c1531;display:grid;place-items:center}canvas{max-width:100vw;height:auto}</style><canvas width="1320" height="800"></canvas><script type="module">
+import{loadAssets,art}from'../src/assets.js';import{drawProjectile}from'../src/combat-vfx.js';await loadAssets();await document.fonts.ready;
+const g=document.querySelector('canvas').getContext('2d');function text(s,x,y,size,col='#fff'){g.font=`${size}px Game`;g.fillStyle=col;g.textAlign='center';g.fillText(s,x,y)}
+function frame(t){g.fillStyle='#0c1531';g.fillRect(0,0,1320,800);text('충남 수호대 · 미사일 입체 디자인 수정안',660,58,34,'#fff0b5');text('검토용 · 아직 미배포 / 실제 비행 렌더러와 연결',660,93,17,'#a9cce8');
+for(let i=0;i<3;i++){let x=24+i*432;g.fillStyle=['#153552','#382d4c','#30264e'][i];g.strokeStyle=['#65dfff','#ff9caa','#c79bff'][i];g.lineWidth=2;g.beginPath();g.roundRect(x,123,408,642,20);g.fill();g.stroke();text(['기본 · 블루 화이트','강화 · 코랄 블루','진화 · 보라 골드'][i],x+204,171,25,['#9aecff','#ffc5d1','#e6c9ff'][i]);
+const im=art.missile([1,4,5][i],i===2);g.drawImage(im,x+24,180,360,360);text(['매끈한 캡슐 몸체 · 금속 테두리','두 겹 날개 · 강화 유도 렌즈','크리스털 코어 · 3중 엔진'][i],x+204,555,17,'#cce3f7');
+text('비행 시 크기와 엔진 불꽃',x+204,603,17,'#b7d3eb');g.save();g.translate(x+204,660);g.scale(1.65,1.65);drawProjectile(g,{x:0,y:0,vx:Math.sin(t*2)*40,vy:-600,r:7,kind:'missile',visualLevel:[1,4,5][i],evolved:i===2},t);g.restore();}}
+window.missileFrame=frame;window.missileReady=true;let paused=false;window.freezeMissile=t=>{paused=true;frame(t)};function tick(t){if(!paused)frame(t/1000);requestAnimationFrame(tick)}requestAnimationFrame(tick);
+</script>

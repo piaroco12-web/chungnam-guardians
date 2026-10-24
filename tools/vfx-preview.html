@@ -1,0 +1,51 @@
+<!doctype html><meta charset="utf-8"><title>충남 수호대 · 탄환과 성장 효과 검토</title>
+<style>@font-face{font-family:Game;src:url('../assets/fonts/BlackHanSans-Regular.woff2')}*{box-sizing:border-box}body{margin:0;background:#0c1531;display:grid;place-items:center}canvas{display:block;max-width:100vw;height:auto}button{position:fixed;right:12px;bottom:12px;padding:12px 20px;background:#ffe5a0;border:2px solid #fff0ba;border-radius:12px;color:#152744;font:bold 16px sans-serif;cursor:pointer}</style>
+<canvas width="1440" height="1120"></canvas><button id="toggle">일시정지 / 재생</button>
+<script type="module">
+import {loadAssets} from '../src/assets.js';
+await loadAssets();
+import {drawProjectile,drawBomb,drawBoomerang,drawSatellite,drawImpact,drawHit} from '../src/combat-vfx.js';
+const c=document.querySelector('canvas'),g=c.getContext('2d'),TAU=Math.PI*2;
+const rows=[['bullet','기관포','#ffce55'],['laser','관통 레이저','#6ceeff'],['drone','유도 드론','#4ff6cc'],['missile','유도 미사일','#ff995b'],['pellet','산탄포','#ce8dff'],['sat','궤도 위성','#96dfff'],['bomb','폭탄','#ffae42'],['boomerang','부메랑','#65deff']];
+const cols=['Lv.1','Lv.2','Lv.3','Lv.4','Lv.5','진화'];
+const text=(s,x,y,size,color='#fff',align='left')=>{g.font=`${size}px Game,sans-serif`;g.fillStyle=color;g.textAlign=align;g.fillText(s,x,y);};
+function panel(x,y,w,h,fill,edge){g.fillStyle=fill;g.strokeStyle=edge;g.lineWidth=1;g.beginPath();g.roundRect(x,y,w,h,12);g.fill();g.stroke();}
+let paused=false;document.querySelector('#toggle').onclick=()=>paused=!paused;
+function frame(t){
+ g.clearRect(0,0,c.width,c.height);g.fillStyle='#0c1531';g.fillRect(0,0,c.width,c.height);
+ text('충남 수호대 · 탄환 성장 & 무기 효과 예시',30,52,34,'#fff0b2');
+ text('같은 그리기 코드를 게임과 예시 화면에 사용 · 검토용 / 미배포',30,86,18,'#a9cce9');
+ text('무기 종류',30,136,21,'#b9d9f0');
+ const start=200,w=200,top=158,rh=100;
+ cols.forEach((v,i)=>text(v,start+i*w+w/2,136,25,i===5?'#ffe2a4':'#d9edff','center'));
+ rows.forEach(([kind,name,hue],ri)=>{
+  const y=top+ri*rh;text(name,30,y+53,24,hue);text(kind==='bomb'?'폭발·충격파':kind==='boomerang'?'회전·귀환 잔상':kind==='sat'?'궤도·패널·고리':'탄두·잔상·명중',30,y+79,13,'#a9c3e2');
+  cols.forEach((_,ci)=>{
+   const x=start+ci*w,lv=ci===5?5:ci+1,evolved=ci===5;
+   panel(x+4,y+4,w-8,rh-8,ci===5?'#302943':'#162744',ci===5?'#ab8955':'#324b70');
+   g.save();g.beginPath();g.rect(x+6,y+6,w-12,rh-12);g.clip();g.translate(x+w/2,y+rh/2);g.scale(1.28,1.28);
+   const p={x:0,y:0,vx:0,vy:-600,r:kind==='laser'?(evolved?10:6):6,kind,visualLevel:lv,evolved};
+   if(kind==='bomb'){
+    const f=(t*.65)%1;if(f<.58)drawBomb(g,p,t);else drawImpact(g,{x:0,y:0,r:28+lv*3,t:(1-(f-.58)/.42)*.5,max:.5,c:'#ffad48',visualLevel:lv,evolved});
+   }else if(kind==='boomerang'){
+    const n=evolved?3:1;for(let i=0;i<n;i++)drawBoomerang(g,{...p,x:(i-(n-1)/2)*29,r:evolved?18:15},t+i*.3);
+   }else if(kind==='sat'){
+    const n=evolved?6:lv;g.strokeStyle='#497ca8';g.lineWidth=1;g.beginPath();g.ellipse(0,0,47,24,0,0,TAU);g.stroke();
+    for(let i=0;i<n;i++){const a=t*1.8+i*TAU/n;drawSatellite(g,{...p,x:Math.cos(a)*47,y:Math.sin(a)*24,r:6},t);}
+   }else{
+    const n=kind==='pellet'?(evolved?12:4+lv):kind==='missile'?(evolved?10:lv):kind==='bullet'&&evolved?3:1;
+    for(let i=0;i<n;i++){
+     const spread=kind==='pellet'?7:kind==='missile'?11:17;
+     drawProjectile(g,{...p,x:(i-(n-1)/2)*spread,y:Math.sin(t*3+i*.2)*5,vx:kind==='pellet'?(i-(n-1)/2)*35:kind==='missile'?Math.sin(t*3+i)*90:0},t+i*.09);
+    }
+    const f=(t*1.5+ri*.11)%1;if(f>.7)drawHit(g,{x:0,y:-25,t:(1-(f-.7)/.3)*.18,max:.18,visualKind:kind,visualLevel:lv,evolved});
+   }g.restore();
+  });
+ });
+ const y=1000;text('속성 가호도 다른 모양',30,y+10,22,'#fff0b2');
+ [['gy_bullet','번개 · 지그재그'],['gg_bullet','빙결 · 눈꽃'],['sh_bullet','파도 · 물결 고리'],['bj_bullet','불꽃 · 화염 꼬리'],['cg_bullet','바람 · 회전 잎'],['ta_bullet','빛 · 별빛 창']].forEach(([elem,label],i)=>{const x=320+i*180;panel(x-65,y-10,166,100,'#182a46','#35516d');g.save();g.translate(x+18,y+24);g.scale(1.3,1.3);drawProjectile(g,{x:0,y:0,vx:0,vy:-600,r:6,kind:'bullet',visualLevel:4,elem},t);g.restore();text(label,x+18,y+75,14,'#d9eaff','center');});
+}
+window.reviewFrame=frame;await document.fonts.ready;window.reviewReady=true;
+let last=0;function tick(now){if(!paused){last=now/1000;frame(last);}requestAnimationFrame(tick)}requestAnimationFrame(tick);
+window.freezeReview=t=>{paused=true;frame(t)};
+</script>
