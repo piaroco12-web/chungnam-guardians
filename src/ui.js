@@ -129,9 +129,10 @@ function cardsTab(bb) {
     : `<div class="ccard"><span class="e">❔</span><span class="k">${hintFor(c)}</span></div>`).join('')}</div>`).join('')}`;
   const opened = STORY.filter(st => save.teacher || save.story.includes(st.id));
   bb.insertAdjacentHTML('beforeend', `<div class="sec-label">이야기 조각 ${opened.length}/${STORY.length}</div><div class="rows">${STORY.map(st => (save.teacher || save.story.includes(st.id))
-    ? `<div class="row"><div class="ic">${st.e}</div><div class="tx"><b>${esc(st.who)}</b><p style="color:#fff">${esc(st.text)}</p></div></div>`
+    ? `<div class="row story" data-st="${st.id}"><div class="ic" style="width:calc(var(--u)*72);height:calc(var(--u)*72);overflow:hidden">${pic.story(st.id) ? `<img src="${pic.story(st.id)}" alt="" style="width:100%;height:100%;object-fit:cover">` : st.e}</div><div class="tx"><b>${esc(st.who)}</b><p style="color:#fff">${esc(st.text)}</p></div></div>`
     : '<div class="row" style="opacity:.5"><div class="ic">🔒</div><div class="tx"><p>출격을 거듭하면 열려요</p></div></div>').join('')}</div>`);
   click('[data-c]', (e, el) => cardModal(CARDS.find(c => c.id === el.dataset.c)), bb);
+  click('[data-st]', (e, el) => { const st = STORY.find(x => x.id === el.dataset.st), im = pic.story(st.id); modal(`${im ? `<img src="${im}" alt="" style="width:100%;border-radius:calc(var(--u)*12);border:calc(var(--u)*3) solid var(--ink)">` : `<div style="font-size:calc(var(--u)*64)">${st.e}</div>`}<b class="ol" style="font-size:calc(var(--u)*26)">${esc(st.who)}</b><p style="font-size:calc(var(--u)*19);font-weight:700;line-height:1.6;text-align:left">${esc(st.text)}</p>`); }, bb);
 }
 function hintFor(c) {
   if (c.kind === '지역 상식') return REGIONS.find(r => 'r_' + r.id === c.id)?.name + ' 클리어';
@@ -197,7 +198,7 @@ export function select(step, sel, act) {
   if (step === 'pact') {
     const on = sel.pacts || (sel.pacts = []);
     const bonus = PACTS.filter(p => on.includes(p.id)).reduce((a, p) => a + p.bonus, 0);
-    body = head(0, '도전 계약') + `<p class="note" style="margin-top:calc(var(--u)*8)">조건을 걸수록 코인을 더 받아요. 안 걸어도 돼요.</p><div class="picks">${PACTS.map(p => `<button class="pick diff pact" data-v="${p.id}" aria-pressed="${on.includes(p.id)}" style="border-color:${on.includes(p.id) ? '#ffc53d' : 'var(--ink)'}"><div class="tx"><b>${p.e} ${p.name} <span class="ck">${on.includes(p.id) ? '✓' : ''}</span></b><p>${p.desc} · 코인 +${Math.round(p.bonus * 100)}%</p></div></button>`).join('')}
+    body = head(0, '도전 계약') + `<p class="note" style="margin-top:calc(var(--u)*8)">조건을 걸수록 코인을 더 받아요. 안 걸어도 돼요.</p><div class="picks">${PACTS.map(p => `<button class="pick diff pact" data-v="${p.id}" aria-pressed="${on.includes(p.id)}" style="border-color:${on.includes(p.id) ? '#ffc53d' : 'var(--ink)'}"><div class="ic" style="width:calc(var(--u)*64);height:calc(var(--u)*64)">${pic.pact(p.id) ? `<img src="${pic.pact(p.id)}" alt="" style="width:100%;height:100%;object-fit:cover">` : p.e}</div><div class="tx"><b>${p.name} <span class="ck">${on.includes(p.id) ? '✓' : ''}</span></b><p>${p.desc} · 코인 +${Math.round(p.bonus * 100)}%</p></div></button>`).join('')}
       <button class="btn" id="pactgo">출격 (코인 +<span id="pb">${Math.round(bonus * 100)}</span>%)</button></div>`;
   }
   if (step === 'region') body = head(4, '시작 지역 (교사 모드)') + `<div class="picks">${REGIONS.map((rg, i) => `<button class="pick diff" data-v="${i}"><div class="tx"><b>${i + 1}. ${rg.name}</b><p>중간 보스 ${BOSSES[rg.mid].name} · 지역 보스 ${BOSSES[rg.boss].name}</p></div></button>`).join('')}</div>`;
@@ -358,7 +359,7 @@ export function result(r, act) {
       <div class="stat"><span>얻은 코인</span><span><span data-count="${r.coins}">0</span>${r.teacher ? ' (저장 안 됨)' : ''}</span></div>
       ${r.cards ? `<div class="stat"><span>새 카드</span><span>${r.cards}장</span></div>` : ''}
       ${r.cardList && r.cardList.length ? `<div class="stat" style="flex-direction:column;gap:calc(var(--u)*4)"><span>오늘 배운 것</span><span style="font-family:var(--body);font-size:calc(var(--u)*17);color:#fff;font-weight:700">${r.cardList.map(c => `${c.e} ${esc(c.title)}`).join('<br>')}</span></div>` : ''}
-      ${r.stories.map(st => `<div class="stat" style="flex-direction:column;gap:calc(var(--u)*4)"><span>📜 새 이야기 조각 · ${esc(st.who)}</span><span style="font-family:var(--body);font-size:calc(var(--u)*16);color:#fff;font-weight:700;line-height:1.5">${esc(st.text)}</span></div>`).join('')}
+      ${r.stories.map(st => `<div class="stat" style="flex-direction:column;gap:calc(var(--u)*4)">${pic.story(st.id) ? `<img src="${pic.story(st.id)}" alt="" style="width:100%;border-radius:calc(var(--u)*8)">` : ''}<span>📜 새 이야기 조각 · ${esc(st.who)}</span><span style="font-family:var(--body);font-size:calc(var(--u)*16);color:#fff;font-weight:700;line-height:1.5">${esc(st.text)}</span></div>`).join('')}
       ${r.unlocks.map(u => `<div class="stat"><span>해금</span><span>${esc(u)}</span></div>`).join('')}
     </div>
     <div class="btns"><button class="btn" id="again">다시 출격</button><button class="btn blue" id="tobase">기지로</button></div></div>`);

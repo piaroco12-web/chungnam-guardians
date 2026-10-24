@@ -74,6 +74,22 @@ TARGETS = {
     'bg_buyeo': ['부여배경', 'bgbuyeo'],
     'bg_boryeong': ['보령배경', 'bgboryeong'],
     'bg_naepo': ['내포배경', 'bgnaepo'],
+    'pact_sheet': ['계약', 'pact'],
+    'story_s01': ['이야기1', '이야기01', 'story01', 's01'],
+    'story_s02': ['이야기2', '이야기02', 'story02', 's02'],
+    'story_s03': ['이야기3', '이야기03', 'story03', 's03'],
+    'story_s04': ['이야기4', '이야기04', 'story04', 's04'],
+    'story_s05': ['이야기5', '이야기05', 'story05', 's05'],
+    'story_s06': ['이야기6', '이야기06', 'story06', 's06'],
+    'story_s07': ['이야기7', '이야기07', 'story07', 's07'],
+    'story_s08': ['이야기8', '이야기08', 'story08', 's08'],
+    'story_s09': ['이야기9', '이야기09', 'story09', 's09'],
+    'story_s10': ['이야기10', '이야기10', 'story10', 's10'],
+    'story_s11': ['이야기11', '이야기11', 'story11', 's11'],
+    'story_s12': ['이야기12', '이야기12', 'story12', 's12'],
+    'story_s13': ['이야기13', '이야기13', 'story13', 's13'],
+    'story_s14': ['이야기14', '이야기14', 'story14', 's14'],
+    'story_s15': ['이야기15', '이야기15', 'story15', 's15'],
     'zodiac_rat': ['쥐', 'rat'], 'zodiac_ox': ['소', 'ox'], 'zodiac_tiger': ['호랑이', 'tiger'],
     'zodiac_rabbit': ['토끼', 'rabbit'], 'zodiac_dragon': ['용', 'dragon'], 'zodiac_snake': ['뱀', 'snake'],
     'zodiac_horse': ['말', 'horse'], 'zodiac_sheep': ['양', 'sheep'], 'zodiac_monkey': ['원숭이', 'monkey'],
@@ -82,8 +98,8 @@ TARGETS = {
 
 # 종류별 처리 방식
 BACKGROUND = {'title_keyart', 'bg_base', 'bg_asan', 'bg_gongju', 'bg_buyeo', 'bg_boryeong', 'bg_naepo'}
-SHEET = {'enemy_sheet', 'fx_items_sheet', 'ui_ultimate_sheet', 'frame_duo_legend'} | {k for k in TARGETS if k.startswith('gift_')}
-KEEP_BG = {'ui_card_back'} | BACKGROUND
+SHEET = {'enemy_sheet', 'fx_items_sheet', 'ui_ultimate_sheet', 'frame_duo_legend', 'pact_sheet'} | {k for k in TARGETS if k.startswith('gift_')}
+KEEP_BG = {'ui_card_back'} | BACKGROUND | {f'story_s{i:02d}' for i in range(1, 16)}
 
 
 def norm(s):
@@ -168,7 +184,7 @@ def trim_square(im, pad=0.04):
     return out
 
 
-GRID = {'enemy_sheet': (3, 2), 'fx_items_sheet': (6, 1), 'ui_ultimate_sheet': (3, 1), 'frame_duo_legend': (3, 1)}
+GRID = {'pact_sheet': (6, 1), 'enemy_sheet': (3, 2), 'fx_items_sheet': (6, 1), 'ui_ultimate_sheet': (3, 1), 'frame_duo_legend': (3, 1)}
 
 
 def segments(profile, want, min_gap=4):
@@ -239,6 +255,9 @@ def process(src, target):
         im = limit(im, 2048)
         notes.append(f'시트: 그림 {cols * rows}개를 못 찾아 원본 칸 유지 (확인 필요)')
         return im, notes
+    if target.startswith('story_'):
+        notes.append('이야기 그림: 자르지 않고 768px')
+        return limit(im.convert('RGB'), 768), notes
     im = trim_square(im)
     side = 768 if target.startswith('boss_') or target == 'title_logo' else 512
     im = limit(im, side)

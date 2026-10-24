@@ -3,6 +3,7 @@
 import { PILOTS, SHIPS, BOSSES, ENEMIES } from '../data/content.js';
 import { GODS } from '../data/boons.js';
 import { ZODIAC } from '../data/zodiac.js';
+import { STORY, PACTS } from '../data/extras.js';
 
 const img = {};          // 이름 → 불러온 Image
 const cache = {};        // 임시 그림 캐시
@@ -19,6 +20,7 @@ const NAMES = [
   ...GODS.flatMap(g => [g.img, g.sheet]),
   ...Object.keys(BOSSES).map(bossFile),
   ...ZODIAC.map(z => 'zodiac_' + z.id),
+  'pact_sheet', ...STORY.map(st => 'story_' + st.id),
   'bg_asan', 'bg_gongju', 'bg_buyeo', 'bg_boryeong', 'bg_naepo',
 ];
 
@@ -168,6 +170,8 @@ export const pic = {
   god: gd => url(get(gd.img) || once('god' + gd.id, () => godArt(gd))),
   boss: id => url(art.boss(id)),
   zodiac: z => (has('zodiac_' + z.id) ? get('zodiac_' + z.id).src : null),
+  story: id => (has('story_' + id) ? get('story_' + id).src : null),
+  pact: id => { const c = cell('pact_sheet', PACTS.findIndex(p => p.id === id), 6); return c ? c.toDataURL() : null; },
   gift: (gd, slotIndex) => { const c = cell(gd.sheet, slotIndex, 5); return c ? c.toDataURL() : null; },
   keyart: () => (has('title_keyart') ? get('title_keyart').src : null),
   logo: () => (has('title_logo') ? get('title_logo').src : null),
