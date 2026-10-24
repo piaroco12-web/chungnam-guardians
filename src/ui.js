@@ -12,7 +12,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.3.4';
+export const VERSION = '2.3.5';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -173,7 +173,9 @@ function hintFor(c) {
   if (c.kind === 'AI 역량') return ZODIAC.find(z => z.id === c.zodiac).name + ' 동료 고르기';
   const b = Object.values(BOSSES).find(x => x.card === c.id); return b ? b.name + ' 처치' : '';
 }
-export function cardModal(c) { modal(`<div class="monochrome-card"><div class="card-modal-art" style="font-size:calc(var(--u)*64)">${cardArt(c)}</div><span class="note">${c.kind}</span><b class="ol" style="font-size:calc(var(--u)*30)">${esc(c.title)}</b><p style="font-size:calc(var(--u)*19);font-weight:700;line-height:1.6;text-align:left">${esc(c.text)}</p></div>`); }
+export function cardModal(c) {
+  modal(`<div class="monochrome-card card-detail" style="display:grid;justify-items:center;gap:calc(var(--u)*12)"><div class="card-modal-art" style="font-size:calc(var(--u)*64)">${cardArt(c)}</div><b class="ol" style="display:block;width:100%;text-align:center;font-size:calc(var(--u)*30)">${esc(c.title)}</b><p style="font-size:calc(var(--u)*19);font-weight:700;line-height:1.6;text-align:left">${esc(c.text)}</p></div>`);
+}
 
 function settings(bb, state, act) {
   const row = (id, name, desc) => `<div class="row"><div class="tx"><b>${name}</b><p>${desc}</p></div><div class="toggle ${save.settings[id] ? 'on' : ''}" data-s="${id}" role="switch" aria-checked="${save.settings[id]}" tabindex="0"></div></div>`;
