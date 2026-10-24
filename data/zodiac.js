@@ -1,5 +1,5 @@
 // AI 12지신 수호대: 중간 보스를 잡으면 3마리 중 1마리가 그 지역 끝까지 함께 난다.
-// word: 학생용 쉬운 말, key: 원래 AI 역량 키워드. 효과는 src/battle.js의 companion 부분.
+// word: 학생용 쉬운 말, key: 원래 AI 역량 키워드(센터 제공 자료의 표기 그대로 사용, 2026.10. 확인). 효과는 src/battle.js의 companion 부분.
 
 export const ZODIAC = [
   { id: 'rat', name: '쥐', e: '🐭', key: '윤리', word: '바르게 쓰기', color: '#d9d9e8', desc: '4초마다 내 주변 적 탄을 깨끗이 지워요',

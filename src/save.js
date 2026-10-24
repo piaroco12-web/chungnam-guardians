@@ -10,7 +10,7 @@ const fresh = () => ({
   coins: 0,
   meta: { atk: 0, hp: 0, magnet: 0, bonus: 0, reroll: 0, revive: 0 },
   cleared: [],          // 처음 클리어한 지역 index
-  beatLegend: false,    // 전설 난이도 최종 클리어 → 지옥 해금
+  beatLegend: false,    // 전설 난이도 최종 클리어 → 극한 난이도 해금
   codex: [],            // 얻어 본 가호·듀오·전설 id
   cards: [],
   tutorialDone: false,

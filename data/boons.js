@@ -29,14 +29,14 @@ export const BOONS = [
   { id: 'gy_slow', god: 'gyeryong', slot: 'slow', name: '섬광 궤적', desc: r => `슬로우 중 지나간 길에 전기선, 닿은 적 피해 <em>${pct(12, r)}</em>` },
   { id: 'gy_orbit', god: 'gyeryong', slot: 'orbit', name: '뇌운 구슬', desc: r => `번개 구슬 2개가 돌며 감전, 피해 <em>${pct(14, r)}</em>` },
   // 금강 · 빙결 (냉기: 감속, 3중첩 빙결)
-  { id: 'gg_bullet', god: 'geumgang', slot: 'bullet', name: '강물 얼음탄', desc: r => `명중 시 냉기 1중첩, 3중첩이면 <em>${(1.5 * r).toFixed(1)}초</em> 빙결` },
-  { id: 'gg_auto', god: 'geumgang', slot: 'auto', name: '서리꽃', desc: r => `5초마다 적 무리에 얼음 폭발 <em>${pct(40, r)}</em> + 냉기 2중첩` },
+  { id: 'gg_bullet', god: 'geumgang', slot: 'bullet', name: '강물 얼음탄', desc: r => `맞히면 냉기 1개, 3개 쌓이면 <em>${(1.5 * r).toFixed(1)}초</em> 빙결` },
+  { id: 'gg_auto', god: 'geumgang', slot: 'auto', name: '서리꽃', desc: r => `5초마다 적 무리에 얼음 폭발 <em>${pct(40, r)}</em> + 냉기 2개` },
   { id: 'gg_hit', god: 'geumgang', slot: 'hit', name: '얼음 껍질', desc: r => `피해 1회 무효, <em>${Math.round(20 / r)}초</em>마다 다시 생김` },
   { id: 'gg_slow', god: 'geumgang', slot: 'slow', name: '고요한 강', desc: r => `슬로우 중 적 탄이 <em>${pct(30, r)}%</em> 더 느려짐` },
   { id: 'gg_orbit', god: 'geumgang', slot: 'orbit', name: '서리 칼날', desc: r => `얼음 칼날 3개가 돌며 냉기, 피해 <em>${pct(12, r)}</em>` },
   // 서해 · 파도 (밀림: 넉백, 관통)
   { id: 'sh_bullet', god: 'seohae', slot: 'bullet', name: '물살탄', desc: r => `탄 관통 <em>+${r >= 2 ? 2 : 1}</em>, 맞은 적을 밀어냄` },
-  { id: 'sh_auto', god: 'seohae', slot: 'auto', name: '해일', desc: r => `6초마다 아래에서 위로 파도, 적 탄 소거 + 피해 <em>${pct(30, r)}</em>` },
+  { id: 'sh_auto', god: 'seohae', slot: 'auto', name: '해일', desc: r => `6초마다 아래에서 위로 파도, 적 탄 지우기 + 피해 <em>${pct(30, r)}</em>` },
   { id: 'sh_hit', god: 'seohae', slot: 'hit', name: '물거품 방울', desc: r => `맞으면 <em>${(3 * r).toFixed(1)}초</em> 동안 방울 보호막` },
   { id: 'sh_slow', god: 'seohae', slot: 'slow', name: '밀물', desc: r => `슬로우 중 탄 크기 <em>+${pct(50, r)}%</em>` },
   { id: 'sh_orbit', god: 'seohae', slot: 'orbit', name: '소용돌이', desc: r => `소용돌이가 돌며 닿은 적 탄 흡수, 피해 <em>${pct(10, r)}</em>` },
@@ -57,7 +57,7 @@ export const BOONS = [
   { id: 'ta_auto', god: 'taean', slot: 'auto', name: '등대 불빛', desc: r => `8초마다 회복 하트가 떨어짐, 체력 <em>${pct(8, r)}</em>` },
   { id: 'ta_hit', god: 'taean', slot: 'hit', name: '빛의 방패', desc: r => `보호막 최대 <em>+${r >= 2 ? 2 : 1}</em>, 12초마다 1개 충전` },
   { id: 'ta_slow', god: 'taean', slot: 'slow', name: '해넘이', desc: r => `슬로우 중 초당 체력 <em>${(1 * r).toFixed(1)}%</em> 회복` },
-  { id: 'ta_orbit', god: 'taean', slot: 'orbit', name: '빛 구슬', desc: r => `빛 구슬 2개가 돌며 닿은 적 탄 소거` },
+  { id: 'ta_orbit', god: 'taean', slot: 'orbit', name: '빛 구슬', desc: r => `빛 구슬 2개가 돌며 닿은 적 탄 지우기` },
 ];
 
 export const DUOS = [
@@ -76,7 +76,7 @@ export const DUOS = [
 export const LEGENDS = [
   { id: 'leg_gyeryong', god: 'gyeryong', name: '천둥 강림', desc: '15초마다 화면 전체에 낙뢰 <em>10회</em>' },
   { id: 'leg_geumgang', god: 'geumgang', name: '백년 빙하', desc: '15초마다 모든 적 <em>2초 빙결</em>' },
-  { id: 'leg_seohae', god: 'seohae', name: '대해일', desc: '15초마다 <em>탄막 전부 소거</em> + 전체 피해' },
+  { id: 'leg_seohae', god: 'seohae', name: '대해일', desc: '15초마다 <em>적 탄 전부 지우기</em> + 전체 피해' },
   { id: 'leg_baekje', god: 'baekje', name: '금동 봉황', desc: '15초마다 거대 봉황이 3초간 <em>모든 적을 태움</em>' },
   { id: 'leg_chilgap', god: 'chilgap', name: '칠갑 대폭풍', desc: '15초마다 회오리 <em>4개</em>가 화면을 휩쓺' },
   { id: 'leg_taean', god: 'taean', name: '꽃지 노을', desc: '15초마다 체력 <em>30%</em> 회복 + 3초 무적' },

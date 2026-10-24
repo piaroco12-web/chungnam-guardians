@@ -12,7 +12,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.2.2';
+export const VERSION = '2.2.3';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -115,6 +115,7 @@ function codex(bb) {
   const cell = (id, cls = '') => `<div class="cell ${got(id) ? 'got ' + cls : ''}" data-b="${id}">${got(id) ? boonIcon(id) : '?'}</div>`;
   const n = [...BOONS, ...DUOS, ...LEGENDS].filter(b => got(b.id)).length;
   bb.innerHTML = `<h2 class="ol">가호 도감 ${n}/${totalCodex()}</h2>
+    <p class="note">제단에서 가호 등급이 나올 확률: ${RARITY.map(r => `${r.name} ${r.w}%`).join(' · ')}</p>
     ${GODS.map(g => `<div class="sec-label">${g.e} ${g.name} · ${g.elem}</div><div class="grid">${BOONS.filter(b => b.god === g.id).map(b => cell(b.id)).join('')}</div>`).join('')}
     <div class="sec-label">듀오 가호</div><div class="grid">${DUOS.map(d => cell(d.id, 'duo')).join('')}</div>
     <div class="sec-label">전설 가호</div><div class="grid">${LEGENDS.map(l => cell(l.id, 'legend')).join('')}</div>`;
@@ -191,7 +192,7 @@ export function select(step, sel, act) {
   if (step === 'pilot') body = head(1, '파일럿 선택') + `<div class="picks">${PILOTS.map(p => {
     const ok = view.pilotUnlocked(p);
     return `<button class="pick ${ok ? '' : 'lock'}" data-v="${p.id}" ${ok ? '' : 'aria-disabled="true"'}><div class="pic"><img src="${pic.pilot(p)}" alt=""></div>
-      <div class="tx"><b>${esc(p.name)}</b><span class="tag">${esc(p.tag)}</span><p>${ok ? `체력 ${p.hp} · ${esc(p.desc)}` : `🔒 ${esc(p.unlock.text)}하면 열려요`}</p></div></button>`;
+      <div class="tx"><b>${esc(p.name)}</b><span class="tag">${esc(p.tag)}</span><p>${ok ? `체력 ${p.hp} · ${esc(p.desc)}` : `🔒 ${esc(p.unlock.text)} 열려요`}</p></div></button>`;
   }).join('')}</div>`;
   if (step === 'ship') body = head(2, '기체 선택') + `<div class="picks">${SHIPS.map(s => `<button class="pick" data-v="${s.id}"><div class="pic"><img src="${pic.hangar(s)}" alt=""></div>
       <div class="tx"><b>${esc(s.name)}</b><span class="tag">${esc(s.tag)}</span><p>${esc(s.desc)}<br>필살기: ${esc(s.ult.name)}</p></div></button>`).join('')}
@@ -320,7 +321,7 @@ export function levelUp(run, choices, ship, onPick) {
     else { name = '응급 수리'; icon = '🔧'; desc = '체력 30% 회복'; elem = '보너스'; }
     return `<div class="choicewrap">${badge ? `<span class="badge">${badge}</span>` : ''}<button class="choice ${cls}" data-i="${i}"><div class="top"><div class="name">${esc(name)}</div><div class="art">${icon}</div></div>${dots(lv)}<div class="desc">${desc}</div><div class="elem"><i>${ei}</i>${elem}</div></button></div>`;
   };
-  const r = show(`<div class="screen dim upgrade-screen"><div class="upttl ol">업그레이드</div>${ownBar(run)}<div class="choices">${choices.map(card).join('')}</div><div class="hint ol">위에서 <em>스킬</em>을 하나 선택해 습득하세요.</div></div>`);
+  const r = show(`<div class="screen dim upgrade-screen"><div class="upttl ol">업그레이드</div>${ownBar(run)}<div class="choices">${choices.map(card).join('')}</div><div class="hint ol">위에서 <em>스킬</em>을 하나 골라 보세요.</div></div>`);
   stagger(r.querySelectorAll('.choicewrap'), 110, 30);
   click('.choice', (e, el) => onPick(choices[+el.dataset.i]));
 }

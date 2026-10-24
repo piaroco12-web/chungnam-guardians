@@ -261,7 +261,7 @@ function finish(b, win, reason = '') {
   progress(s => {
     s.coins += earned;
     if (b.run.kills > s.best.kills) s.best.kills = b.run.kills;
-    if (win && (d.id === 'legend' || d.id === 'hell') && !s.beatLegend) { s.beatLegend = true; unlocks.push('지옥 난이도'); }
+    if (win && (d.id === 'legend' || d.id === 'hell') && !s.beatLegend) { s.beatLegend = true; unlocks.push('극한 난이도'); }
     s.stats.runs++;
     if (win) s.stats.wins++; else if (reason !== 'time') s.stats.deaths++;
     if (win && (d.id === 'legend' || d.id === 'hell')) s.stats.legendWin = true;
