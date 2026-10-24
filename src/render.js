@@ -7,6 +7,7 @@ import { ZODIAC } from '../data/zodiac.js';
 import { drawProjectile, drawBomb, drawBoomerang, drawSatellite, drawImpact, drawHit } from './combat-vfx.js';
 import { save } from './save.js';
 import { drawEnemyBullet } from './bullet-art.js';
+import { drawBeam, drawVine, drawFakeGift, drawOverlay } from './boss-fx.js';
 
 // 섬광 줄이기: 화면 번쩍임·흔들림·빠른 깜빡임을 약하게 (광과민성 배려)
 const calm = () => !!save.settings.calm;
@@ -114,11 +115,8 @@ export function render(g, b, scale) {
 
   // 위험 지대
   for (const h of b.hazards) {
-    if (h.kind === 'vine') { g.strokeStyle = '#2f7a2f'; g.lineWidth = 16; g.beginPath(); g.moveTo(h.x, h.y); g.lineTo(h.x, h.y + (h.len || 0)); g.stroke(); g.strokeStyle = '#7ad16a'; g.lineWidth = 3; for (let y = h.y; y < h.y + (h.len || 0); y += 22) { g.beginPath(); g.moveTo(h.x - 14, y); g.lineTo(h.x, y + 8); g.lineTo(h.x + 14, y); g.stroke(); } }
-    if (h.kind === 'beam') {
-      if (h.warn > 0) { g.fillStyle = `rgba(255,60,90,${calm() ? 0.24 : 0.15 + 0.15 * Math.sin(b.t * 30)})`; g.fillRect(h.x - h.w / 2, h.y, h.w, H); }
-      else { g.fillStyle = 'rgba(255,80,110,.75)'; g.fillRect(h.x - h.w / 2, h.y, h.w, H); g.fillStyle = 'rgba(255,255,255,.8)'; g.fillRect(h.x - h.w / 6, h.y, h.w / 3, H); }
-    }
+    if (h.kind === 'vine') drawVine(g, h, b.t);
+    if (h.kind === 'beam') drawBeam(g, h, b.t, calm());
     if (h.kind === 'spark') { g.fillStyle = `rgba(255,242,122,${Math.min(1, h.t)})`; g.beginPath(); g.arc(h.x, h.y, 6, 0, 7); g.fill(); }
     if (h.kind === 'pillar') { g.fillStyle = h.used ? 'rgba(255,255,255,.15)' : 'rgba(255,240,200,.5)'; g.fillRect(h.x - 18, 0, 36, H); }
   }
@@ -126,7 +124,7 @@ export function render(g, b, scale) {
   // 아이템
   for (const it of b.items) {
     const im = art.item(it.kind === 'xp' ? 'xp' : it.kind === 'coin' ? 'coin' : it.kind === 'heart' ? 'heart' : 'xp');
-    if (it.kind === 'fake') { g.save(); g.globalAlpha = 0.9; g.fillStyle = '#c86bff'; g.translate(it.x, it.y); g.rotate(Math.PI / 4); g.fillRect(-9, -9, 18, 18); g.strokeStyle = '#141414'; g.lineWidth = 3; g.strokeRect(-9, -9, 18, 18); g.restore(); continue; }
+    if (it.kind === 'fake') { drawFakeGift(g, it, b.t); continue; }
     if (it.kind === 'chest') { const bob = Math.sin(b.t * 6) * 3; g.save(); g.shadowColor = '#ffe14a'; g.shadowBlur = 18; emojiAt(g, '🎁', it.x, it.y + bob, 38); g.restore(); continue; }
     if (sprite(g, im, it.x, it.y, it.kind === 'heart' ? 34 : 26)) continue;
     g.save(); g.translate(it.x, it.y);
@@ -172,6 +170,16 @@ export function render(g, b, scale) {
   for (const o of b.objs) {
     if (o.kind === 'bomb') drawBomb(g, o, b.t);
     if (o.kind === 'boomerang') drawBoomerang(g, o, b.t);
+    if (o.kind === 'horse') {
+      // 말이 지나간 세로줄: 아래쪽으로 흩어지는 흙먼지 띠와 속도선
+      const tail = Math.min(H + 80, o.y + 520);
+      const gr = g.createLinearGradient(0, o.y, 0, tail); gr.addColorStop(0, 'rgba(255,214,150,.55)'); gr.addColorStop(1, 'rgba(255,214,150,0)');
+      g.fillStyle = gr; g.beginPath(); g.moveTo(o.x - 26, o.y + 10); g.lineTo(o.x + 26, o.y + 10); g.lineTo(o.x + 44, tail); g.lineTo(o.x - 44, tail); g.closePath(); g.fill();
+      g.strokeStyle = 'rgba(255,255,255,.7)'; g.lineWidth = 3; g.lineCap = 'round';
+      for (const dx of [-30, -12, 14, 32]) { const y0 = o.y + 50 + ((dx * 7 + o.t * 900) % 120 + 120) % 120; g.beginPath(); g.moveTo(o.x + dx, y0); g.lineTo(o.x + dx, y0 + 46); g.stroke(); }
+      if (!sprite(g, art.zodiac('horse'), o.x, o.y, 84)) emojiAt(g, '🐴', o.x, o.y, 56);
+      continue;
+    }
     if (o.kind === 'phoenix' && o.horse) { if (!sprite(g, art.zodiac('horse'), o.x, o.y, 80)) emojiAt(g, '🐴', o.x, o.y, 56); g.fillStyle = 'rgba(255,230,180,.35)'; g.fillRect(0, o.y - 40, o.x, 80); continue; }
     if (o.kind === 'phoenix') { g.save(); g.translate(o.x, o.y); const s = o.big ? 3 : 1; g.scale(o.dir < 0 ? -s : s, s); g.fillStyle = '#ff7a3d'; g.shadowColor = '#ffb23d'; g.shadowBlur = 20; g.beginPath(); g.moveTo(30, 0); g.lineTo(-10, -26); g.lineTo(-4, -6); g.lineTo(-40, -14); g.lineTo(-20, 4); g.lineTo(-40, 16); g.lineTo(-4, 8); g.lineTo(-10, 26); g.closePath(); g.fill(); g.restore(); }
   }
@@ -218,7 +226,7 @@ export function render(g, b, scale) {
   }
 
   // 시야 가림 (먹물·매연)
-  for (const o of b.overlays) { g.save(); g.globalAlpha = Math.min(1, o.t) * (o.kind === 'ink' ? 0.92 : 0.8); g.fillStyle = o.kind === 'ink' ? '#120b1e' : '#6b6f78'; g.beginPath(); for (let i = 0; i < 5; i++) { g.moveTo(o.x + Math.cos(i * 1.3) * o.r * 0.5 + o.r * 0.6, o.y + Math.sin(i * 1.3) * o.r * 0.5); g.arc(o.x + Math.cos(i * 1.3) * o.r * 0.5, o.y + Math.sin(i * 1.3) * o.r * 0.5, o.r * 0.6, 0, 7); } g.fill(); g.restore(); }
+  for (const o of b.overlays) drawOverlay(g, o, b.t);
 
   // 글자
   g.textAlign = 'center'; g.textBaseline = 'middle';

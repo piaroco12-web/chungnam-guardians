@@ -1,6 +1,6 @@
 // 적·보스 탄 그림. 탄을 쏜 쪽(b.src)과 색으로 모양을 고른다.
 // 판정 크기(b.r)와 색 계열은 그대로 두고 겉모양만 바꾼다. 모양은 한 번 그려 두고(캐시) 회전만 해서 그린다.
-const INK = '#141414';
+const INK = '#17123a';   // 테두리: 메뉴 아이콘처럼 짙은 남보라
 const TAU = Math.PI * 2;
 const cache = new Map();
 const FONT = '"Black Han Sans","Noto Sans KR",sans-serif';
@@ -34,7 +34,8 @@ const SPIN = { star: 3, pad: 2, paper: 4, chip: 5, bit: 2, soot: 1, bottle: 2.5,
 // ───────── 그리기 도구 ─────────
 const lighten = (hex, k) => { const n = parseInt(hex.slice(1), 16); const f = v => Math.round(v + (255 - v) * k); return `rgb(${f(n >> 16)},${f((n >> 8) & 255)},${f(n & 255)})`; };
 const darken = (hex, k) => { const n = parseInt(hex.slice(1), 16); const f = v => Math.round(v * (1 - k)); return `rgb(${f(n >> 16)},${f((n >> 8) & 255)},${f(n & 255)})`; };
-function ink(g, w = 2.4) { g.lineJoin = 'round'; g.lineCap = 'round'; g.strokeStyle = INK; g.lineWidth = w; g.stroke(); }
+let curR = 8;   // 지금 그리는 탄 크기: 테두리 두께를 크기에 맞춘다
+function ink(g, w = Math.max(2.2, curR * 0.2)) { g.lineJoin = 'round'; g.lineCap = 'round'; g.strokeStyle = INK; g.lineWidth = w; g.stroke(); }
 function shine(g, x, y, rx, ry) { g.fillStyle = 'rgba(255,255,255,.75)'; g.beginPath(); g.ellipse(x, y, rx, ry, -0.6, 0, TAU); g.fill(); }
 function glyph(g, s, size, color = '#fff', y = 0) { g.font = `${size}px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineWidth = Math.max(2, size * 0.18); g.strokeStyle = INK; g.strokeText(s, 0, y); g.fillStyle = color; g.fillText(s, 0, y); }
 function rrect(g, x, y, w, h, r) { g.beginPath(); g.roundRect(x, y, w, h, r); }
@@ -145,22 +146,79 @@ const SHAPES = {
   },
 };
 
+const ONE_PASS = new Set(['soot', 'chain', 'hook', 'lock']);
+// 같은 모양을 두 번 그리기 위한 도구: 'fill'이면 색칠만, 'stroke'면 선만 그린다
+const FILLS = new Set(['fill', 'fillRect', 'fillText']), STROKES = new Set(['stroke', 'strokeRect', 'strokeText']);
+function only(ctx, mode) {
+  const skip = mode === 'fill' ? STROKES : FILLS;
+  return new Proxy(ctx, {
+    get(t, k) { if (skip.has(k)) return () => {}; const v = t[k]; return typeof v === 'function' ? v.bind(t) : v; },
+    set(t, k, v) { t[k] = v; return true; },
+  });
+}
+// 가장자리 입체감: 윗가장자리는 밝은 띠, 아랫가장자리는 어두운 띠 (모양 테두리를 따라)
+function bevel(cv, d) {
+  const px = cv.width, g = cv.getContext('2d');
+  const band = (dy, color) => {
+    const m = canvas(px), mg = m.getContext('2d');
+    mg.drawImage(cv, 0, 0); mg.globalCompositeOperation = 'destination-out'; mg.drawImage(cv, 0, dy);
+    mg.globalCompositeOperation = 'source-in'; mg.fillStyle = color; mg.fillRect(0, 0, px, px);
+    g.save(); g.globalCompositeOperation = 'source-atop'; g.drawImage(m, 0, 0); g.restore();
+  };
+  band(d, 'rgba(255,255,255,.6)');
+  band(-d, 'rgba(24,10,70,.38)');
+}
+const canvas = (px) => { const c = document.createElement('canvas'); c.width = c.height = px; return c; };
+
+// 탄 한 종류를 한 번 그려 둔다: main(빛무리 + 입체 모양), shadow(바닥 그림자용 실루엣)
+// 모양은 평면으로 그린 뒤 공통 입체 처리를 입힌다 — 위쪽은 밝게, 아래쪽은 어둡게, 윗부분 광택.
+// 메뉴·무기 아이콘의 에나멜 느낌과 맞춘다. 판정 크기는 그대로다.
 function sprite(kind, r, c, ch) {
   const key = `${kind}|${r}|${c}|${ch || ''}`;
-  let cv = cache.get(key);
-  if (cv) return cv;
+  let sp = cache.get(key);
+  if (sp) return sp;
   const R = r + 3, pad = 6, S = 2;                       // 화면에서 보이는 크기는 예전 탄(r+3)과 같게
-  const size = Math.ceil((R * 1.5 + pad) * 2);
-  cv = document.createElement('canvas'); cv.width = cv.height = size * S;
-  const g = cv.getContext('2d'); g.scale(S, S); g.translate(size / 2, size / 2);
-  // 탄 색의 은은한 빛무리: 어두운 배경에서도 잘 보이고 '피할 것'으로 읽히게
-  const halo = g.createRadialGradient(0, 0, R * 0.4, 0, 0, R * 1.5);
-  halo.addColorStop(0, c + 'aa'); halo.addColorStop(1, c + '00');
+  const size = Math.ceil((R * 1.5 + pad) * 2), px = size * S;
+
+  // 1) 색칠만 먼저 (테두리 선은 빼고)
+  const flat = canvas(px), fg = flat.getContext('2d');
+  fg.scale(S, S); fg.translate(size / 2, size / 2);
+  const two = !ONE_PASS.has(kind);
+  curR = R; SHAPES[kind](two ? only(fg, 'fill') : fg, R, c, ch);
+
+  // 2) 색칠한 곳에만 입체 처리 (source-atop): 위는 밝게, 아래는 살짝 어둡게, 윗부분 광택
+  fg.save(); fg.globalCompositeOperation = 'source-atop';
+  const lg = fg.createLinearGradient(0, -R * 1.2, 0, R * 1.2);
+  lg.addColorStop(0, 'rgba(255,255,255,.5)'); lg.addColorStop(0.42, 'rgba(255,255,255,0)');
+  lg.addColorStop(0.58, 'rgba(24,10,70,0)'); lg.addColorStop(1, 'rgba(24,10,70,.42)');
+  fg.fillStyle = lg; fg.fillRect(-size / 2, -size / 2, size, size);
+  fg.globalAlpha = 0.6; fg.fillStyle = '#fff';
+  fg.beginPath(); fg.ellipse(-R * 0.18, -R * 0.52, R * 0.58, R * 0.2, -0.25, 0, TAU); fg.fill();
+  fg.globalAlpha = 0.95; fg.beginPath(); fg.ellipse(-R * 0.55, -R * 0.42, R * 0.12, R * 0.08, -0.6, 0, TAU); fg.fill();
+  fg.restore();
+  bevel(flat, Math.max(2, R * 0.16) * S);
+
+  // 3) 테두리 선을 그 위에 또렷하게
+  if (two) SHAPES[kind](only(fg, 'stroke'), R, c, ch);
+  curR = 8;
+
+  // 4) 빛무리 + 모양
+  const main = canvas(px), g = main.getContext('2d');
+  g.save(); g.scale(S, S); g.translate(size / 2, size / 2);
+  const halo = g.createRadialGradient(0, 0, R * 0.5, 0, 0, R * 1.5);   // 탄 색 빛무리: 어두운 배경에서도 '피할 것'으로 읽히게
+  halo.addColorStop(0, c + '99'); halo.addColorStop(1, c + '00');
   g.fillStyle = halo; g.beginPath(); g.arc(0, 0, R * 1.5, 0, TAU); g.fill();
-  SHAPES[kind](g, R, c, ch);
-  cv.size = size;
-  cache.set(key, cv);
-  return cv;
+  g.restore();
+  g.drawImage(flat, 0, 0);
+
+  // 5) 바닥 그림자 실루엣
+  const shadow = canvas(px), sg = shadow.getContext('2d');
+  sg.filter = `blur(${S * 1.2}px)`; sg.drawImage(flat, 0, 0); sg.filter = 'none';
+  sg.globalCompositeOperation = 'source-in'; sg.fillStyle = 'rgba(6,8,34,.5)'; sg.fillRect(0, 0, px, px);
+
+  sp = { main, shadow, size };
+  cache.set(key, sp);
+  return sp;
 }
 
 export function drawEnemyBullet(g, b) {
@@ -168,17 +226,19 @@ export function drawEnemyBullet(g, b) {
   if (!(b.r > 0)) b.r = 8;
   const kind = kindOf(b);
   if (kind === 'bit' && b.ch == null) b.ch = Math.random() < 0.5 ? '0' : '1';
-  const cv = sprite(kind, b.r, b.c, kind === 'bit' ? b.ch : '');
+  const sp = sprite(kind, b.r, b.c, kind === 'bit' ? b.ch : '');
   let a = 0;
   if (AIM.has(kind)) a = Math.atan2(b.vy, b.vx);
   else if (SPIN[kind]) a = (b.t || 0) * SPIN[kind] * (b.vx < 0 ? -1 : 1);
-  g.save(); g.translate(b.x, b.y);
-  if (a) g.rotate(a);
-  if (kind === 'coin') g.scale(0.35 + 0.65 * Math.abs(Math.cos((b.t || 0) * 5)), 1);
-  g.drawImage(cv, -cv.size / 2, -cv.size / 2, cv.size, cv.size);
+  const sx = kind === 'coin' ? 0.35 + 0.65 * Math.abs(Math.cos((b.t || 0) * 5)) : 1, s = sp.size;
+  // 그림자는 화면 기준으로 아래에 둔다 (탄이 돌아도 그림자는 늘 아래)
+  g.save(); g.translate(b.x + 1, b.y + Math.max(3, b.r * 0.45)); if (a) g.rotate(a); if (sx !== 1) g.scale(sx, 1);
+  g.drawImage(sp.shadow, -s / 2, -s / 2, s, s); g.restore();
+  g.save(); g.translate(b.x, b.y); if (a) g.rotate(a); if (sx !== 1) g.scale(sx, 1);
+  g.drawImage(sp.main, -s / 2, -s / 2, s, s);
   g.restore();
 }
 
 // 미리보기·점검용
 export const BULLET_KINDS = Object.keys(SHAPES);
-export function previewSprite(kind, r, c, ch = '1') { return sprite(kind, r, c, ch); }
+export function previewSprite(kind, r, c, ch = '1') { const sp = sprite(kind, r, c, ch); const v = canvas(sp.main.width); const x = v.getContext('2d'); x.drawImage(sp.shadow, 2, Math.max(6, r * 0.9)); x.drawImage(sp.main, 0, 0); v.size = sp.size; return v; }

@@ -445,6 +445,12 @@ export class Battle {
           if (o.y < -40) alive = false;
           break;
         }
+        case 'horse':
+          o.t += dt; o.y -= 820 * dt;
+          for (const e of [...this.enemies]) if (!o.hit.has(e) && Math.abs(e.x - o.x) < 46 && Math.abs(e.y - o.y) < 60) { o.hit.add(e); this.damage(e, o.dmg, { always: true }); }
+          if (this.boss && !o.hit.has(this.boss) && Math.abs(this.boss.x - o.x) < this.boss.r && Math.abs(this.boss.y - o.y) < this.boss.r) { o.hit.add(this.boss); this.damage(this.boss, o.dmg, { always: true }); }
+          if (o.y < -90) alive = false;
+          break;
         case 'phoenix':
           if (o.big) { o.t -= dt; if ((o.acc = (o.acc || 0) + dt) > 0.3) { o.acc = 0; for (const e of [...this.enemies]) this.damage(e, o.dmg * 0.3, { elem: 'burn', always: true }); } if (o.t <= 0) alive = false; }
           else { o.x += o.dir * 700 * dt; for (const e of [...this.enemies]) if (!o.hit.has(e) && Math.abs(e.x - o.x) < 40 && Math.abs(e.y - o.y) < 60) { o.hit.add(e); this.damage(e, o.dmg, { elem: o.horse ? null : 'burn', always: true }); } if (o.x < -100 || o.x > W + 100) alive = false; }
@@ -723,7 +729,14 @@ export class Battle {
     if (c === 'rat' && tick('z', 4)) { const n = this.eb.length; this.eb = this.eb.filter(b => dist2(b, this.p) > 150 * 150); if (n !== this.eb.length) this.fx.push({ kind: 'ring', x: this.p.x, y: this.p.y, r: 150, t: 0.35, max: 0.35, c: '#ffffff' }); }
     if (c === 'dragon' && tick('z', 3)) { let t = null; for (const e of this.enemies) if (!e.decoy && !e.dying && e.y > 0 && (!t || e.hp > t.hp)) t = e; if (t) { this.fx.push({ kind: 'bolt', x: t.x, y: t.y, t: 0.25 }); this.damage(t, 70 * st.atk, {}); } }
     if (c === 'snake' && tick('z', 0.8)) this.homing(pos.x, pos.y, 16 * st.atk, { kind: 'drone' });
-    if (c === 'horse' && tick('z', 5)) { const y = clamp(this.p.y - 260, 160, 600); this.objs.push({ kind: 'phoenix', x: -60, y, dir: 1, hit: new Set(), dmg: 45 * st.atk, big: false, horse: true }); }
+    if (c === 'horse' && tick('z', 5)) {
+      // 화면 안 적들 가운데 좌우 ±46 안에 가장 많이 모인 줄(같으면 보스·정예가 있는 줄)을 골라 세로로 달린다
+      const foes = this.enemies.filter(e => !e.decoy && !e.dying && e.y > 20 && e.y < H - 40);
+      const all = foes;   // 보스도 enemies 안에 있다
+      let x = this.p.x, best = -1;
+      for (const a of all) { const n = all.reduce((s, e) => s + (Math.abs(e.x - a.x) < 46 ? (e.isBoss || e.elite ? 2 : 1) : 0), 0); if (n > best) { best = n; x = a.x; } }
+      this.objs.push({ kind: 'horse', x: clamp(x, 40, W - 40), y: H + 70, hit: new Set(), dmg: 45 * st.atk, t: 0 });
+    }
     if (c === 'monkey' && tick('z', 6)) { const t = pick(this.enemies.filter(e => !e.decoy && !e.dying && e.y > 0)); if (t) { const el = pick(['shock', 'chill', 'burn', 'wave']); this.explode(t.x, t.y, 90 * st.area, 45 * st.atk, { elem: el, color: { shock: '#fff27a', chill: '#bfefff', burn: '#ff7a3d', wave: '#4f9bff' }[el] }); } }
     if (c === 'rooster') this.addGauge(2 * dt);
     if (c === 'dog' && tick('z', 10)) { if (this.p.shields < this.maxShields + 1) this.p.shields++; this.heal(3); sfx.shield(); }
