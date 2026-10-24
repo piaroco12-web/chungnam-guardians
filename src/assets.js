@@ -20,7 +20,7 @@ const NAMES = [
   ...GODS.flatMap(g => [g.img, g.sheet]),
   ...Object.keys(BOSSES).flatMap(id => [bossFile(id), bossFile(id) + '_cleansed']),
   ...ZODIAC.map(z => 'zodiac_' + z.id),
-  'pact_sheet', 'upgrade_icons_sheet', 'enemy_bug_round_sheet', ...STORY.map(st => 'story_' + st.id),
+  'pact_sheet', 'upgrade_icons_sheet', 'upgrade_full_sheet', 'meta_upgrade_sheet', 'missile_refined_sheet', 'enemy_bug_round_sheet', ...STORY.map(st => 'story_' + st.id),
   'bg_asan', 'bg_gongju', 'bg_buyeo', 'bg_boryeong', 'bg_naepo',
 ];
 
@@ -30,7 +30,7 @@ export function loadAssets(onProgress) {
     const i = new Image();
     i.onload = () => { img[n] = i; res(); onProgress && onProgress(++done / NAMES.length); };
     i.onerror = () => { res(); onProgress && onProgress(++done / NAMES.length); };
-    i.src = `assets/img/${n}.png`;
+    i.src = new URL(`../assets/img/${n}.png`, import.meta.url).href;
   })));
 }
 
@@ -166,6 +166,7 @@ export const art = {
   enemy: (t, elite = false) => (t === 'bug' && roundedBug(elite)) || cell('enemy_sheet', ENEMY_ORDER.indexOf(t), 3, 2) || once('en' + t, () => enemyArt(t)),
   boss: id => get(bossFile(id)) || once('boss' + id, () => bossArt(id)),
   drone: () => get('unit_drone'),
+  missile: (lv = 1, evolved = false) => cell('missile_refined_sheet', evolved ? 2 : lv >= 3 ? 1 : 0, 3),
   zodiac: id => get('zodiac_' + id),
   item: k => cell('fx_items_sheet', ITEM_ORDER.indexOf(k), 6),
   bg: name => get(name),
@@ -174,7 +175,15 @@ export const art = {
 // 화면(DOM)용 그림 주소
 const url = c => (c.toDataURL ? c.toDataURL() : c.src);
 export const pic = {
-  skill: id => { const i = ['boomerang', 'area', 'crit'].indexOf(id); const c = i >= 0 && cell('upgrade_icons_sheet', i, 3); return c ? c.toDataURL() : null; },
+  meta: id => { const i = ['atk', 'hp', 'magnet', 'bonus', 'reroll', 'revive'].indexOf(id); const c = i >= 0 && cell('meta_upgrade_sheet', i, 3, 2); return c ? c.toDataURL() : null; },
+  skill: id => {
+    if (id === 'missile') { const im = cell('missile_refined_sheet', 1, 3); if (im) return im.toDataURL(); }
+    const index = ['main', 'missile', 'shotgun', 'satellite', 'bomb', 'rate', 'speed', 'cd', 'size', 'dur'].indexOf(id);
+    const m = ['atk', 'hp', 'magnet', 'bonus', 'reroll', 'revive'].indexOf(id);
+    const i = ['boomerang', 'area', 'crit'].indexOf(id);
+    const c = index >= 0 ? cell('upgrade_full_sheet', index, 5, 2) : m >= 0 ? cell('meta_upgrade_sheet', m, 3, 2) : i >= 0 ? cell('upgrade_icons_sheet', i, 3) : null;
+    return c ? c.toDataURL() : null;
+  },
   pilot: p => url(get('pilot_' + p.id) || once('pi' + p.id, () => pilotArt(p))),
   hangar: s => url(get('ship_' + s.id + '_hangar') || once('hg' + s.id, () => hangarArt(s))),
   god: gd => url(get(gd.img) || once('god' + gd.id, () => godArt(gd))),

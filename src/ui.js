@@ -12,7 +12,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.2.3';
+export const VERSION = '2.2.4';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -24,8 +24,8 @@ export function toast(msg) { const t = document.createElement('div'); t.classNam
 function boonIcon(id) {
   const b = BOONS.find(x => x.id === id);
   if (b) { const g = godOf(b.god); const slotIdx = ['bullet', 'auto', 'hit', 'slow', 'orbit'].indexOf(b.slot); const u = pic.gift(g, slotIdx); return u ? `<img src="${u}" alt="">` : g.e; }
-  const d = DUOS.find(x => x.id === id); if (d) return d.gods.map(gid => godOf(gid).e).join('');
-  const l = LEGENDS.find(x => x.id === id); if (l) return '👑' + godOf(l.god).e;
+  const d = DUOS.find(x => x.id === id); if (d) return `<span class="duo-mark">${d.gods.map(gid => `<img src="${pic.god(godOf(gid))}" alt="">`).join('')}</span>`;
+  const l = LEGENDS.find(x => x.id === id); if (l) return `<img src="${pic.god(godOf(l.god))}" alt="">`;
   return '?';
 }
 const weaponDef = id => WEAPONS.find(w => w.id === id);
@@ -35,8 +35,13 @@ const dots = (lv, max = 3) => `<div class="dots">${Array.from({ length: max }, (
 const coinIcon = '<span class="coin"></span>';
 function cardArt(c) {
   const z = c.zodiac && ZODIAC.find(z => z.id === c.zodiac);
-  const img = z && pic.zodiac(z);
-  return img ? `<img class="card-character" src="${img}" alt="${esc(ZODIAC.find(z => z.id === c.zodiac)?.name || '')}">` : c.e;
+  if (z) return `<img class="card-character" src="${pic.zodiac(z)}" alt="${esc(z.name)}">`;
+  if (c.god) return `<img class="card-character" src="${pic.god(godOf(c.god))}" alt="${esc(godOf(c.god).name)}">`;
+  const boss = Object.entries(BOSSES).find(([, b]) => b.card === c.id);
+  if (boss) return `<img class="card-character" src="${pic.cleansed(boss[0]) || pic.boss(boss[0])}" alt="${esc(boss[1].name)}">`;
+  const rg = REGIONS.find(r => 'r_' + r.id === c.id), bg = rg && art.bg(rg.bg);
+  if (bg?.src) return `<img class="card-character card-scene" src="${bg.src}" alt="${esc(rg.name)}">`;
+  return c.e;
 }
 
 // ───────── 로딩 ─────────
@@ -95,11 +100,15 @@ function sortie(bb, state, act) {
 }
 
 function metaTab(bb, state, act) {
-  bb.innerHTML = `<h2 class="ol">영구 강화</h2><div class="rows">${META_UPGRADES.map(m => {
+  bb.classList.add('meta-panel');
+  const priceCoin = art.item('coin');
+  const coinArt = priceCoin ? `<span class="meta-price-coin"><img src="${priceCoin.toDataURL()}" alt="코인"></span>` : coinIcon;
+  bb.innerHTML = `<h2 class="ol">영구 강화</h2><div class="rows meta-rows">${META_UPGRADES.map(m => {
     const lv = save.meta[m.id], max = lv >= m.max, cost = m.cost(lv);
-    return `<div class="row"><div class="ic">${m.icon}</div><div class="tx"><b>${m.name}</b><p>${m.desc(Math.max(lv, 1))}${lv ? '' : ' (다음 단계)'}</p>
-      <div class="pips">${Array.from({ length: m.max }, (_, i) => `<i class="${i < lv ? 'on' : ''}"></i>`).join('')}</div></div>
-      <button class="btn sm ${save.coins < cost && !max ? 'gray' : ''}" data-m="${m.id}" ${max ? 'disabled' : ''}>${max ? '최대' : coinIcon + ' ' + cost}</button></div>`;
+    const im = pic.meta(m.id);
+    return `<div class="row meta-row meta-${m.id}"><div class="ic">${im ? `<img src="${im}" alt="">` : m.icon}</div><div class="tx"><b>${m.name}</b><p>${m.desc(Math.max(lv, 1))}${lv ? '' : ' (다음 단계)'}</p>
+      <div class="meta-progress"><div class="pips">${Array.from({ length: m.max }, (_, i) => `<i class="${i < lv ? 'on' : ''}"></i>`).join('')}</div><span class="meta-level">${lv}/${m.max}</span></div></div>
+      <button class="btn sm meta-cost ${save.coins < cost && !max ? 'gray' : ''}" aria-label="${m.name} ${max ? '최대 단계' : `${cost}코인으로 강화`}" data-m="${m.id}" ${max ? 'disabled' : ''}>${max ? 'MAX' : coinArt + '<span>' + cost + '</span>'}</button></div>`;
   }).join('')}</div>${save.teacher ? '<p class="note" style="margin-top:calc(var(--u)*12)">교사 모드에서는 강화가 저장되지 않아요.</p>' : ''}`;
   click('[data-m]', (e, el) => {
     const m = META_UPGRADES.find(x => x.id === el.dataset.m), lv = save.meta[m.id], cost = m.cost(lv);
@@ -272,7 +281,7 @@ function slotCells(items, n = 5, cls = '') {
   return `<div class="slotbody ${cls}">${Array.from({ length: n }, (_, i) => { const it = items[i]; return it ? `<div class="slot got"><div class="face">${it.icon}</div>${dots(it.lv, it.max || 5)}</div>` : '<div class="slot"></div>'; }).join('')}</div>`;
 }
 export function ownedLists(run) {
-  const weapons = Object.entries(run.weapons).map(([id, lv]) => ({ icon: run.evolved.includes(EVOLUTIONS.find(e => e.from === id)?.id) ? '🌟' : skillArt(weaponDef(id)), lv, max: 5 }));
+  const weapons = Object.entries(run.weapons).map(([id, lv]) => ({ icon: run.evolved.includes(EVOLUTIONS.find(e => e.from === id)?.id) ? `<span class="evolved-skill">${skillArt(weaponDef(id))}</span>` : skillArt(weaponDef(id)), lv, max: 5 }));
   const ups = Object.entries(run.upgrades).map(([id, lv]) => ({ icon: skillArt(upDef(id)), lv, max: 5 }));
   const boons = [...Object.entries(run.boons).map(([id, r]) => ({ icon: boonIcon(id), lv: r + 1, max: 3 })), ...run.duos.map(id => ({ icon: boonIcon(id), lv: 3, max: 3 })), ...(run.legend ? [{ icon: boonIcon(run.legend), lv: 3, max: 3 }] : [])];
   return { weapons, ups, boons };
@@ -316,7 +325,7 @@ export function levelUp(run, choices, ship, onPick) {
     let name, icon, desc, badge = '', elem = '물리', ei = '🔸', lv = 0, max = 3, cls = '';
     if (c.type === 'weapon') { name = c.def.name; icon = skillArt(c.def); lv = Math.min(3, Math.ceil((c.lv + 1) * 3 / 5)); desc = c.lv ? `<span class="up">Lv.${c.lv} → ${c.lv + 1}</span><br>${c.def.desc(c.lv + 1)}` : c.def.desc(1); badge = c.lv ? '' : '신규'; }
     else if (c.type === 'upgrade') { name = c.def.name; icon = skillArt(c.def); lv = Math.min(3, Math.ceil((c.lv + 1) * 3 / 5)); desc = c.def.desc(c.lv + 1); badge = c.lv ? '' : '신규'; elem = '강화'; ei = '📘'; }
-    else if (c.type === 'evo') { const ev = c.ev; name = typeof ev.name === 'string' ? ev.name : ev.name[ship]; desc = typeof ev.desc === 'string' ? ev.desc : ev.desc[ship]; icon = ev.icon; badge = '진화'; lv = 3; cls = 'legend'; elem = '진화'; ei = '🌟'; }
+    else if (c.type === 'evo') { const ev = c.ev; name = typeof ev.name === 'string' ? ev.name : ev.name[ship]; desc = typeof ev.desc === 'string' ? ev.desc : ev.desc[ship]; icon = `<span class="evolved-skill">${skillArt(weaponDef(ev.from))}</span>`; badge = '진화'; lv = 3; cls = 'legend'; elem = '진화'; ei = '🌟'; }
     else if (c.type === 'coin') { name = '코인 꾸러미'; icon = '💰'; desc = '코인 +20'; elem = '보너스'; }
     else { name = '응급 수리'; icon = '🔧'; desc = '체력 30% 회복'; elem = '보너스'; }
     return `<div class="choicewrap">${badge ? `<span class="badge">${badge}</span>` : ''}<button class="choice ${cls}" data-i="${i}"><div class="top"><div class="name">${esc(name)}</div><div class="art">${icon}</div></div>${dots(lv)}<div class="desc">${desc}</div><div class="elem"><i>${ei}</i>${elem}</div></button></div>`;

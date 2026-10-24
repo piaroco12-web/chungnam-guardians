@@ -4,6 +4,7 @@ import { art } from './assets.js';
 import { isActive } from './input.js';
 import { REGIONS, ENEMIES } from '../data/content.js';
 import { ZODIAC } from '../data/zodiac.js';
+import { drawProjectile, drawBomb, drawBoomerang, drawSatellite, drawImpact, drawHit } from './combat-vfx.js';
 
 function emojiAt(g, e, x, y, size) { g.font = `${size}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Game Emoji","Game Emoji",sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(e, x, y); }
 
@@ -78,23 +79,6 @@ function sprite(g, im, x, y, size, rot = 0) {
   g.restore(); return true;
 }
 
-function bullet(g, b) {
-  g.save();
-  if (b.kind === 'laser' || b.kind === 'beam') {
-    g.fillStyle = b.kind === 'beam' ? '#ffd0e0' : '#d9ff9a';
-    g.shadowColor = b.kind === 'beam' ? '#ff8acb' : '#8fd14f'; g.shadowBlur = 12;
-    g.fillRect(b.x - b.r * 0.6, b.y - 28, b.r * 1.2, 56);
-  } else if (b.kind === 'missile' || b.kind === 'drone' || b.kind === 'homing') {
-    g.fillStyle = b.kind === 'drone' ? '#3fe0c0' : '#ffb23d';
-    g.beginPath(); g.arc(b.x, b.y, b.r, 0, 7); g.fill(); g.strokeStyle = '#141414'; g.lineWidth = 2; g.stroke();
-  } else {
-    const col = { shock: '#fff27a', chill: '#bfefff', burn: '#ff9a3c', wave: '#7ab8ff', null: '#fff2a8' }[b.elem] || '#fff2a8';
-    g.fillStyle = col; g.shadowColor = col; g.shadowBlur = 10;
-    g.beginPath(); g.ellipse(b.x, b.y, b.r * 0.7, b.r * 1.8, 0, 0, 7); g.fill();
-  }
-  g.restore();
-}
-
 function enemyBullet(g, b) {
   g.fillStyle = b.c; g.beginPath(); g.arc(b.x, b.y, b.r + 3, 0, 7); g.fill();
   g.fillStyle = '#fff'; g.beginPath(); g.arc(b.x, b.y, b.r * 0.55, 0, 7); g.fill();
@@ -107,6 +91,7 @@ function statusMarks(g, e, t) {
 }
 
 function orbit(g, o, t) {
+  if (o.kind === 'sat') return drawSatellite(g, o, t);
   const c = { sat: '#c9d6ff', gy_orbit: '#fff27a', gg_orbit: '#bfefff', sh_orbit: '#4f9bff', bj_orbit: '#ff7a3d', cg_orbit: '#6fdc6a', ta_orbit: '#ffe9f2' }[o.kind];
   g.save(); g.translate(o.x, o.y);
   g.fillStyle = c; g.strokeStyle = '#141414'; g.lineWidth = 3;
@@ -179,10 +164,10 @@ export function render(g, b, scale) {
   }
 
   // 플레이어 탄
-  for (const p of b.pb) bullet(g, p);
+  for (const p of b.pb) drawProjectile(g, p, b.t);
   for (const o of b.objs) {
-    if (o.kind === 'bomb') { g.fillStyle = '#333'; g.beginPath(); g.arc(o.x, o.y, 11, 0, 7); g.fill(); g.strokeStyle = '#ffb23d'; g.lineWidth = 3; g.stroke(); }
-    if (o.kind === 'boomerang') { g.save(); g.translate(o.x, o.y); g.rotate(b.t * 18); g.fillStyle = '#e9f0ff'; g.strokeStyle = '#141414'; g.lineWidth = 3; g.beginPath(); g.moveTo(-o.r, 0); g.quadraticCurveTo(0, -o.r, o.r, 0); g.quadraticCurveTo(0, -o.r * 0.4, -o.r, 0); g.fill(); g.stroke(); g.restore(); }
+    if (o.kind === 'bomb') drawBomb(g, o, b.t);
+    if (o.kind === 'boomerang') drawBoomerang(g, o, b.t);
     if (o.kind === 'phoenix' && o.horse) { if (!sprite(g, art.zodiac('horse'), o.x, o.y, 80)) emojiAt(g, '🐴', o.x, o.y, 56); g.fillStyle = 'rgba(255,230,180,.35)'; g.fillRect(0, o.y - 40, o.x, 80); continue; }
     if (o.kind === 'phoenix') { g.save(); g.translate(o.x, o.y); const s = o.big ? 3 : 1; g.scale(o.dir < 0 ? -s : s, s); g.fillStyle = '#ff7a3d'; g.shadowColor = '#ffb23d'; g.shadowBlur = 20; g.beginPath(); g.moveTo(30, 0); g.lineTo(-10, -26); g.lineTo(-4, -6); g.lineTo(-40, -14); g.lineTo(-20, 4); g.lineTo(-40, 16); g.lineTo(-4, 8); g.lineTo(-10, 26); g.closePath(); g.fill(); g.restore(); }
   }
@@ -222,7 +207,8 @@ export function render(g, b, scale) {
   // 효과
   for (const f of b.fx) {
     if (f.kind === 'p') { g.globalAlpha = Math.min(1, f.t * 3); g.fillStyle = f.c; g.beginPath(); g.arc(f.x, f.y, f.r, 0, 7); g.fill(); g.globalAlpha = 1; }
-    else if (f.kind === 'ring') { const k = 1 - f.t / f.max; g.strokeStyle = f.c; g.globalAlpha = 1 - k; g.lineWidth = 8 * (1 - k) + 2; g.beginPath(); g.arc(f.x, f.y, f.r * (0.3 + 0.7 * k), 0, 7); g.stroke(); g.globalAlpha = 1; }
+    else if (f.kind === 'ring') drawImpact(g, f);
+    else if (f.kind === 'weaponHit') drawHit(g, f);
     else if (f.kind === 'bolt') { g.strokeStyle = '#fff27a'; g.lineWidth = 5; g.shadowColor = '#fff27a'; g.shadowBlur = 16; g.beginPath(); let x = f.x + (Math.random() - 0.5) * 40, y = 0; g.moveTo(x, y); while (y < f.y) { y += 40; x = f.x + (Math.random() - 0.5) * 40 * (1 - y / f.y); g.lineTo(x, Math.min(y, f.y)); } g.stroke(); g.shadowBlur = 0; }
     else if (f.kind === 'chain') { g.strokeStyle = '#fff27a'; g.lineWidth = 3; g.beginPath(); g.moveTo(f.x1, f.y1); const mx = (f.x1 + f.x2) / 2 + (Math.random() - 0.5) * 30, my = (f.y1 + f.y2) / 2 + (Math.random() - 0.5) * 30; g.lineTo(mx, my); g.lineTo(f.x2, f.y2); g.stroke(); }
   }

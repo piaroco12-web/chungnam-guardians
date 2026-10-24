@@ -283,7 +283,7 @@ export class Battle {
     for (const s of angles) {
       this.pb.push({ x: p.x + s.ox, y: p.y - 30, vx: Math.sin(s.a) * speed, vy: -Math.cos(s.a) * speed, dmg: beam ? dmg * 3 * this.rr('ta_bullet') : dmg,
         r: (laser ? 7 : 6) * size * (laser && this.evo('evo_main') ? 2 : 1), pierce: beam ? 99 : pierce, kind: beam ? 'beam' : laser ? 'laser' : 'bullet',
-        elem: this.bulletElem, hit: new Set(), main: true });
+        elem: this.bulletElem, hit: new Set(), main: true, visualLevel: this.wl('main'), evolved: this.evo('evo_main') });
     }
     sfx.shoot();
     // 드론호 드론
@@ -297,7 +297,8 @@ export class Battle {
 
   homing(x, y, dmg, opts = {}) {
     const a = -Math.PI / 2 + rnd(-0.5, 0.5);
-    this.pb.push({ x, y, vx: Math.cos(a) * 420, vy: Math.sin(a) * 420, dmg, r: opts.r || 6, pierce: 0, kind: opts.kind || 'homing', homing: true, elem: opts.elem || null, hit: new Set(), explode: opts.explode, color: opts.color });
+    const weapon = opts.kind === 'missile' ? 'missile' : 'main';
+    this.pb.push({ x, y, vx: Math.cos(a) * 420, vy: Math.sin(a) * 420, dmg, r: opts.r || 6, pierce: 0, kind: opts.kind || 'homing', homing: true, elem: opts.elem || null, hit: new Set(), explode: opts.explode, color: opts.color, visualLevel: this.wl(weapon), evolved: this.evo('evo_' + weapon) });
   }
 
   updateWeapons(dt) {
@@ -316,14 +317,14 @@ export class Battle {
     }
     if (this.wl('shotgun') && tick('shotgun', 1.6 * st.cd)) {
       const ev = this.evo('evo_shotgun'), n = ev ? 12 : 4 + this.wl('shotgun');
-      for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + (i - (n - 1) / 2) * (ev ? 0.09 : 0.16); this.pb.push({ x: p.x, y: p.y - 20, vx: Math.cos(a) * 700 * st.speed, vy: Math.sin(a) * 700 * st.speed, dmg: 9 * st.atk, r: 6 * st.size, pierce: ev ? 1 : 0, kind: 'pellet', hit: new Set(), elem: null }); }
+      for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + (i - (n - 1) / 2) * (ev ? 0.09 : 0.16); this.pb.push({ x: p.x, y: p.y - 20, vx: Math.cos(a) * 700 * st.speed, vy: Math.sin(a) * 700 * st.speed, dmg: 9 * st.atk, r: 6 * st.size, pierce: ev ? 1 : 0, kind: 'pellet', hit: new Set(), elem: null, visualLevel: this.wl('shotgun'), evolved: ev }); }
     }
     if (this.wl('bomb') && tick('bomb', 2.5 * st.cd)) {
-      this.objs.push({ kind: 'bomb', x: p.x, y: p.y - 30, t: 0.8, vy: -320, r: (70 + this.wl('bomb') * 10) * st.area, dmg: (30 + this.wl('bomb') * 5) * st.atk, cluster: this.evo('evo_bomb') });
+      this.objs.push({ kind: 'bomb', x: p.x, y: p.y - 30, t: 0.8, vy: -320, r: (70 + this.wl('bomb') * 10) * st.area, dmg: (30 + this.wl('bomb') * 5) * st.atk, cluster: this.evo('evo_bomb'), visualLevel: this.wl('bomb'), evolved: this.evo('evo_bomb') });
     }
     if (this.wl('boomerang') && tick('boomer', 2 * st.cd)) {
       const ev = this.evo('evo_boomerang'), n = ev ? 3 : 1;
-      for (let i = 0; i < n; i++) this.objs.push({ kind: 'boomerang', x: p.x, y: p.y, vx: (i - (n - 1) / 2) * 160, vy: -650 * st.speed, t: 0, r: 18 * (ev ? 2 : 1) * st.size, dmg: (18 + this.wl('boomerang') * 6) * st.atk, hitCd: new Map() });
+      for (let i = 0; i < n; i++) this.objs.push({ kind: 'boomerang', x: p.x, y: p.y, vx: (i - (n - 1) / 2) * 160, vy: -650 * st.speed, t: 0, r: 18 * (ev ? 2 : 1) * st.size, dmg: (18 + this.wl('boomerang') * 6) * st.atk, hitCd: new Map(), visualLevel: this.wl('boomerang'), evolved: ev });
     }
   }
 
@@ -336,7 +337,7 @@ export class Battle {
   orbits() {
     const list = [], st = this.st, t = this.t;
     const add = (kind, n, rad, spd, dmg, opts = {}) => { for (let i = 0; i < n; i++) { const a = t * spd + i * Math.PI * 2 / n; list.push({ kind, x: this.p.x + Math.cos(a) * rad, y: this.p.y + Math.sin(a) * rad, dmg, r: opts.r || 14, ...opts }); } };
-    if (this.wl('satellite')) { const ev = this.evo('evo_satellite'); add('sat', ev ? 6 : this.wl('satellite'), ev ? 84 : 62, 3, (ev ? 18 : 12) * st.atk); }
+    if (this.wl('satellite')) { const ev = this.evo('evo_satellite'); add('sat', ev ? 6 : this.wl('satellite'), ev ? 84 : 62, 3, (ev ? 18 : 12) * st.atk, { visualLevel: this.wl('satellite'), evolved: ev }); }
     if (this.has('gy_orbit')) add('gy_orbit', 2, 74, 2.4, 14 * this.rr('gy_orbit') * st.atk, { elem: 'shock', r: 15 });
     if (this.has('gg_orbit')) add('gg_orbit', 3, 96, -2, 12 * this.rr('gg_orbit') * st.atk, { elem: 'chill', r: 14 });
     if (this.has('sh_orbit')) add('sh_orbit', 1, 70, 1.6, 10 * this.rr('sh_orbit') * st.atk, { r: 26, absorb: true, elem: 'wave' });
@@ -426,7 +427,7 @@ export class Battle {
       switch (o.kind) {
         case 'spawnLater': case 'later': o.t -= dt; if (o.t <= 0) { o.fn(); alive = false; } break;
         case 'bomb': o.y += o.vy * dt; o.vy *= 0.97; o.t -= dt;
-          if (o.t <= 0) { this.explode(o.x, o.y, o.r, o.dmg, { color: '#ffb23d' }); if (o.cluster) for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2; this.objs.push({ kind: 'later', t: 0.2, fn: () => this.explode(o.x + Math.cos(a) * 70, o.y + Math.sin(a) * 70, 40, o.dmg * 0.5, { color: '#ffd27a', silent: true }) }); } alive = false; }
+          if (o.t <= 0) { this.explode(o.x, o.y, o.r, o.dmg, { color: '#ffb23d', visualLevel: o.visualLevel, evolved: o.evolved }); if (o.cluster) for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2; this.objs.push({ kind: 'later', t: 0.2, fn: () => this.explode(o.x + Math.cos(a) * 70, o.y + Math.sin(a) * 70, 40, o.dmg * 0.5, { color: '#ffd27a', silent: true }) }); } alive = false; }
           break;
         case 'boomerang': {
           o.t += dt; const back = o.t > 0.6;
@@ -486,6 +487,7 @@ export class Battle {
         b.hit.add(e);
         if (e.decoy) { this.spark(b.x, b.y, '#fff', 3); alive = false; break; }
         this.damage(e, b.dmg, { elem: b.elem, src: b.main ? 'main' : b.kind, kb: b.main && this.has('sh_bullet') });
+        if (this.fx.length < 160) this.fx.push({kind:'weaponHit',x:b.x,y:b.y,t:.18,max:.18,visualKind:b.kind,visualLevel:b.visualLevel,evolved:b.evolved});
         if (b.explode) this.explode(b.x, b.y, b.explode * this.st.area, 15 * this.st.atk, { color: '#ffb23d', silent: true });
         if (b.pierce-- <= 0) { alive = false; break; }
       }
@@ -543,7 +545,7 @@ export class Battle {
   knock(e, d) { if (!e.isBoss) e.y -= d * (this.duo('duo_typhoon') ? 2 : 1); }
 
   explode(x, y, r, dmg, o = {}) {
-    this.fx.push({ kind: 'ring', x, y, r, t: 0.35, max: 0.35, c: o.color || '#ffb23d' });
+    this.fx.push({ kind: 'ring', x, y, r, t: 0.35, max: 0.35, c: o.color || '#ffb23d', visualLevel: o.visualLevel, evolved: o.evolved });
     for (const e of [...this.enemies]) if (!e.decoy && dist2(e, { x, y }) < (r + e.r) ** 2) this.damage(e, dmg, { elem: o.elem, always: true, stacks: o.stacks });
     if (!o.silent) sfx.boom(r > 90);
   }
