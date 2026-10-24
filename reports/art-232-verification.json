@@ -1,0 +1,22 @@
+{
+  "version": "2.3.2",
+  "metaIcons": 6,
+  "navigationIcons": 5,
+  "duoIcons": 10,
+  "legendIcons": 6,
+  "regionCards": 5,
+  "allCards": 33,
+  "legendModal": {
+    "w": 170,
+    "h": 170,
+    "dx": 0,
+    "overflow": false
+  },
+  "mobileWidths": [
+    390,
+    320
+  ],
+  "offline": "passed",
+  "pageErrors": [],
+  "failedResponses": []
+}
