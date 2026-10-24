@@ -1,6 +1,6 @@
 {
-  "version": "2.2.0",
-  "count": 83,
+  "version": "2.2.2",
+  "count": 85,
   "images": [
     {
       "path": "assets/img/bg_asan.png",
@@ -911,6 +911,28 @@
       "bytes": 231742,
       "grid": [
         1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/upgrade_icons_sheet.png",
+      "width": 2172,
+      "height": 724,
+      "bytes": 1637197,
+      "grid": [
+        3,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/enemy_bug_round_sheet.png",
+      "width": 1774,
+      "height": 887,
+      "bytes": 1419522,
+      "grid": [
+        2,
         1
       ],
       "hasTransparency": true
