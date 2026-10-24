@@ -1,0 +1,7 @@
+{
+  "_설명": "음악·효과음·그림 출처. ChatGPT가 찾아 준 표의 내용을 아래 형식으로 한 줄씩 넣으면 설정 > 만든 사람들 화면에 나온다. type은 bgm·sfx·img 중 하나.",
+  "items": [
+    { "type": "img", "title": "캐릭터·배경·아이콘 그림", "author": "ChatGPT 이미지 생성", "source": "", "license": "", "note": "충남소프트웨어교육체험센터 제작" },
+    { "type": "sfx", "title": "효과음", "author": "코드로 합성 (Web Audio)", "source": "", "license": "", "note": "" }
+  ]
+}
