@@ -28,6 +28,7 @@ except ImportError:
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / 'assets' / 'img'
+SRC_DIR = ROOT / 'art-src' / 'img'   # 원본 PNG 보관 (게임이 내려받지 않음)
 
 # 게임 파일명 → 이름에 들어 있으면 그 파일로 보는 낱말들
 TARGETS = {
@@ -277,6 +278,22 @@ def process(src, target):
     return im, notes
 
 
+def save_webp(im, name):
+    # 게임용 WebP(투명 유지)는 assets/img, 원본 PNG는 art-src/img 에 둔다
+    SRC_DIR.mkdir(parents=True, exist_ok=True)
+    save_png(im, SRC_DIR / f'{name}.png')
+    buffer = io.BytesIO()
+    im.save(buffer, format='WEBP', quality=85, method=6, alpha_quality=95)
+    destination = OUT / f'{name}.webp'
+    temporary = destination.with_suffix('.webp.tmp')
+    with temporary.open('wb') as f:
+        f.write(buffer.getvalue()); f.flush(); os.fsync(f.fileno())
+    temporary.replace(destination)
+    old = OUT / f'{name}.png'
+    if old.exists():
+        old.unlink()
+
+
 def save_png(im, destination):
     # PNG를 한 번에 기록한다. 여러 IDAT 조각을 쓰는 중에 배포 도구가
     # 파일을 읽어 부분 파일을 복사하지 않도록 원자적으로 교체한다.
@@ -310,10 +327,10 @@ def main():
             dup.append(f'{f.name} → {t} (이미 {done[t]} 사용)'); continue
         im, notes = process(f, t)
         if not a.dry:
-            save_png(im, OUT / f'{t}.png')
+            save_webp(im, t)
         done[t] = f.name
-        print(f'  ✓ {f.name:32} → {t}.png  ·  {", ".join(notes)}')
-    missing = [t for t in TARGETS if t not in done and not (OUT / f'{t}.png').exists()]
+        print(f'  ✓ {f.name:32} → {t}.webp  ·  {", ".join(notes)}')
+    missing = [t for t in TARGETS if t not in done and not (OUT / f'{t}.webp').exists() and not (OUT / f'{t}.png').exists()]
     print(f'\n정리 {len(done)}장{" (저장 안 함)" if a.dry else ""} · 이름을 못 알아본 그림 {len(unknown)}장 · 아직 없는 그림 {len(missing)}장')
     if unknown:
         print('  이름을 못 알아본 그림 (파일 이름을 게임 파일명으로 바꿔 다시 실행):', ', '.join(unknown))

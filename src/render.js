@@ -95,8 +95,31 @@ function statusMarks(g, e, t) {
   if (e.chill > 0) { g.fillStyle = '#bfefff'; for (let i = 0; i < e.chill; i++) g.fillRect(e.x - 10 + i * 8, e.y + e.r + 2, 6, 4); }
 }
 
-function orbit(g, o, t) {
+// 궤도 가호 그림: 칸 번호, 크기 배율(판정 반지름 r 기준), 도는 방식
+const ORBIT_ART = { gy_orbit: [0, 3.0, 'bob'], gg_orbit: [1, 3.2, 'spin', 4], sh_orbit: [2, 2.6, 'spin', -5], bj_orbit: [3, 3.6, 'tangent'], cg_orbit: [4, 2.8, 'spin', 9], ta_orbit: [5, 3.2, 'bob'] };
+// 자동 스킬 순간 그림: 낙뢰 먹구름(6)·서리꽃(7)·등대 불빛(11)
+function drawSkillFx(g, f) {
+  const im = art.skill(f.i); if (!im) return;
+  const k = 1 - f.t / f.max;                      // 0 → 1
+  g.save();
+  if (f.i === 7) { g.globalAlpha = Math.max(0, 1 - k * k); sprite(g, im, f.x, f.y, (f.r || 90) * (0.6 + 0.9 * k), k * 1.2); }
+  else if (f.i === 6) { g.globalAlpha = Math.min(1, (1 - k) * 2.5); sprite(g, im, f.x, f.y + k * 10, 96); }
+  else { g.globalAlpha = Math.min(1, k * 4, (1 - k) * 3); sprite(g, im, f.x, f.y + Math.sin(k * 6) * 4, 82); }
+  g.restore();
+}
+
+function orbit(g, o, t, p) {
   if (o.kind === 'sat') return drawSatellite(g, o, t);
+  const oa = ORBIT_ART[o.kind], im = oa && art.skill(oa[0]);
+  if (im) {
+    const size = (o.r || 14) * oa[1];
+    let rot = 0, y = o.y;
+    if (oa[2] === 'spin') rot = t * oa[3];
+    else if (oa[2] === 'tangent' && p) rot = Math.atan2(o.y - p.y, o.x - p.x) + Math.PI / 2;
+    else y += Math.sin(t * 4 + o.x * 0.05) * 3;
+    sprite(g, im, o.x, y, size, rot);
+    return;
+  }
   const c = { sat: '#c9d6ff', gy_orbit: '#fff27a', gg_orbit: '#bfefff', sh_orbit: '#4f9bff', bj_orbit: '#ff7a3d', cg_orbit: '#6fdc6a', ta_orbit: '#ffe9f2' }[o.kind];
   g.save(); g.translate(o.x, o.y);
   g.fillStyle = c; g.strokeStyle = '#141414'; g.lineWidth = 3;
@@ -136,8 +159,19 @@ export function render(g, b, scale) {
 
   // 오브젝트 (뒤쪽)
   for (const o of b.objs) {
-    if (o.kind === 'tornado') { g.save(); g.globalAlpha = 0.45; g.strokeStyle = b.duo('duo_firetornado') ? '#ff9a3c' : b.duo('duo_blizzard') ? '#bfefff' : '#9df29a'; g.lineWidth = 6; for (let i = 0; i < 4; i++) { g.beginPath(); g.ellipse(o.x, o.y - i * 18, o.r * (1 - i * 0.18), o.r * 0.3 * (1 - i * 0.18), 0, b.t * 6 + i, b.t * 6 + i + 4.5); g.stroke(); } g.restore(); }
-    if (o.kind === 'tide') { const gr = g.createLinearGradient(0, o.y - 40, 0, o.y + 60); gr.addColorStop(0, 'rgba(160,220,255,.9)'); gr.addColorStop(1, 'rgba(60,140,255,0)'); g.fillStyle = gr; g.fillRect(0, o.y - 40, W, 100); }
+    if (o.kind === 'tornado') {
+      // 칠갑 회오리: 회오리 그림 + 듀오면 색 고리 (불꽃 회오리·눈보라)
+      const ring = b.duo('duo_firetornado') ? '#ff9a3c' : b.duo('duo_blizzard') ? '#bfefff' : null;
+      if (ring) { g.save(); g.globalAlpha = 0.5; g.strokeStyle = ring; g.lineWidth = 6; g.beginPath(); g.ellipse(o.x, o.y + 20, o.r * 0.7, o.r * 0.22, 0, b.t * 6, b.t * 6 + 4.5); g.stroke(); g.restore(); }
+      const sz = Math.min(220, o.r * 1.5);
+      if (!sprite(g, art.skill(10), o.x, o.y - sz * 0.15, sz, Math.sin(b.t * 7) * 0.08)) { g.save(); g.globalAlpha = 0.45; g.strokeStyle = ring || '#9df29a'; g.lineWidth = 6; for (let i = 0; i < 4; i++) { g.beginPath(); g.ellipse(o.x, o.y - i * 18, o.r * (1 - i * 0.18), o.r * 0.3 * (1 - i * 0.18), 0, b.t * 6 + i, b.t * 6 + i + 4.5); g.stroke(); } g.restore(); }
+    }
+    if (o.kind === 'tide') {
+      // 서해 해일: 밝은 물띠 위로 파도 그림을 가로로 늘어놓는다
+      const gr = g.createLinearGradient(0, o.y - 40, 0, o.y + 80); gr.addColorStop(0, 'rgba(160,220,255,.75)'); gr.addColorStop(1, 'rgba(60,140,255,0)'); g.fillStyle = gr; g.fillRect(0, o.y - 30, W, 110);
+      const wave = art.skill(8);
+      if (wave) for (let x = 45, i = 0; x < W + 60; x += 95, i++) sprite(g, wave, x, o.y - 10 + (i % 2) * 14, 118);
+    }
   }
 
   // 적
@@ -181,11 +215,18 @@ export function render(g, b, scale) {
       continue;
     }
     if (o.kind === 'phoenix' && o.horse) { if (!sprite(g, art.zodiac('horse'), o.x, o.y, 80)) emojiAt(g, '🐴', o.x, o.y, 56); g.fillStyle = 'rgba(255,230,180,.35)'; g.fillRect(0, o.y - 40, o.x, 80); continue; }
-    if (o.kind === 'phoenix') { g.save(); g.translate(o.x, o.y); const s = o.big ? 3 : 1; g.scale(o.dir < 0 ? -s : s, s); g.fillStyle = '#ff7a3d'; g.shadowColor = '#ffb23d'; g.shadowBlur = 20; g.beginPath(); g.moveTo(30, 0); g.lineTo(-10, -26); g.lineTo(-4, -6); g.lineTo(-40, -14); g.lineTo(-20, 4); g.lineTo(-40, 16); g.lineTo(-4, 8); g.lineTo(-10, 26); g.closePath(); g.fill(); g.restore(); }
+    if (o.kind === 'phoenix') {
+      // 백제 봉황 불새: 불새 그림 (전설 금동 봉황은 크게), 지나온 길에 불꽃 띠
+      const s = o.big ? 3 : 1, bird = art.skill(9);
+      if (bird) {
+        if (!o.big) { const gr = g.createLinearGradient(o.x - o.dir * 160, 0, o.x, 0); gr.addColorStop(0, 'rgba(255,140,60,0)'); gr.addColorStop(1, 'rgba(255,170,80,.45)'); g.fillStyle = gr; g.fillRect(Math.min(o.x, o.x - o.dir * 160), o.y - 18, 160, 36); }
+        g.save(); g.translate(o.x, o.y); g.scale(o.dir < 0 ? -1 : 1, 1); sprite(g, bird, 0, 0, 96 * s); g.restore();
+      } else { g.save(); g.translate(o.x, o.y); g.scale(o.dir < 0 ? -s : s, s); g.fillStyle = '#ff7a3d'; g.shadowColor = '#ffb23d'; g.shadowBlur = 20; g.beginPath(); g.moveTo(30, 0); g.lineTo(-10, -26); g.lineTo(-4, -6); g.lineTo(-40, -14); g.lineTo(-20, 4); g.lineTo(-40, 16); g.lineTo(-4, 8); g.lineTo(-10, 26); g.closePath(); g.fill(); g.restore(); }
+    }
   }
 
   // 회전체·드론
-  for (const o of b.orbits()) orbit(g, o, b.t);
+  for (const o of b.orbits()) orbit(g, o, b.t, b.p);
   if (b.ship.drones) { const n = b.ship.drones + (b.evo('evo_main') ? 2 : 0); for (let i = 0; i < n; i++) { const p = b.dronePos(i, n); if (!sprite(g, art.drone(), p.x, p.y, 30)) { g.fillStyle = '#3fe0c0'; g.beginPath(); g.arc(p.x, p.y, 10, 0, 7); g.fill(); g.strokeStyle = '#141414'; g.lineWidth = 3; g.stroke(); g.fillStyle = '#141414'; g.beginPath(); g.arc(p.x, p.y, 3, 0, 7); g.fill(); } } }
   if (b.ultKind === 'drones') for (let i = 0; i < 6; i++) { const a = b.t * 3 + i * Math.PI / 3; const x = b.p.x + Math.cos(a) * 80, y = b.p.y + Math.sin(a) * 50; g.fillStyle = '#3fe0c0'; g.beginPath(); g.arc(x, y, 9, 0, 7); g.fill(); }
   if (b.ultKind === 'beam') { const w = calm() ? 90 : 90 + Math.sin(b.t * 40) * 8; g.fillStyle = 'rgba(217,255,154,.55)'; g.fillRect(b.p.x - w / 2, 0, w, b.p.y - 20); g.fillStyle = calm() ? 'rgba(255,255,255,.45)' : 'rgba(255,255,255,.85)'; g.fillRect(b.p.x - w / 6, 0, w / 3, b.p.y - 20); }
@@ -221,6 +262,7 @@ export function render(g, b, scale) {
     if (f.kind === 'p') { g.globalAlpha = Math.min(1, f.t * 3); g.fillStyle = f.c; g.beginPath(); g.arc(f.x, f.y, f.r, 0, 7); g.fill(); g.globalAlpha = 1; }
     else if (f.kind === 'ring') drawImpact(g, f);
     else if (f.kind === 'weaponHit') drawHit(g, f);
+    else if (f.kind === 'skill') drawSkillFx(g, f);
     else if (f.kind === 'bolt') { g.strokeStyle = '#fff27a'; g.lineWidth = calm() ? 4 : 5; g.shadowColor = '#fff27a'; g.shadowBlur = calm() ? 0 : 16; g.beginPath(); let x = f.x + jit(f.x, 0) * 40, y = 0; g.moveTo(x, y); while (y < f.y) { y += 40; x = f.x + jit(f.x, y) * 40 * (1 - y / f.y); g.lineTo(x, Math.min(y, f.y)); } g.stroke(); g.shadowBlur = 0; }
     else if (f.kind === 'chain') { g.strokeStyle = '#fff27a'; g.lineWidth = 3; g.beginPath(); g.moveTo(f.x1, f.y1); const mx = (f.x1 + f.x2) / 2 + jit(f.x1, 1) * 30, my = (f.y1 + f.y2) / 2 + jit(f.y1, 2) * 30; g.lineTo(mx, my); g.lineTo(f.x2, f.y2); g.stroke(); }
   }

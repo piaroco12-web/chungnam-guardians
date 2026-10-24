@@ -1,1018 +1,1123 @@
 {
   "version": "2.3.2",
-  "count": 92,
+  "count": 93,
   "images": [
     {
-      "path": "assets/img/bg_asan.png",
+      "path": "assets/img/bg_asan.webp",
       "width": 1080,
       "height": 1890,
-      "bytes": 3182721,
+      "bytes": 353308,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": false
+      "hasTransparency": false,
+      "format": "webp"
     },
     {
-      "path": "assets/img/bg_base.png",
+      "path": "assets/img/bg_base.webp",
       "width": 1080,
       "height": 1890,
-      "bytes": 2922757,
+      "bytes": 316020,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": false
+      "hasTransparency": false,
+      "format": "webp"
     },
     {
-      "path": "assets/img/bg_boryeong.png",
+      "path": "assets/img/bg_boryeong.webp",
       "width": 1080,
       "height": 1891,
-      "bytes": 3518696,
+      "bytes": 441570,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": false
+      "hasTransparency": false,
+      "format": "webp"
     },
     {
-      "path": "assets/img/bg_buyeo.png",
+      "path": "assets/img/bg_buyeo.webp",
       "width": 1080,
       "height": 1890,
-      "bytes": 3307593,
+      "bytes": 397472,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": false
+      "hasTransparency": false,
+      "format": "webp"
     },
     {
-      "path": "assets/img/bg_gongju.png",
+      "path": "assets/img/bg_gongju.webp",
       "width": 1080,
       "height": 1890,
-      "bytes": 3349636,
+      "bytes": 416096,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": false
+      "hasTransparency": false,
+      "format": "webp"
     },
     {
-      "path": "assets/img/bg_naepo.png",
+      "path": "assets/img/bg_naepo.webp",
       "width": 1080,
       "height": 1890,
-      "bytes": 3481339,
+      "bytes": 441246,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": false
+      "hasTransparency": false,
+      "format": "webp"
     },
     {
-      "path": "assets/img/boss_ai_core.png",
+      "path": "assets/img/boss_ai_core.webp",
       "width": 768,
       "height": 768,
-      "bytes": 805281,
+      "bytes": 194078,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/boss_ai_core_cleansed.png",
+      "path": "assets/img/boss_ai_core_cleansed.webp",
       "width": 768,
       "height": 768,
-      "bytes": 819306,
+      "bytes": 190054,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/boss_blackhole.png",
+      "path": "assets/img/boss_blackhole.webp",
       "width": 768,
       "height": 768,
-      "bytes": 652110,
+      "bytes": 129574,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/boss_blackhole_cleansed.png",
+      "path": "assets/img/boss_blackhole_cleansed.webp",
       "width": 768,
       "height": 768,
-      "bytes": 717982,
+      "bytes": 151576,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/boss_cloud.png",
+      "path": "assets/img/boss_cloud.webp",
       "width": 768,
       "height": 768,
-      "bytes": 534176,
+      "bytes": 116784,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/boss_cloud_cleansed.png",
+      "path": "assets/img/boss_cloud_cleansed.webp",
       "width": 768,
       "height": 768,
-      "bytes": 544587,
+      "bytes": 121240,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/boss_copybot.png",
+      "path": "assets/img/boss_copybot.webp",
       "width": 768,
       "height": 768,
-      "bytes": 615839,
+      "bytes": 113818,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/boss_copybot_cleansed.png",
+      "path": "assets/img/boss_copybot_cleansed.webp",
       "width": 768,
       "height": 768,
-      "bytes": 679017,
+      "bytes": 129760,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/boss_deepfaker.png",
+      "path": "assets/img/boss_deepfaker.webp",
       "width": 768,
       "height": 768,
-      "bytes": 658472,
+      "bytes": 134166,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/boss_deepfaker_cleansed.png",
+      "path": "assets/img/boss_deepfaker_cleansed.webp",
       "width": 768,
       "height": 768,
-      "bytes": 671028,
+      "bytes": 128018,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/boss_octopus.png",
+      "path": "assets/img/boss_octopus.webp",
       "width": 768,
       "height": 768,
-      "bytes": 612310,
+      "bytes": 127474,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/boss_octopus_cleansed.png",
+      "path": "assets/img/boss_octopus_cleansed.webp",
       "width": 768,
       "height": 768,
-      "bytes": 603293,
+      "bytes": 125074,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/boss_scroller.png",
+      "path": "assets/img/boss_scroller.webp",
       "width": 768,
       "height": 768,
-      "bytes": 751179,
+      "bytes": 144072,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/boss_scroller_cleansed.png",
+      "path": "assets/img/boss_scroller_cleansed.webp",
       "width": 768,
       "height": 768,
-      "bytes": 773972,
+      "bytes": 151874,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/boss_slot.png",
+      "path": "assets/img/boss_slot.webp",
       "width": 768,
       "height": 768,
-      "bytes": 661422,
+      "bytes": 121828,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/boss_slot_cleansed.png",
+      "path": "assets/img/boss_slot_cleansed.webp",
       "width": 768,
       "height": 768,
-      "bytes": 733460,
+      "bytes": 140274,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/boss_smog.png",
+      "path": "assets/img/boss_smog.webp",
       "width": 768,
       "height": 768,
-      "bytes": 638225,
+      "bytes": 110778,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/boss_smog_cleansed.png",
+      "path": "assets/img/boss_smog_cleansed.webp",
       "width": 768,
       "height": 768,
-      "bytes": 669798,
+      "bytes": 122142,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/boss_thorn.png",
+      "path": "assets/img/boss_thorn.webp",
       "width": 768,
       "height": 768,
-      "bytes": 601047,
+      "bytes": 121090,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/boss_thorn_cleansed.png",
+      "path": "assets/img/boss_thorn_cleansed.webp",
       "width": 768,
       "height": 768,
-      "bytes": 651837,
+      "bytes": 129414,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/enemy_sheet.png",
+      "path": "assets/img/enemy_sheet.webp",
       "width": 1152,
       "height": 768,
-      "bytes": 669898,
+      "bytes": 133466,
       "grid": [
         3,
         2
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/frame_duo_legend.png",
+      "path": "assets/img/frame_duo_legend.webp",
       "width": 1152,
       "height": 384,
-      "bytes": 226863,
+      "bytes": 60830,
       "grid": [
         3,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/fx_items_sheet.png",
+      "path": "assets/img/fx_items_sheet.webp",
       "width": 2304,
       "height": 384,
-      "bytes": 395667,
+      "bytes": 110768,
       "grid": [
         6,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/gift_baekje_sheet.png",
+      "path": "assets/img/gift_baekje_sheet.webp",
       "width": 1920,
       "height": 384,
-      "bytes": 361785,
+      "bytes": 74666,
       "grid": [
         5,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/gift_chilgap_sheet.png",
+      "path": "assets/img/gift_chilgap_sheet.webp",
       "width": 1920,
       "height": 384,
-      "bytes": 242652,
+      "bytes": 56354,
       "grid": [
         5,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/gift_geumgang_sheet.png",
+      "path": "assets/img/gift_geumgang_sheet.webp",
       "width": 1920,
       "height": 384,
-      "bytes": 367460,
+      "bytes": 78328,
       "grid": [
         5,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/gift_gyeryong_sheet.png",
+      "path": "assets/img/gift_gyeryong_sheet.webp",
       "width": 1920,
       "height": 384,
-      "bytes": 423646,
+      "bytes": 80830,
       "grid": [
         5,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/gift_seohae_sheet.png",
+      "path": "assets/img/gift_seohae_sheet.webp",
       "width": 1920,
       "height": 384,
-      "bytes": 425837,
+      "bytes": 89218,
       "grid": [
         5,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/gift_taean_sheet.png",
+      "path": "assets/img/gift_taean_sheet.webp",
       "width": 1920,
       "height": 384,
-      "bytes": 441941,
+      "bytes": 83476,
       "grid": [
         5,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/god_baekje.png",
+      "path": "assets/img/god_baekje.webp",
       "width": 512,
       "height": 512,
-      "bytes": 319578,
+      "bytes": 77328,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/god_chilgap.png",
+      "path": "assets/img/god_chilgap.webp",
       "width": 512,
       "height": 512,
-      "bytes": 328166,
+      "bytes": 87896,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/god_geumgang.png",
+      "path": "assets/img/god_geumgang.webp",
       "width": 512,
       "height": 512,
-      "bytes": 313489,
+      "bytes": 87780,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/god_gyeryong.png",
+      "path": "assets/img/god_gyeryong.webp",
       "width": 512,
       "height": 512,
-      "bytes": 316565,
+      "bytes": 73240,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/god_seohae.png",
+      "path": "assets/img/god_seohae.webp",
       "width": 512,
       "height": 512,
-      "bytes": 352698,
+      "bytes": 83426,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/god_taean.png",
+      "path": "assets/img/god_taean.webp",
       "width": 512,
       "height": 512,
-      "bytes": 304782,
+      "bytes": 72438,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/pact_sheet.png",
+      "path": "assets/img/pact_sheet.webp",
       "width": 2304,
       "height": 384,
-      "bytes": 408896,
+      "bytes": 90122,
       "grid": [
         6,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/pilot_centeri.png",
+      "path": "assets/img/pilot_centeri.webp",
       "width": 512,
       "height": 512,
-      "bytes": 306779,
+      "bytes": 71522,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/pilot_chungnami.png",
+      "path": "assets/img/pilot_chungnami.webp",
       "width": 512,
       "height": 512,
-      "bytes": 223615,
+      "bytes": 47590,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/pilot_edui.png",
+      "path": "assets/img/pilot_edui.webp",
       "width": 512,
       "height": 512,
-      "bytes": 271414,
+      "bytes": 56490,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/ship_beongae.png",
+      "path": "assets/img/ship_beongae.webp",
       "width": 512,
       "height": 512,
-      "bytes": 187214,
+      "bytes": 39554,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/ship_beongae_hangar.png",
+      "path": "assets/img/ship_beongae_hangar.webp",
       "width": 512,
       "height": 512,
-      "bytes": 246876,
+      "bytes": 49482,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/ship_byeolbit.png",
+      "path": "assets/img/ship_byeolbit.webp",
       "width": 512,
       "height": 512,
-      "bytes": 212140,
+      "bytes": 47820,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/ship_byeolbit_hangar.png",
+      "path": "assets/img/ship_byeolbit_hangar.webp",
       "width": 512,
       "height": 512,
-      "bytes": 222146,
+      "bytes": 44990,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/ship_drone.png",
+      "path": "assets/img/ship_drone.webp",
       "width": 512,
       "height": 512,
-      "bytes": 236703,
+      "bytes": 48982,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/ship_drone_hangar.png",
+      "path": "assets/img/ship_drone_hangar.webp",
       "width": 512,
       "height": 512,
-      "bytes": 280072,
+      "bytes": 56678,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/story_s01.png",
+      "path": "assets/img/story_s01.webp",
       "width": 768,
       "height": 768,
-      "bytes": 1142115,
+      "bytes": 183022,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": false
+      "hasTransparency": false,
+      "format": "webp"
     },
     {
-      "path": "assets/img/story_s02.png",
+      "path": "assets/img/story_s02.webp",
       "width": 768,
       "height": 768,
-      "bytes": 967541,
+      "bytes": 128684,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": false
+      "hasTransparency": false,
+      "format": "webp"
     },
     {
-      "path": "assets/img/story_s03.png",
+      "path": "assets/img/story_s03.webp",
       "width": 768,
       "height": 768,
-      "bytes": 1094307,
+      "bytes": 168678,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": false
+      "hasTransparency": false,
+      "format": "webp"
     },
     {
-      "path": "assets/img/story_s04.png",
+      "path": "assets/img/story_s04.webp",
       "width": 768,
       "height": 768,
-      "bytes": 1093654,
+      "bytes": 167094,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": false
+      "hasTransparency": false,
+      "format": "webp"
     },
     {
-      "path": "assets/img/story_s05.png",
+      "path": "assets/img/story_s05.webp",
       "width": 768,
       "height": 768,
-      "bytes": 1086995,
+      "bytes": 165086,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": false
+      "hasTransparency": false,
+      "format": "webp"
     },
     {
-      "path": "assets/img/story_s06.png",
+      "path": "assets/img/story_s06.webp",
       "width": 768,
       "height": 768,
-      "bytes": 1107081,
+      "bytes": 164060,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": false
+      "hasTransparency": false,
+      "format": "webp"
     },
     {
-      "path": "assets/img/story_s07.png",
+      "path": "assets/img/story_s07.webp",
       "width": 768,
       "height": 768,
-      "bytes": 1121780,
+      "bytes": 176478,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": false
+      "hasTransparency": false,
+      "format": "webp"
     },
     {
-      "path": "assets/img/story_s08.png",
+      "path": "assets/img/story_s08.webp",
       "width": 768,
       "height": 768,
-      "bytes": 1039950,
+      "bytes": 146852,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": false
+      "hasTransparency": false,
+      "format": "webp"
     },
     {
-      "path": "assets/img/story_s09.png",
+      "path": "assets/img/story_s09.webp",
       "width": 768,
       "height": 768,
-      "bytes": 1136227,
+      "bytes": 177782,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": false
+      "hasTransparency": false,
+      "format": "webp"
     },
     {
-      "path": "assets/img/story_s10.png",
+      "path": "assets/img/story_s10.webp",
       "width": 768,
       "height": 768,
-      "bytes": 1018218,
+      "bytes": 148244,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": false
+      "hasTransparency": false,
+      "format": "webp"
     },
     {
-      "path": "assets/img/story_s11.png",
+      "path": "assets/img/story_s11.webp",
       "width": 768,
       "height": 768,
-      "bytes": 1096595,
+      "bytes": 169174,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": false
+      "hasTransparency": false,
+      "format": "webp"
     },
     {
-      "path": "assets/img/story_s12.png",
+      "path": "assets/img/story_s12.webp",
       "width": 768,
       "height": 768,
-      "bytes": 1030845,
+      "bytes": 146488,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": false
+      "hasTransparency": false,
+      "format": "webp"
     },
     {
-      "path": "assets/img/story_s13.png",
+      "path": "assets/img/story_s13.webp",
       "width": 768,
       "height": 768,
-      "bytes": 1075065,
+      "bytes": 163956,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": false
+      "hasTransparency": false,
+      "format": "webp"
     },
     {
-      "path": "assets/img/story_s14.png",
+      "path": "assets/img/story_s14.webp",
       "width": 768,
       "height": 768,
-      "bytes": 1084309,
+      "bytes": 157662,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": false
+      "hasTransparency": false,
+      "format": "webp"
     },
     {
-      "path": "assets/img/story_s15.png",
+      "path": "assets/img/story_s15.webp",
       "width": 768,
       "height": 768,
-      "bytes": 1105996,
+      "bytes": 164618,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": false
+      "hasTransparency": false,
+      "format": "webp"
     },
     {
-      "path": "assets/img/title_keyart.png",
+      "path": "assets/img/title_keyart.webp",
       "width": 1080,
       "height": 1890,
-      "bytes": 2883291,
+      "bytes": 309512,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": false
+      "hasTransparency": false,
+      "format": "webp"
     },
     {
-      "path": "assets/img/title_logo.png",
+      "path": "assets/img/title_logo.webp",
       "width": 768,
       "height": 768,
-      "bytes": 513701,
+      "bytes": 89936,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/ui_card_back.png",
+      "path": "assets/img/ui_card_back.webp",
       "width": 512,
       "height": 512,
-      "bytes": 252847,
+      "bytes": 41322,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/ui_ultimate_sheet.png",
+      "path": "assets/img/ui_ultimate_sheet.webp",
       "width": 1152,
       "height": 384,
-      "bytes": 566896,
+      "bytes": 96216,
       "grid": [
         3,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/unit_drone.png",
+      "path": "assets/img/unit_drone.webp",
       "width": 512,
       "height": 512,
-      "bytes": 263412,
+      "bytes": 51866,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/zodiac_dog.png",
+      "path": "assets/img/zodiac_dog.webp",
       "width": 512,
       "height": 512,
-      "bytes": 243550,
+      "bytes": 42624,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/zodiac_dragon.png",
+      "path": "assets/img/zodiac_dragon.webp",
       "width": 512,
       "height": 512,
-      "bytes": 281722,
+      "bytes": 58468,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/zodiac_horse.png",
+      "path": "assets/img/zodiac_horse.webp",
       "width": 512,
       "height": 512,
-      "bytes": 280445,
+      "bytes": 62532,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/zodiac_monkey.png",
+      "path": "assets/img/zodiac_monkey.webp",
       "width": 512,
       "height": 512,
-      "bytes": 257874,
+      "bytes": 52274,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/zodiac_ox.png",
+      "path": "assets/img/zodiac_ox.webp",
       "width": 512,
       "height": 512,
-      "bytes": 241958,
+      "bytes": 45490,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/zodiac_pig.png",
+      "path": "assets/img/zodiac_pig.webp",
       "width": 512,
       "height": 512,
-      "bytes": 293613,
+      "bytes": 59794,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/zodiac_rabbit.png",
+      "path": "assets/img/zodiac_rabbit.webp",
       "width": 512,
       "height": 512,
-      "bytes": 245351,
+      "bytes": 55166,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/zodiac_rat.png",
+      "path": "assets/img/zodiac_rat.webp",
       "width": 512,
       "height": 512,
-      "bytes": 285112,
+      "bytes": 59610,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/zodiac_rooster.png",
+      "path": "assets/img/zodiac_rooster.webp",
       "width": 512,
       "height": 512,
-      "bytes": 245273,
+      "bytes": 49448,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/zodiac_sheep.png",
+      "path": "assets/img/zodiac_sheep.webp",
       "width": 512,
       "height": 512,
-      "bytes": 266522,
+      "bytes": 49380,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/zodiac_snake.png",
+      "path": "assets/img/zodiac_snake.webp",
       "width": 512,
       "height": 512,
-      "bytes": 254899,
+      "bytes": 53264,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/zodiac_tiger.png",
+      "path": "assets/img/zodiac_tiger.webp",
       "width": 512,
       "height": 512,
-      "bytes": 231742,
+      "bytes": 47014,
       "grid": [
         1,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/upgrade_icons_sheet.png",
+      "path": "assets/img/upgrade_icons_sheet.webp",
       "width": 2172,
       "height": 724,
-      "bytes": 1637197,
+      "bytes": 321272,
       "grid": [
         3,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/enemy_bug_round_sheet.png",
+      "path": "assets/img/enemy_bug_round_sheet.webp",
       "width": 1774,
       "height": 887,
-      "bytes": 1419522,
+      "bytes": 197406,
       "grid": [
         2,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/meta_upgrade_sheet.png",
+      "path": "assets/img/meta_upgrade_sheet.webp",
       "width": 1536,
       "height": 1024,
-      "bytes": 2208312,
+      "bytes": 248006,
       "grid": [
         3,
         2
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/upgrade_full_sheet.png",
+      "path": "assets/img/upgrade_full_sheet.webp",
       "width": 1983,
       "height": 793,
-      "bytes": 1602297,
+      "bytes": 363830,
       "grid": [
         5,
         2
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/missile_refined_sheet.png",
+      "path": "assets/img/missile_refined_sheet.webp",
       "width": 2172,
       "height": 724,
-      "bytes": 1235108,
+      "bytes": 234702,
       "grid": [
         3,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/boon_duo_3d_sheet.png",
+      "path": "assets/img/boon_duo_3d_sheet.webp",
       "width": 1983,
       "height": 793,
-      "bytes": 2443022,
+      "bytes": 543500,
       "grid": [
         5,
         2
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/boon_legend_3d_sheet.png",
+      "path": "assets/img/boon_legend_3d_sheet.webp",
       "width": 1536,
       "height": 1024,
-      "bytes": 3100318,
+      "bytes": 518000,
       "grid": [
         3,
         2
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/region_landmarks_sheet.png",
+      "path": "assets/img/region_landmarks_sheet.webp",
       "width": 1536,
       "height": 1024,
-      "bytes": 2513875,
+      "bytes": 309236,
       "grid": [
         3,
         2
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
     },
     {
-      "path": "assets/img/menu_nav_3d_sheet.png",
+      "path": "assets/img/menu_nav_3d_sheet.webp",
       "width": 2172,
       "height": 724,
-      "bytes": 1356798,
+      "bytes": 231214,
       "grid": [
         5,
         1
       ],
-      "hasTransparency": true
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boon_fx_sheet.webp",
+      "width": 1536,
+      "height": 512,
+      "bytes": 334054,
+      "grid": [
+        6,
+        2
+      ],
+      "hasTransparency": true,
+      "note": "수호신 가호 스킬: 윗줄 궤도 6, 아랫줄 자동 스킬 6",
+      "format": "webp"
     }
   ]
 }

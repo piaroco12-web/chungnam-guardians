@@ -1,4 +1,5 @@
-// 그림 로더: assets/img/<이름>.png 가 있으면 그 그림을, 없으면 코드로 그린 임시 그림을 쓴다.
+// 그림 로더: assets/img/<이름>.webp (없으면 .png) 가 있으면 그 그림을, 없으면 코드로 그린 임시 그림을 쓴다.
+// 새 PNG를 넣었다면 python tools/to_webp.py 로 WebP로 바꾸고 오프라인 목록도 맞춘다.
 // 파일 이름은 docs/chatgpt-brief.md(ChatGPT 지시서)와 같다.
 import { PILOTS, SHIPS, BOSSES, ENEMIES } from '../data/content.js';
 import { GODS, DUOS, LEGENDS } from '../data/boons.js';
@@ -14,7 +15,7 @@ const ENEMY_ORDER = ['spam', 'notify', 'troll', 'link', 'popup', 'bug'];
 const ITEM_ORDER = ['ebullet', 'ebullet2', 'coin', 'xp', 'heart', 'orb'];
 
 const NAMES = [
-  'boon_duo_3d_sheet', 'boon_legend_3d_sheet', 'region_landmarks_sheet', 'menu_nav_3d_sheet',
+  'boon_duo_3d_sheet', 'boon_legend_3d_sheet', 'boon_fx_sheet', 'region_landmarks_sheet', 'menu_nav_3d_sheet',
   'title_keyart', 'title_logo', 'bg_base', 'ui_card_back', 'ui_ultimate_sheet', 'enemy_sheet', 'fx_items_sheet', 'unit_drone', 'frame_duo_legend',
   ...PILOTS.map(p => 'pilot_' + p.id),
   ...SHIPS.flatMap(s => ['ship_' + s.id, 'ship_' + s.id + '_hangar']),
@@ -27,12 +28,16 @@ const NAMES = [
 
 export function loadAssets(onProgress) {
   let done = 0;
-  return Promise.all(NAMES.map(n => new Promise(res => {
+  const load = (n, ext) => new Promise(res => {
     const i = new Image();
-    i.onload = () => { img[n] = i; res(); onProgress && onProgress(++done / NAMES.length); };
-    i.onerror = () => { res(); onProgress && onProgress(++done / NAMES.length); };
-    i.src = new URL(`../assets/img/${n}.png`, import.meta.url).href;
-  })));
+    i.onload = () => res(i); i.onerror = () => res(null);
+    i.src = new URL(`../assets/img/${n}.${ext}`, import.meta.url).href;
+  });
+  return Promise.all(NAMES.map(async n => {
+    const i = (await load(n, 'webp')) || (await load(n, 'png'));   // WebP가 기본, 아직 안 바꾼 PNG도 읽는다
+    if (i) img[n] = i;
+    onProgress && onProgress(++done / NAMES.length);
+  }));
 }
 
 export const has = n => !!img[n];
@@ -187,6 +192,8 @@ export const art = {
   missile: (lv = 1, evolved = false) => cell('missile_refined_sheet', evolved ? 2 : lv >= 3 ? 1 : 0, 3),
   zodiac: id => get('zodiac_' + id),
   item: k => cell('fx_items_sheet', ITEM_ORDER.indexOf(k), 6),
+  // 수호신 가호 스킬 그림 6×2: 윗줄 궤도(계룡·금강·서해·백제·칠갑·태안), 아랫줄 자동 스킬(낙뢰·서리꽃·해일·불새·회오리·등대)
+  skill: i => cell('boon_fx_sheet', i, 6, 2),
   bg: name => get(name),
 };
 

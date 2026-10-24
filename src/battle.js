@@ -362,12 +362,12 @@ export class Battle {
     }
     if (this.has('gg_auto') && tick('gg', 5 * st.cd)) {
       const t = pick(this.enemies.filter(e => e.y > 0 && !e.decoy));
-      if (t) this.explode(t.x, t.y, 90 * st.area, 40 * this.rr('gg_auto') * st.atk, { elem: 'chill', stacks: 2, color: '#bfefff' });
+      if (t) { this.explode(t.x, t.y, 90 * st.area, 40 * this.rr('gg_auto') * st.atk, { elem: 'chill', stacks: 2, color: '#bfefff' }); this.fx.push({ kind: 'skill', i: 7, x: t.x, y: t.y, r: 90 * st.area, t: 0.6, max: 0.6 }); }
     }
     if (this.has('sh_auto') && tick('sh', 6 * st.cd)) { this.objs.push({ kind: 'tide', y: H + 20, healed: false }); sfx.wave(); }
     if (this.has('bj_auto') && tick('bj', 7 * st.cd)) { const dir = Math.random() < 0.5 ? 1 : -1; this.objs.push({ kind: 'phoenix', x: dir > 0 ? -60 : W + 60, y: rnd(140, 520), dir, hit: new Set(), dmg: 50 * this.rr('bj_auto') * st.atk, big: false }); sfx.fire(); }
     if (this.has('cg_auto') && tick('cg', 6 * st.cd)) this.addTornado(rnd(80, W - 80), H - 200);
-    if (this.has('ta_auto') && tick('ta', 8 * st.cd)) { this.items.push({ kind: 'heart', x: rnd(60, W - 60), y: -20, vy: 90, v: 8 * this.rr('ta_auto') }); sfx.light(); }
+    if (this.has('ta_auto') && tick('ta', 8 * st.cd)) { const hx = rnd(60, W - 60); this.items.push({ kind: 'heart', x: hx, y: -20, vy: 90, v: 8 * this.rr('ta_auto') }); this.fx.push({ kind: 'skill', i: 11, x: hx, y: 210, t: 1.1, max: 1.1 }); sfx.light(); }
 
     // 슬로우 가호
     if (!active) {
@@ -402,6 +402,7 @@ export class Battle {
 
   strike(x, y, dmg) {
     this.fx.push({ kind: 'bolt', x, y, t: 0.25 });
+    this.fx.push({ kind: 'skill', i: 6, x, y: Math.max(40, y - 70), t: 0.5, max: 0.5 });   // 낙뢰 먹구름
     this.explode(x, y, 46, dmg, { elem: 'shock', always: true, color: '#fff27a', silent: true });
     if (this.duo('duo_heaven')) this.hazards.push({ kind: 'pillar', x, y, r: 34, t: 2.5, used: false });
     sfx.zap();
