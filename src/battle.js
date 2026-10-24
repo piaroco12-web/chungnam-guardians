@@ -562,7 +562,7 @@ export class Battle {
     this.items.push({ kind: 'xp', x: e.x, y: e.y, v: xp, vy: 0 });
     if (Math.random() < (this.buffOn('coin') ? 0.75 : 0.3)) this.items.push({ kind: 'coin', x: e.x + rnd(-10, 10), y: e.y, v: 1, vy: 0 });
     if (e.elite) { this.items.push({ kind: 'chest', x: e.x, y: e.y, v: 1, vy: 0 }); this.showBanner('정예 처치!', '보물 상자를 챙기세요', 1.1); }
-    if (ENEMIES[e.type].explode && this.diff.id !== 'sprout') this.ring(e.x, e.y, 6, 150, '#ff4d5e');
+    if (ENEMIES[e.type].explode && this.diff.id !== 'sprout') { this.shooter = e.type; this.ring(e.x, e.y, 6, 150, '#ff4d5e'); this.shooter = null; }
     if (e.burn > 0 && this.duo('duo_glowfire')) this.heal(1);
     if (!isActive() && this.slowBoon === 'bj_slow') this.explode(e.x, e.y, 80 * this.st.area, 30 * this.rr('bj_slow') * this.st.atk, { color: '#ff7a3d', silent: true });
   }
@@ -619,7 +619,7 @@ export class Battle {
       }
       if (ed.shoot && e.y > 30 && e.y < H * 0.7 && e.frozen <= 0) {
         e.shootT -= edt;
-        if (e.shootT <= 0) { e.shootT = ed.shoot * rnd(0.8, 1.3); if (e.type === 'bug') this.fan(e.x, e.y, 3, 0.35, 190); else this.aim(e.x, e.y, 210); }
+        if (e.shootT <= 0) { e.shootT = ed.shoot * rnd(0.8, 1.3); this.shooter = e.type; if (e.type === 'bug') this.fan(e.x, e.y, 3, 0.35, 190); else this.aim(e.x, e.y, 210); this.shooter = null; }
       }
       if (dist2(e, p) < (e.r * 0.8 + p.r) ** 2) { this.hurt(15); if (ed.explode) this.kill(e, {}); }
       if (e.y > H + 60 || e.x < -80 || e.x > W + 80) this.enemies = this.enemies.filter(x => x !== e);
@@ -628,13 +628,13 @@ export class Battle {
 
   updateDecoy(e, dt) {
     e.t += dt; e.x = clamp(e.x0 + Math.sin(e.t * 1.4 + e.i * 2) * 90, 60, W - 60);
-    e.shootT -= dt; if (e.shootT <= 0) { e.shootT = 1.4; this.fan(e.x, e.y + 20, 5, 0.5, 200, '#d8a7ff'); }
+    e.shootT -= dt; if (e.shootT <= 0) { e.shootT = 1.4; this.shooter = 'deepfaker'; this.fan(e.x, e.y + 20, 5, 0.5, 200, '#d8a7ff'); this.shooter = null; }
     e.life -= dt; if (e.life <= 0) { this.enemies = this.enemies.filter(x => x !== e); this.spark(e.x, e.y, '#d8a7ff', 10); }
   }
 
   // ───────── 적 탄 ─────────
   ebSpeed() { let m = this.diff.bspd; if (!isActive() && this.slowBoon === 'gg_slow') m *= 1 - 0.3 * this.rr('gg_slow'); return m; }
-  shot(x, y, a, sp, o = {}) { const s = sp * this.diff.bspd * (this.pact('fastShots') ? 1.25 : 1); this.eb.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: o.r || 8, c: o.c || '#ff3d5a', t: 0, ...o }); }
+  shot(x, y, a, sp, o = {}) { const s = sp * this.diff.bspd * (this.pact('fastShots') ? 1.25 : 1); this.eb.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: o.r || 8, c: o.c || '#ff3d5a', t: 0, src: this.shooter || null, ...o }); }
   aim(x, y, sp, o) { this.shot(x, y, Math.atan2(this.p.y - y, this.p.x - x), sp, o); }
   fan(x, y, n, spread, sp, c) { const base = Math.atan2(this.p.y - y, this.p.x - x); for (let i = 0; i < n; i++) this.shot(x, y, base + (i - (n - 1) / 2) * spread / Math.max(1, n - 1) * 2, sp, { c }); }
   ring(x, y, n, sp, c, off = 0) { for (let i = 0; i < n; i++) this.shot(x, y, off + i / n * Math.PI * 2, sp, { c }); }
@@ -644,7 +644,7 @@ export class Battle {
     const keep = [];
     for (const b of this.eb) {
       b.t += dt;
-      if (b.burst && b.t >= b.burst) { this.ring(b.x, b.y, 8, 160, b.c); continue; }
+      if (b.burst && b.t >= b.burst) { this.shooter = b.src; this.ring(b.x, b.y, 8, 160, b.c); this.shooter = null; continue; }
       if (b.curve) { const a = Math.atan2(b.vy, b.vx) + b.curve * dt, s = Math.hypot(b.vx, b.vy); b.vx = Math.cos(a) * s; b.vy = Math.sin(a) * s; }
       if (b.grav) b.vy += b.grav * dt;
       b.x += b.vx * dt * m; b.y += b.vy * dt * m;
@@ -780,7 +780,7 @@ export class Battle {
     const pat = b.patterns[b.pi];
     if (pat !== 'swipe') b.x = W / 2 + Math.sin(b.t * 0.6) * 120;
     b.pt += bdt;
-    BOSS_PATTERNS[pat](this, b, bdt);
+    this.shooter = b.id; BOSS_PATTERNS[pat](this, b, bdt); this.shooter = null;
     if (b.pt > 5.5) { b.pt = 0; b.acc = 0; b.acc2 = 0; b.pi = (b.pi + 1) % b.patterns.length; b.sub = null; this.enemies.filter(e => e.decoy).forEach(e => { e.life = 0; }); }
     if (dist2(b, this.p) < (b.r * 0.8 + this.p.r) ** 2) this.hurt(20);
   }
@@ -821,7 +821,7 @@ export const BOSS_PATTERNS = {
   },
   // 대필봇
   copyLine(g, b, dt) {
-    if (every(b, 'acc', 1.0, dt)) { const a = Math.atan2(g.p.y - b.y, g.p.x - b.x); for (let i = 0; i < 5; i++) g.objs.push({ kind: 'later', t: i * 0.09, fn: () => g.shot(b.x, b.y + 30, a, 260, { c: '#f2f2f2', r: 9 }) }); }
+    if (every(b, 'acc', 1.0, dt)) { const a = Math.atan2(g.p.y - b.y, g.p.x - b.x); for (let i = 0; i < 5; i++) g.objs.push({ kind: 'later', t: i * 0.09, fn: () => g.shot(b.x, b.y + 30, a, 260, { c: '#f2f2f2', r: 9, src: 'copybot' }) }); }
   },
   summonClone(g, b, dt) {
     if (every(b, 'acc', 2.2, dt)) for (let i = 0; i < 3; i++) g.spawnEnemy('spam', b.x + (i - 1) * 70, b.y + 40, i);

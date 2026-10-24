@@ -3,7 +3,7 @@
 const VERSION = 'cnguard-v2.3.2';
 const CORE = [
   './', 'index.html', 'style.css', 'manifest.webmanifest',
-  'src/main.js', 'src/assets.js', 'src/audio.js', 'src/battle.js', 'src/bgart.js', 'src/input.js', 'src/motion.js',
+  'src/main.js', 'src/assets.js', 'src/audio.js', 'src/battle.js', 'src/bgart.js', 'src/bullet-art.js', 'src/input.js', 'src/motion.js',
   'src/progress.js', 'src/render.js', 'src/combat-vfx.js', 'src/save.js', 'src/side.js', 'src/ui.js', 'src/view.js',
   'data/boons.js', 'data/build.js', 'data/content.js', 'data/extras.js', 'data/zodiac.js',
   'assets/credits.json', 'assets/precache.json', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png',

@@ -6,6 +6,7 @@ import { REGIONS, ENEMIES } from '../data/content.js';
 import { ZODIAC } from '../data/zodiac.js';
 import { drawProjectile, drawBomb, drawBoomerang, drawSatellite, drawImpact, drawHit } from './combat-vfx.js';
 import { save } from './save.js';
+import { drawEnemyBullet } from './bullet-art.js';
 
 // 섬광 줄이기: 화면 번쩍임·흔들림·빠른 깜빡임을 약하게 (광과민성 배려)
 const calm = () => !!save.settings.calm;
@@ -85,10 +86,7 @@ function sprite(g, im, x, y, size, rot = 0) {
   g.restore(); return true;
 }
 
-function enemyBullet(g, b) {
-  g.fillStyle = b.c; g.beginPath(); g.arc(b.x, b.y, b.r + 3, 0, 7); g.fill();
-  g.fillStyle = '#fff'; g.beginPath(); g.arc(b.x, b.y, b.r * 0.55, 0, 7); g.fill();
-}
+function enemyBullet(g, b) { drawEnemyBullet(g, b); }
 
 function statusMarks(g, e, t) {
   if (e.frozen > 0) { g.fillStyle = 'rgba(190,240,255,.55)'; g.beginPath(); g.arc(e.x, e.y, e.r + 4, 0, 7); g.fill(); }
