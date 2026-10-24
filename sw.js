@@ -1,6 +1,6 @@
 // 오프라인 실행: 처음 한 번 접속하면 게임 파일을 기기에 저장해 두고, 이후엔 저장본으로 바로 연다.
 // 새 버전이 올라오면 뒤에서 받아 두었다가 다음 실행 때 바뀐다. 파일 목록이 바뀌면 VERSION을 올린다.
-const VERSION = 'cnguard-v2.2.1';
+const VERSION = 'cnguard-v2.2.2';
 const CORE = [
   './', 'index.html', 'style.css', 'manifest.webmanifest',
   'src/main.js', 'src/assets.js', 'src/audio.js', 'src/battle.js', 'src/bgart.js', 'src/input.js', 'src/motion.js',
