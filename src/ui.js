@@ -5,14 +5,14 @@ import { WEAPONS, UPGRADES, EVOLUTIONS, boonDef, godOf, MAX_SLOTS } from './prog
 import { ZODIAC } from '../data/zodiac.js';
 import { PATHS, QUIZ, PACTS, STORY } from '../data/extras.js';
 import { save, view, persist, TEACHER_CODE, totalCodex, totalCards, resetAll } from './save.js';
-import { pic } from './assets.js';
+import { art, pic } from './assets.js';
 import { sfx, refreshBgm } from './audio.js';
 import { scatterText, stagger, stamp as stampFx, unfold, highlight, countUp, bouncy, jelly, nope } from './motion.js';
 import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.2.1';
+export const VERSION = '2.2.2';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -30,8 +30,14 @@ function boonIcon(id) {
 }
 const weaponDef = id => WEAPONS.find(w => w.id === id);
 const upDef = id => UPGRADES.find(u => u.id === id);
+const skillArt = d => { const im = pic.skill(d.id); return im ? `<img src="${im}" alt="">` : d.icon; };
 const dots = (lv, max = 3) => `<div class="dots">${Array.from({ length: max }, (_, i) => `<i class="${i < lv ? 'on' : ''}"></i>`).join('')}</div>`;
 const coinIcon = '<span class="coin"></span>';
+function cardArt(c) {
+  const z = c.zodiac && ZODIAC.find(z => z.id === c.zodiac);
+  const img = z && pic.zodiac(z);
+  return img ? `<img class="card-character" src="${img}" alt="${esc(ZODIAC.find(z => z.id === c.zodiac)?.name || '')}">` : c.e;
+}
 
 // ───────── 로딩 ─────────
 export function loading(p = 0) {
@@ -60,7 +66,7 @@ export function base(state, act) {
   const bg = pic.base();
   const r = show(`<div class="screen" style="background:${bg ? `url(${bg}) center/cover` : 'rgba(20,26,58,.55)'}">
     <div class="base-top"><div class="ol" style="font-size:calc(var(--u)*26)">기지${save.teacher ? ' · 교사 모드' : ''}</div><div class="coinbox ol">${coinIcon}${save.coins}</div></div>
-    <div class="base-body" id="bb"></div>
+    <div class="base-body ${['codex', 'cards'].includes(state.tab) ? 'collection' : ''}" id="bb"></div>
     <nav class="tabs">${tabs.map(([id, e, n]) => `<button class="tab ${state.tab === id ? 'on' : ''}" data-t="${id}"><b>${e}</b>${n}</button>`).join('')}</nav>
   </div>`);
   click('.tab', (e, el) => act.tab(el.dataset.t));
@@ -125,7 +131,7 @@ function cardsTab(bb) {
   const groups = ['지역 상식', 'SW·AI 개념', '예방 수칙', 'AI 역량'];
   const n = CARDS.filter(c => view.hasCard(c.id)).length;
   bb.innerHTML = `<h2 class="ol">카드첩 ${n}/${totalCards()}</h2>${groups.map(gname => `<div class="sec-label">${gname}</div><div class="grid cards">${CARDS.filter(c => c.kind === gname).map(c => view.hasCard(c.id)
-    ? `<div class="ccard got" data-c="${c.id}"><span class="e">${c.e}</span><b>${esc(c.title)}</b></div>`
+    ? `<div class="ccard got" data-c="${c.id}"><span class="e">${cardArt(c)}</span><b>${esc(c.title)}</b></div>`
     : `<div class="ccard"><span class="e">❔</span><span class="k">${hintFor(c)}</span></div>`).join('')}</div>`).join('')}`;
   const opened = STORY.filter(st => save.teacher || save.story.includes(st.id));
   bb.insertAdjacentHTML('beforeend', `<div class="sec-label">이야기 조각 ${opened.length}/${STORY.length}</div><div class="rows">${STORY.map(st => (save.teacher || save.story.includes(st.id))
@@ -140,7 +146,7 @@ function hintFor(c) {
   if (c.kind === 'AI 역량') return ZODIAC.find(z => z.id === c.zodiac).name + ' 동료 고르기';
   const b = Object.values(BOSSES).find(x => x.card === c.id); return b ? b.name + ' 처치' : '';
 }
-export function cardModal(c) { modal(`<div style="font-size:calc(var(--u)*64)">${c.e}</div><span class="note">${c.kind}</span><b class="ol" style="font-size:calc(var(--u)*30)">${esc(c.title)}</b><p style="font-size:calc(var(--u)*19);font-weight:700;line-height:1.6;text-align:left">${esc(c.text)}</p>`); }
+export function cardModal(c) { modal(`<div class="card-modal-art" style="font-size:calc(var(--u)*64)">${cardArt(c)}</div><span class="note">${c.kind}</span><b class="ol" style="font-size:calc(var(--u)*30)">${esc(c.title)}</b><p style="font-size:calc(var(--u)*19);font-weight:700;line-height:1.6;text-align:left">${esc(c.text)}</p>`); }
 
 function settings(bb, state, act) {
   const row = (id, name, desc) => `<div class="row"><div class="tx"><b>${name}</b><p>${desc}</p></div><div class="toggle ${save.settings[id] ? 'on' : ''}" data-s="${id}" role="switch" aria-checked="${save.settings[id]}" tabindex="0"></div></div>`;
@@ -265,8 +271,8 @@ function slotCells(items, n = 5, cls = '') {
   return `<div class="slotbody ${cls}">${Array.from({ length: n }, (_, i) => { const it = items[i]; return it ? `<div class="slot got"><div class="face">${it.icon}</div>${dots(it.lv, it.max || 5)}</div>` : '<div class="slot"></div>'; }).join('')}</div>`;
 }
 export function ownedLists(run) {
-  const weapons = Object.entries(run.weapons).map(([id, lv]) => ({ icon: run.evolved.includes(EVOLUTIONS.find(e => e.from === id)?.id) ? '🌟' : weaponDef(id).icon, lv, max: 5 }));
-  const ups = Object.entries(run.upgrades).map(([id, lv]) => ({ icon: upDef(id).icon, lv, max: 5 }));
+  const weapons = Object.entries(run.weapons).map(([id, lv]) => ({ icon: run.evolved.includes(EVOLUTIONS.find(e => e.from === id)?.id) ? '🌟' : skillArt(weaponDef(id)), lv, max: 5 }));
+  const ups = Object.entries(run.upgrades).map(([id, lv]) => ({ icon: skillArt(upDef(id)), lv, max: 5 }));
   const boons = [...Object.entries(run.boons).map(([id, r]) => ({ icon: boonIcon(id), lv: r + 1, max: 3 })), ...run.duos.map(id => ({ icon: boonIcon(id), lv: 3, max: 3 })), ...(run.legend ? [{ icon: boonIcon(run.legend), lv: 3, max: 3 }] : [])];
   return { weapons, ups, boons };
 }
@@ -307,14 +313,14 @@ function ownBar(run) {
 export function levelUp(run, choices, ship, onPick) {
   const card = (c, i) => {
     let name, icon, desc, badge = '', elem = '물리', ei = '🔸', lv = 0, max = 3, cls = '';
-    if (c.type === 'weapon') { name = c.def.name; icon = c.def.icon; lv = Math.min(3, Math.ceil((c.lv + 1) * 3 / 5)); desc = c.lv ? `<span class="up">Lv.${c.lv} → ${c.lv + 1}</span><br>${c.def.desc(c.lv + 1)}` : c.def.desc(1); badge = c.lv ? '' : '신규'; }
-    else if (c.type === 'upgrade') { name = c.def.name; icon = c.def.icon; lv = Math.min(3, Math.ceil((c.lv + 1) * 3 / 5)); desc = c.def.desc(c.lv + 1); badge = c.lv ? '' : '신규'; elem = '강화'; ei = '📘'; }
+    if (c.type === 'weapon') { name = c.def.name; icon = skillArt(c.def); lv = Math.min(3, Math.ceil((c.lv + 1) * 3 / 5)); desc = c.lv ? `<span class="up">Lv.${c.lv} → ${c.lv + 1}</span><br>${c.def.desc(c.lv + 1)}` : c.def.desc(1); badge = c.lv ? '' : '신규'; }
+    else if (c.type === 'upgrade') { name = c.def.name; icon = skillArt(c.def); lv = Math.min(3, Math.ceil((c.lv + 1) * 3 / 5)); desc = c.def.desc(c.lv + 1); badge = c.lv ? '' : '신규'; elem = '강화'; ei = '📘'; }
     else if (c.type === 'evo') { const ev = c.ev; name = typeof ev.name === 'string' ? ev.name : ev.name[ship]; desc = typeof ev.desc === 'string' ? ev.desc : ev.desc[ship]; icon = ev.icon; badge = '진화'; lv = 3; cls = 'legend'; elem = '진화'; ei = '🌟'; }
     else if (c.type === 'coin') { name = '코인 꾸러미'; icon = '💰'; desc = '코인 +20'; elem = '보너스'; }
     else { name = '응급 수리'; icon = '🔧'; desc = '체력 30% 회복'; elem = '보너스'; }
     return `<div class="choicewrap">${badge ? `<span class="badge">${badge}</span>` : ''}<button class="choice ${cls}" data-i="${i}"><div class="top"><div class="name">${esc(name)}</div><div class="art">${icon}</div></div>${dots(lv)}<div class="desc">${desc}</div><div class="elem"><i>${ei}</i>${elem}</div></button></div>`;
   };
-  const r = show(`<div class="screen dim"><div class="upttl ol">업그레이드</div>${ownBar(run)}<div class="choices">${choices.map(card).join('')}</div><div class="hint ol">위에서 <em>스킬</em>을 하나 선택해 습득하세요.</div></div>`);
+  const r = show(`<div class="screen dim upgrade-screen"><div class="upttl ol">업그레이드</div>${ownBar(run)}<div class="choices">${choices.map(card).join('')}</div><div class="hint ol">위에서 <em>스킬</em>을 하나 선택해 습득하세요.</div></div>`);
   stagger(r.querySelectorAll('.choicewrap'), 110, 30);
   click('.choice', (e, el) => onPick(choices[+el.dataset.i]));
 }
@@ -347,7 +353,7 @@ export function altar(run, choices, onPick, onReroll) {
 export function cardReveal(c, onNext) {
   sfx.levelup();
   const back = pic.cardBack();
-  const r = show(`<div class="screen dim"><div class="bigcard reveal-card">${back ? `<img class="card-back-art" src="${back}" alt="">` : ''}<span class="k">${c.kind} 카드 획득!</span><span class="e">${c.e}</span><b>${esc(c.title)}</b><p>${esc(c.text)}</p></div>
+  const r = show(`<div class="screen dim reward-screen"><div class="bigcard reveal-card">${back ? `<img class="card-back-art" src="${back}" alt="">` : ''}<span class="k">${c.kind} 카드 획득!</span><span class="e">${cardArt(c)}</span><b>${esc(c.title)}</b><p>${esc(c.text)}</p></div>
     <button class="btn cardbtn" id="cn">확인</button></div>`);
   unfold(r.querySelector('.bigcard'));
   highlight(r.querySelector('.bigcard p'), c.hl);
@@ -418,10 +424,15 @@ async function showCredits() {
 
 // ───────── 갈림길 ─────────
 export function pathPick(opts, onPick) {
-  const r = show(`<div class="screen dim altar"><div class="upttl ol" style="margin-top:calc(var(--u)*150)">갈림길</div>
+  const pathArt = p => {
+    const key = { coin: 'coin', heal: 'heart', xp: 'xp' }[p.id];
+    const im = key && art.item(key);
+    return im ? `<img src="${im.toDataURL()}" alt="">` : p.e;
+  };
+  const r = show(`<div class="screen dim altar upgrade-screen path-screen"><div class="upttl ol" style="margin-top:calc(var(--u)*150)">갈림길</div>
     <p class="ol" style="margin-top:calc(var(--u)*18);font-size:calc(var(--u)*22);text-align:center">어느 길로 갈까요?</p>
-    <div class="choices" style="grid-template-columns:repeat(2,1fr);padding-inline:calc(var(--u)*40)">${opts.map((p, i) => `<div class="choicewrap"><button class="choice" data-i="${i}" style="height:calc(var(--u)*330)">
-      <div class="top" style="height:calc(var(--u)*190)"><div class="name">${p.name}</div><div class="art" style="background:#fff">${p.e}</div></div><div class="desc" style="font-size:calc(var(--u)*18)">${p.desc}</div></button></div>`).join('')}</div></div>`);
+    <div class="choices" style="grid-template-columns:repeat(2,1fr);padding-inline:calc(var(--u)*34)">${opts.map((p, i) => `<div class="choicewrap route-${p.id}"><button class="choice" data-i="${i}" style="height:calc(var(--u)*390)">
+      <div class="top" style="height:calc(var(--u)*220)"><div class="name">${p.name}</div><div class="art">${pathArt(p)}</div></div><div class="desc" style="font-size:calc(var(--u)*18)">${p.desc}</div><div class="elem">이 길로 가기 →</div></button></div>`).join('')}</div></div>`);
   mountFlow(r.querySelector('.altar'), { seed: 7, colors: ['#ffc53d', '#3fe0c0'], base: '#141a3a', count: 120 });
   stagger(r.querySelectorAll('.choicewrap'), 140, 30);
   let picked = false;

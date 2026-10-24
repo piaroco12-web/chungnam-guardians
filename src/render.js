@@ -158,9 +158,9 @@ export function render(g, b, scale) {
     if (e.isBoss) continue;
     g.save();
     if (e.decoy) { g.globalAlpha = 0.55 + 0.25 * Math.sin(b.t * 12); sprite(g, art.boss(e.boss), e.x, e.y, e.r * 2.4); g.restore(); continue; }
-    if (e.elite) { g.strokeStyle = '#ffd23d'; g.lineWidth = 5; g.shadowColor = '#ffd23d'; g.shadowBlur = 16; g.beginPath(); g.arc(e.x, e.y, e.r + 8, 0, 7); g.stroke(); g.shadowBlur = 0; emojiAt(g, '👑', e.x, e.y - e.r - 14, 24); }
+    if (e.elite) { g.strokeStyle = '#ffd23d'; g.lineWidth = 5; g.shadowColor = '#ffd23d'; g.shadowBlur = 16; g.beginPath(); g.arc(e.x, e.y, e.r + 8, 0, 7); g.stroke(); g.shadowBlur = 0; if (e.type !== 'bug') emojiAt(g, '👑', e.x, e.y - e.r - 14, 24); }
     if (e.flash > 0) g.filter = 'brightness(2.2)';
-    sprite(g, art.enemy(e.type), e.x, e.y, e.r * 2.6);
+    sprite(g, art.enemy(e.type, e.elite), e.x, e.y, e.r * 2.6);
     g.restore();
     statusMarks(g, e, b.t);
     if (e.hp < e.maxHp && ENEMIES[e.type]) { g.fillStyle = '#141414'; g.fillRect(e.x - 20, e.y - e.r - 12, 40, 6); g.fillStyle = '#ff3d5a'; g.fillRect(e.x - 19, e.y - e.r - 11, 38 * Math.max(0, e.hp / e.maxHp), 4); }

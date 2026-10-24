@@ -20,7 +20,7 @@ const NAMES = [
   ...GODS.flatMap(g => [g.img, g.sheet]),
   ...Object.keys(BOSSES).flatMap(id => [bossFile(id), bossFile(id) + '_cleansed']),
   ...ZODIAC.map(z => 'zodiac_' + z.id),
-  'pact_sheet', ...STORY.map(st => 'story_' + st.id),
+  'pact_sheet', 'upgrade_icons_sheet', 'enemy_bug_round_sheet', ...STORY.map(st => 'story_' + st.id),
   'bg_asan', 'bg_gongju', 'bg_buyeo', 'bg_boryeong', 'bg_naepo',
 ];
 
@@ -150,11 +150,20 @@ function hangarArt(s) {
 }
 
 const once = (k, f) => cache[k] || (cache[k] = f());
+function roundedBug(elite) {
+  const im = get('enemy_bug_round_sheet');
+  if (!im) return null;
+  return once('rounded-bug-' + !!elite, () => canvas(256, 256, g => {
+    const [x, y, w, h] = elite ? [850, 6, 924, 832] : [110, 244, 668, 551];
+    const scale = 230 / Math.max(w, h);
+    g.drawImage(im, x, y, w, h, (256 - w * scale) / 2, (256 - h * scale) / 2, w * scale, h * scale);
+  }));
+}
 
 // 전투에 쓰는 그림 (Image 또는 Canvas)
 export const art = {
   ship: id => get('ship_' + id) || once('ship' + id, () => shipTop(SHIPS.find(s => s.id === id))),
-  enemy: t => cell('enemy_sheet', ENEMY_ORDER.indexOf(t), 3, 2) || once('en' + t, () => enemyArt(t)),
+  enemy: (t, elite = false) => (t === 'bug' && roundedBug(elite)) || cell('enemy_sheet', ENEMY_ORDER.indexOf(t), 3, 2) || once('en' + t, () => enemyArt(t)),
   boss: id => get(bossFile(id)) || once('boss' + id, () => bossArt(id)),
   drone: () => get('unit_drone'),
   zodiac: id => get('zodiac_' + id),
@@ -165,6 +174,7 @@ export const art = {
 // 화면(DOM)용 그림 주소
 const url = c => (c.toDataURL ? c.toDataURL() : c.src);
 export const pic = {
+  skill: id => { const i = ['boomerang', 'area', 'crit'].indexOf(id); const c = i >= 0 && cell('upgrade_icons_sheet', i, 3); return c ? c.toDataURL() : null; },
   pilot: p => url(get('pilot_' + p.id) || once('pi' + p.id, () => pilotArt(p))),
   hangar: s => url(get('ship_' + s.id + '_hangar') || once('hg' + s.id, () => hangarArt(s))),
   god: gd => url(get(gd.img) || once('god' + gd.id, () => godArt(gd))),
