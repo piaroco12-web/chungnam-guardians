@@ -1,7 +1,7 @@
 # 충남 수호대 — 코딩 블라스터 설계서
 
 > 네온블라스터(index.html, 777줄 단일 파일)를 충남교육 테마의 세로형 슈팅 로그라이크로 개편한다.
-> 작성 2026. 10. 24. · 상태: 설계 확정, 제작 중
+> 작성 2026. 10. 24. · 상태: 1차 제작 완료 (임시 그림, 밸런스 조정 전)
 
 ---
 
@@ -287,26 +287,23 @@
 - 가호·무기·보스·카드는 전부 `data/` 폴더의 표 형식 데이터. 항목 추가는 데이터 한 줄 + 효과 함수 하나.
 
 ```
-index.html
-style.css
+index.html            화면 틀
+style.css             모든 화면 스타일 (참고 이미지 기준 UI)
 src/
-  main.js            게임 루프, 화면 전환
-  input.js           터치·마우스·키보드, 슬로우 판정
-  assets.js          그림 로더 (PNG 있으면 사용, 없으면 임시 그림)
-  save.js            기록 저장
-  scenes/            title, base, select, battle, levelup, altar, result
-  battle/            player, ship, enemy, boss, bullet, wave, effects
-  systems/           weapons, upgrades, boons, status, meta
-  draw/              임시 그림 (도형으로 그린 캐릭터·적·아이콘)
+  main.js             화면 흐름, 전투 루프, 카드·제단·결과 연결
+  battle.js           전투 엔진: 플레이어·적·보스 패턴·무기·가호 효과
+  render.js           전투 화면 그리기 (그림 파일 없으면 임시 그림)
+  progress.js         레벨업 선택지, 수호신 제단 선택지
+  ui.js               타이틀·기지·선택·HUD·일시정지·레벨업·제단·카드·결과
+  assets.js           그림 로더 + 임시 그림
+  input.js view.js audio.js save.js
 data/
-  pilots.js ships.js weapons.js upgrades.js
-  gods.js boons.js duos.js legends.js
-  regions.js enemies.js bosses.js cards.js difficulty.js
-assets/
-  img/  (ChatGPT 지시서의 파일명 그대로)
-  sfx/  bgm/
-legacy/neon-blaster.html
-docs/DESIGN.md
+  content.js          파일럿·기체·난이도·지역·적·보스·카드·영구 강화
+  build.js            무기·강화·진화
+  boons.js            수호신·가호·듀오·전설
+assets/img/ sfx/ bgm/ 그림·소리 (파일 이름은 docs/chatgpt-brief.md)
+legacy/neon-blaster.html  예전 게임
+docs/DESIGN.md        이 설계서
 ```
 
 ### 그림 자동 교체 규칙
