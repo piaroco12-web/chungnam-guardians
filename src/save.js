@@ -48,7 +48,10 @@ export function resetForNextStudent() {
   persist(); clearRun();
 }
 // 체험관 모드 기기는 게임을 새로 열 때마다 처음 상태로 시작한다
-if (save.settings.kiosk) resetForNextStudent();
+// 단, 새 버전을 받으려고 저절로 새로고침한 경우에는 지금 학생의 기록을 지우지 않는다
+let swReload = false;
+try { swReload = sessionStorage.getItem('cnguard_sw_reload') === '1'; sessionStorage.removeItem('cnguard_sw_reload'); } catch { /* 무시 */ }
+if (save.settings.kiosk && !swReload) resetForNextStudent();
 
 // 교사 모드면 모두 열린 것으로 본다
 export const view = {

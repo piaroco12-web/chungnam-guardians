@@ -354,10 +354,11 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || ['localho
     if (!hadController || refreshing) return;
     // 진행 중인 출격은 지킨다. 메뉴에서는 새 그림·코드가 함께 적용되도록 한 번 갱신한다.
     if (state.scene === 'battle' || state.scene === 'select') {
-      ui.toast('새 버전을 받았어요. 다음 실행부터 적용됩니다.');
+      ui.toast('새 버전을 받았어요. 다음에 열 때부터 바뀌어요.');
       return;
     }
     refreshing = true;
+    try { sessionStorage.setItem('cnguard_sw_reload', '1'); } catch { /* 무시 */ }
     location.reload();
   });
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => { /* 온라인 실행 유지 */ });

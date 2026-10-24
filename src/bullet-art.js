@@ -66,7 +66,9 @@ const SHAPES = {
   heart(g, R, c) {
     g.fillStyle = c; g.beginPath(); g.moveTo(0, R * 0.95);
     g.bezierCurveTo(-R * 1.4, R * 0.05, -R * 0.75, -R * 1.15, 0, -R * 0.45); g.bezierCurveTo(R * 0.75, -R * 1.15, R * 1.4, R * 0.05, 0, R * 0.95); g.fill(); ink(g);
-    shine(g, -R * 0.45, -R * 0.4, R * 0.24, R * 0.15);
+    // 회복 하트(반짝이는 분홍 하트)와 헷갈리지 않게 금이 간 하트로 그린다
+    g.strokeStyle = INK; g.lineWidth = Math.max(1.6, R * 0.2); g.lineJoin = 'round'; g.beginPath();
+    g.moveTo(0, -R * 0.45); g.lineTo(-R * 0.22, -R * 0.05); g.lineTo(R * 0.18, R * 0.22); g.lineTo(0, R * 0.62); g.stroke();
   },
   play(g, R, c) { g.fillStyle = c; rrect(g, -R, -R * 0.78, R * 2, R * 1.56, R * 0.42); g.fill(); ink(g); g.fillStyle = '#fff'; g.beginPath(); g.moveTo(R * 0.5, 0); g.lineTo(-R * 0.3, -R * 0.42); g.lineTo(-R * 0.3, R * 0.42); g.closePath(); g.fill(); },
   bell(g, R, c) {
