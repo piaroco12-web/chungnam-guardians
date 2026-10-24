@@ -1,0 +1,124 @@
+{
+  "checks": [
+    "title logo and artwork loaded",
+    "sortie, pilot/ship/difficulty, keyboard movement and battle canvas",
+    "pause and resume",
+    "boss defeat → cleansed sprite → OX quiz → cards → altar → next region (debug accelerated battle)",
+    "26 MP3 files decoded in Chromium",
+    "all companion/story/pact/cleansed/gift references loaded",
+    "offline reload → title → base → pilot selection",
+    "mobile layout, touch pointer drag and release slow motion"
+  ],
+  "pageErrors": [],
+  "failedLocalResponses": [],
+  "audio": [
+    {
+      "path": "assets/bgm/bgm_title_01.mp3",
+      "seconds": 11.294126984126985
+    },
+    {
+      "path": "assets/bgm/bgm_base_01.mp3",
+      "seconds": 248.3606349206349
+    },
+    {
+      "path": "assets/bgm/bgm_battle_01.mp3",
+      "seconds": 74.25414965986394
+    },
+    {
+      "path": "assets/bgm/bgm_battle_02.mp3",
+      "seconds": 72.79621315192743
+    },
+    {
+      "path": "assets/bgm/bgm_boss_01.mp3",
+      "seconds": 26.65
+    },
+    {
+      "path": "assets/bgm/bgm_altar_02.mp3",
+      "seconds": 142.9701814058957
+    },
+    {
+      "path": "assets/bgm/bgm_victory_01.mp3",
+      "seconds": 4.88
+    },
+    {
+      "path": "assets/bgm/bgm_defeat_01.mp3",
+      "seconds": 4
+    },
+    {
+      "path": "assets/sfx/sfx_shoot.mp3",
+      "seconds": 1.1003628117913833
+    },
+    {
+      "path": "assets/sfx/sfx_enemy_hit.mp3",
+      "seconds": 0.6348979591836734
+    },
+    {
+      "path": "assets/sfx/sfx_explosion_small.mp3",
+      "seconds": 1.4513151927437642
+    },
+    {
+      "path": "assets/sfx/sfx_explosion_large.mp3",
+      "seconds": 0.7774603174603174
+    },
+    {
+      "path": "assets/sfx/sfx_coin.mp3",
+      "seconds": 0.8455102040816327
+    },
+    {
+      "path": "assets/sfx/sfx_xp.mp3",
+      "seconds": 0.519546485260771
+    },
+    {
+      "path": "assets/sfx/sfx_levelup.mp3",
+      "seconds": 1.1493877551020408
+    },
+    {
+      "path": "assets/sfx/sfx_card_confirm.mp3",
+      "seconds": 0.28984126984126984
+    },
+    {
+      "path": "assets/sfx/sfx_lightning.mp3",
+      "seconds": 1.0187755102040816
+    },
+    {
+      "path": "assets/sfx/sfx_ice.mp3",
+      "seconds": 0.2755328798185941
+    },
+    {
+      "path": "assets/sfx/sfx_wave.mp3",
+      "seconds": 0.9534240362811791
+    },
+    {
+      "path": "assets/sfx/sfx_fire.mp3",
+      "seconds": 0.9970975056689343
+    },
+    {
+      "path": "assets/sfx/sfx_wind.mp3",
+      "seconds": 0.5995238095238096
+    },
+    {
+      "path": "assets/sfx/sfx_light.mp3",
+      "seconds": 0.5456689342403628
+    },
+    {
+      "path": "assets/sfx/sfx_ultimate.mp3",
+      "seconds": 0.519546485260771
+    },
+    {
+      "path": "assets/sfx/sfx_boss_warning.mp3",
+      "seconds": 1.0405442176870747
+    },
+    {
+      "path": "assets/sfx/sfx_player_hit.mp3",
+      "seconds": 0.6875736961451248
+    },
+    {
+      "path": "assets/sfx/sfx_click.mp3",
+      "seconds": 0.09712018140589569
+    }
+  ],
+  "art": {
+    "checks": 73,
+    "allLoaded": true
+  }
+}

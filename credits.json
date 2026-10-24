@@ -1,0 +1,244 @@
+{
+  "items": [
+    {
+      "type": "img",
+      "title": "캐릭터·기체·수호신·보스·배경·아이콘·이야기 그림",
+      "author": "ChatGPT 이미지 생성",
+      "source": "",
+      "license": "AI 생성 이미지",
+      "note": "충남 수호대 전용 제작"
+    },
+    {
+      "type": "bgm",
+      "title": "Title Screen",
+      "author": "Juhani Junkala (SubspaceAudio)",
+      "source": "https://opengameart.org/content/5-chiptunes-action",
+      "license": "CC0",
+      "note": "Title Screen — Juhani Junkala (SubspaceAudio). https://opengameart.org/content/5-chiptunes-action. CC0 1.0 (표기 선택). MP3 형식으로 변환. OGG 변환"
+    },
+    {
+      "type": "bgm",
+      "title": "Napping on a Cloud",
+      "author": "congusbongus",
+      "source": "https://opengameart.org/content/napping-on-a-cloud",
+      "license": "CC0",
+      "note": "Napping on a Cloud — congusbongus. https://opengameart.org/content/napping-on-a-cloud. CC0 1.0 (표기 선택). MP3 형식으로 변환. OGG 변환"
+    },
+    {
+      "type": "bgm",
+      "title": "Level 1",
+      "author": "Juhani Junkala (SubspaceAudio)",
+      "source": "https://opengameart.org/content/5-chiptunes-action",
+      "license": "CC0",
+      "note": "Level 1 — Juhani Junkala (SubspaceAudio). https://opengameart.org/content/5-chiptunes-action. CC0 1.0 (표기 선택). MP3 형식으로 변환. OGG 변환"
+    },
+    {
+      "type": "bgm",
+      "title": "Level 2",
+      "author": "Juhani Junkala (SubspaceAudio)",
+      "source": "https://opengameart.org/content/5-chiptunes-action",
+      "license": "CC0",
+      "note": "Level 2 — Juhani Junkala (SubspaceAudio). https://opengameart.org/content/5-chiptunes-action. CC0 1.0 (표기 선택). MP3 형식으로 변환. OGG 변환"
+    },
+    {
+      "type": "bgm",
+      "title": "8-Bit Battle Loop",
+      "author": "Theodore Kerr (Wolfgang_)",
+      "source": "https://opengameart.org/content/8-bit-battle-loop",
+      "license": "CC0",
+      "note": "8-Bit Battle Loop — Theodore Kerr (Wolfgang_). https://opengameart.org/content/8-bit-battle-loop. CC0 1.0 (표기 선택). MP3 형식으로 변환. OGG 변환"
+    },
+    {
+      "type": "bgm",
+      "title": "Orien",
+      "author": "Tozan",
+      "source": "https://opengameart.org/content/orien",
+      "license": "CC0",
+      "note": "Orien — Tozan. https://opengameart.org/content/orien. CC0 1.0 (표기 선택). MP3 형식으로 변환. OGG 변환"
+    },
+    {
+      "type": "bgm",
+      "title": "Victory",
+      "author": "celestialghost8",
+      "source": "https://opengameart.org/content/victory",
+      "license": "CC0",
+      "note": "Victory — celestialghost8. https://opengameart.org/content/victory. CC0 1.0 (표기 선택). MP3 형식으로 변환. OGG 변환"
+    },
+    {
+      "type": "bgm",
+      "title": "Game over short jingle",
+      "author": "Kosmo The Cat",
+      "source": "https://opengameart.org/content/game-over-short-jingle",
+      "license": "CC0",
+      "note": "Game over short jingle — Kosmo The Cat. https://opengameart.org/content/game-over-short-jingle. CC0 1.0 (표기 선택). MP3 형식으로 변환. 4초 발췌·마지막 0.25초 페이드·OGG 변환"
+    },
+    {
+      "type": "sfx",
+      "title": "기본 총알 발사",
+      "author": "Kenney.nl",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0",
+      "note": "SFX by Kenney.nl (CC0). 표기 선택. MP3 형식으로 변환. 짧은 레이저 후보, 연사 재생 음량은 작게"
+    },
+    {
+      "type": "sfx",
+      "title": "적 피격",
+      "author": "Kenney.nl",
+      "source": "https://kenney.nl/assets/sci-fi-sounds",
+      "license": "CC0",
+      "note": "SFX by Kenney.nl (CC0). 표기 선택. MP3 형식으로 변환. 금속 충돌 후보"
+    },
+    {
+      "type": "sfx",
+      "title": "적 폭발·작게",
+      "author": "Kenney.nl",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0",
+      "note": "SFX by Kenney.nl (CC0). 표기 선택. MP3 형식으로 변환. 짧은 디지털 폭발 후보"
+    },
+    {
+      "type": "sfx",
+      "title": "적 폭발·크게",
+      "author": "Kenney.nl",
+      "source": "https://kenney.nl/assets/sci-fi-sounds",
+      "license": "CC0",
+      "note": "SFX by Kenney.nl (CC0). 표기 선택. MP3 형식으로 변환. 큰 폭발 후보"
+    },
+    {
+      "type": "sfx",
+      "title": "코인 획득",
+      "author": "Kenney.nl",
+      "source": "https://kenney.nl/assets/rpg-audio",
+      "license": "CC0",
+      "note": "SFX by Kenney.nl (CC0). 표기 선택. MP3 형식으로 변환. 동전 취급 소리"
+    },
+    {
+      "type": "sfx",
+      "title": "경험치 획득",
+      "author": "Kenney.nl",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0",
+      "note": "SFX by Kenney.nl (CC0). 표기 선택. MP3 형식으로 변환. 짧은 디지털 획득음"
+    },
+    {
+      "type": "sfx",
+      "title": "레벨업",
+      "author": "Kenney.nl",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0",
+      "note": "SFX by Kenney.nl (CC0). 표기 선택. MP3 형식으로 변환. 파워업 후보"
+    },
+    {
+      "type": "sfx",
+      "title": "카드 선택 확정",
+      "author": "Kenney.nl",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "license": "CC0",
+      "note": "SFX by Kenney.nl (CC0). 표기 선택. MP3 형식으로 변환. 확정음"
+    },
+    {
+      "type": "sfx",
+      "title": "번개",
+      "author": "Kenney.nl",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0",
+      "note": "SFX by Kenney.nl (CC0). 표기 선택. MP3 형식으로 변환. 전기 효과"
+    },
+    {
+      "type": "sfx",
+      "title": "얼음",
+      "author": "Kenney.nl",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "license": "CC0",
+      "note": "SFX by Kenney.nl (CC0). 표기 선택. MP3 형식으로 변환. 유리 계열의 얼음 대체음"
+    },
+    {
+      "type": "sfx",
+      "title": "파도",
+      "author": "Kenney.nl",
+      "source": "https://kenney.nl/assets/sci-fi-sounds",
+      "license": "CC0",
+      "note": "SFX by Kenney.nl (CC0). 표기 선택. MP3 형식으로 변환. 파도 실녹음이 아닌 신스 파동 대체음"
+    },
+    {
+      "type": "sfx",
+      "title": "불꽃",
+      "author": "Kenney.nl",
+      "source": "https://kenney.nl/assets/sci-fi-sounds",
+      "license": "CC0",
+      "note": "SFX by Kenney.nl (CC0). 표기 선택. MP3 형식으로 변환. 추진 불꽃; 원본을 1초로 발췌·페이드·재인코딩"
+    },
+    {
+      "type": "sfx",
+      "title": "바람",
+      "author": "Kenney.nl",
+      "source": "https://kenney.nl/assets/rpg-audio",
+      "license": "CC0",
+      "note": "SFX by Kenney.nl (CC0). 표기 선택. MP3 형식으로 변환. 짧은 휘두름의 바람 대체음"
+    },
+    {
+      "type": "sfx",
+      "title": "빛",
+      "author": "Kenney.nl",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0",
+      "note": "SFX by Kenney.nl (CC0). 표기 선택. MP3 형식으로 변환. 밝은 상승음"
+    },
+    {
+      "type": "sfx",
+      "title": "필살기 발동",
+      "author": "Kenney.nl",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0",
+      "note": "SFX by Kenney.nl (CC0). 표기 선택. MP3 형식으로 변환. 파워업 강조음"
+    },
+    {
+      "type": "sfx",
+      "title": "보스 등장 경고",
+      "author": "Kenney.nl",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0",
+      "note": "SFX by Kenney.nl (CC0). 표기 선택. MP3 형식으로 변환. 낮은 세 음 경고 후보"
+    },
+    {
+      "type": "sfx",
+      "title": "플레이어 피격",
+      "author": "Kenney.nl",
+      "source": "https://kenney.nl/assets/sci-fi-sounds",
+      "license": "CC0",
+      "note": "SFX by Kenney.nl (CC0). 표기 선택. MP3 형식으로 변환. 충격음"
+    },
+    {
+      "type": "sfx",
+      "title": "버튼 클릭",
+      "author": "Kenney.nl",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "license": "CC0",
+      "note": "SFX by Kenney.nl (CC0). 표기 선택. MP3 형식으로 변환. 짧은 클릭"
+    },
+    {
+      "type": "img",
+      "title": "Black Han Sans 글꼴",
+      "author": "ZESS TYPE",
+      "source": "https://github.com/google/fonts/tree/main/ofl/blackhansans",
+      "license": "SIL Open Font License 1.1",
+      "note": "WOFF2 변환, 원문: assets/fonts/OFL.txt"
+    },
+    {
+      "type": "img",
+      "title": "Noto Sans KR 글꼴",
+      "author": "Google / Adobe",
+      "source": "https://github.com/google/fonts/tree/main/ofl/notosanskr",
+      "license": "SIL Open Font License 1.1",
+      "note": "WOFF2 변환, 원문: assets/fonts/OFL-NotoSansKR.txt"
+    },
+    {
+      "type": "img",
+      "title": "Noto Emoji 기호 글꼴",
+      "author": "Google",
+      "source": "https://github.com/google/fonts/tree/main/ofl/notoemoji",
+      "license": "SIL Open Font License 1.1",
+      "note": "게임에서 쓰는 기호만 발췌·WOFF2 변환, 원문: assets/fonts/OFL-Emoji.txt"
+    }
+  ]
+}

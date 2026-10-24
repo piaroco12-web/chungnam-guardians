@@ -1,0 +1,919 @@
+{
+  "version": "2.2.0",
+  "count": 83,
+  "images": [
+    {
+      "path": "assets/img/bg_asan.png",
+      "width": 1080,
+      "height": 1890,
+      "bytes": 3182721,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false
+    },
+    {
+      "path": "assets/img/bg_base.png",
+      "width": 1080,
+      "height": 1890,
+      "bytes": 2922757,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false
+    },
+    {
+      "path": "assets/img/bg_boryeong.png",
+      "width": 1080,
+      "height": 1891,
+      "bytes": 3518696,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false
+    },
+    {
+      "path": "assets/img/bg_buyeo.png",
+      "width": 1080,
+      "height": 1890,
+      "bytes": 3307593,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false
+    },
+    {
+      "path": "assets/img/bg_gongju.png",
+      "width": 1080,
+      "height": 1890,
+      "bytes": 3349636,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false
+    },
+    {
+      "path": "assets/img/bg_naepo.png",
+      "width": 1080,
+      "height": 1890,
+      "bytes": 3481339,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false
+    },
+    {
+      "path": "assets/img/boss_ai_core.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 805281,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/boss_ai_core_cleansed.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 819306,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/boss_blackhole.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 652110,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/boss_blackhole_cleansed.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 717982,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/boss_cloud.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 534176,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/boss_cloud_cleansed.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 544587,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/boss_copybot.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 615839,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/boss_copybot_cleansed.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 679017,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/boss_deepfaker.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 658472,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/boss_deepfaker_cleansed.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 671028,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/boss_octopus.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 612310,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/boss_octopus_cleansed.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 603293,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/boss_scroller.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 751179,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/boss_scroller_cleansed.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 773972,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/boss_slot.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 661422,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/boss_slot_cleansed.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 733460,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/boss_smog.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 638225,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/boss_smog_cleansed.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 669798,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/boss_thorn.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 601047,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/boss_thorn_cleansed.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 651837,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/enemy_sheet.png",
+      "width": 1152,
+      "height": 768,
+      "bytes": 669898,
+      "grid": [
+        3,
+        2
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/frame_duo_legend.png",
+      "width": 1152,
+      "height": 384,
+      "bytes": 226863,
+      "grid": [
+        3,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/fx_items_sheet.png",
+      "width": 2304,
+      "height": 384,
+      "bytes": 395667,
+      "grid": [
+        6,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/gift_baekje_sheet.png",
+      "width": 1920,
+      "height": 384,
+      "bytes": 361785,
+      "grid": [
+        5,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/gift_chilgap_sheet.png",
+      "width": 1920,
+      "height": 384,
+      "bytes": 242652,
+      "grid": [
+        5,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/gift_geumgang_sheet.png",
+      "width": 1920,
+      "height": 384,
+      "bytes": 367460,
+      "grid": [
+        5,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/gift_gyeryong_sheet.png",
+      "width": 1920,
+      "height": 384,
+      "bytes": 423646,
+      "grid": [
+        5,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/gift_seohae_sheet.png",
+      "width": 1920,
+      "height": 384,
+      "bytes": 425837,
+      "grid": [
+        5,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/gift_taean_sheet.png",
+      "width": 1920,
+      "height": 384,
+      "bytes": 441941,
+      "grid": [
+        5,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/god_baekje.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 319578,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/god_chilgap.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 328166,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/god_geumgang.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 313489,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/god_gyeryong.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 316565,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/god_seohae.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 352698,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/god_taean.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 304782,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/pact_sheet.png",
+      "width": 2304,
+      "height": 384,
+      "bytes": 408896,
+      "grid": [
+        6,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/pilot_centeri.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 306779,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/pilot_chungnami.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 223615,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/pilot_edui.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 271414,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/ship_beongae.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 187214,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/ship_beongae_hangar.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 246876,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/ship_byeolbit.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 212140,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/ship_byeolbit_hangar.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 222146,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/ship_drone.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 236703,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/ship_drone_hangar.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 280072,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/story_s01.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 1142115,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false
+    },
+    {
+      "path": "assets/img/story_s02.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 967541,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false
+    },
+    {
+      "path": "assets/img/story_s03.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 1094307,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false
+    },
+    {
+      "path": "assets/img/story_s04.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 1093654,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false
+    },
+    {
+      "path": "assets/img/story_s05.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 1086995,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false
+    },
+    {
+      "path": "assets/img/story_s06.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 1107081,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false
+    },
+    {
+      "path": "assets/img/story_s07.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 1121780,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false
+    },
+    {
+      "path": "assets/img/story_s08.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 1039950,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false
+    },
+    {
+      "path": "assets/img/story_s09.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 1136227,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false
+    },
+    {
+      "path": "assets/img/story_s10.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 1018218,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false
+    },
+    {
+      "path": "assets/img/story_s11.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 1096595,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false
+    },
+    {
+      "path": "assets/img/story_s12.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 1030845,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false
+    },
+    {
+      "path": "assets/img/story_s13.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 1075065,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false
+    },
+    {
+      "path": "assets/img/story_s14.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 1084309,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false
+    },
+    {
+      "path": "assets/img/story_s15.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 1105996,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false
+    },
+    {
+      "path": "assets/img/title_keyart.png",
+      "width": 1080,
+      "height": 1890,
+      "bytes": 2883291,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false
+    },
+    {
+      "path": "assets/img/title_logo.png",
+      "width": 768,
+      "height": 768,
+      "bytes": 513701,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/ui_card_back.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 252847,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/ui_ultimate_sheet.png",
+      "width": 1152,
+      "height": 384,
+      "bytes": 566896,
+      "grid": [
+        3,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/unit_drone.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 263412,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/zodiac_dog.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 243550,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/zodiac_dragon.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 281722,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/zodiac_horse.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 280445,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/zodiac_monkey.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 257874,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/zodiac_ox.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 241958,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/zodiac_pig.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 293613,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/zodiac_rabbit.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 245351,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/zodiac_rat.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 285112,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/zodiac_rooster.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 245273,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/zodiac_sheep.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 266522,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/zodiac_snake.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 254899,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/zodiac_tiger.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 231742,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true
+    }
+  ]
+}
