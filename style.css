@@ -87,6 +87,30 @@ h2.ol{font-size:calc(var(--u)*38);margin:calc(var(--u)*6) 0 calc(var(--u)*14);te
 .toggle.on{background:var(--green)}
 .toggle.on::after{left:calc(var(--u)*35)}
 
+/* 영구 강화: 종류별 컬러와 실제 입체 아이콘 */
+.meta-panel > h2{background:#0c1430e6;border:calc(var(--u)*2) solid #89daf4;border-radius:calc(var(--u)*12);padding:calc(var(--u)*8)}
+.meta-rows{gap:calc(var(--u)*12)}
+.meta-row{--meta-accent:#68ddff;--meta-tint:#d4f7ff;--meta-dark:#245c99;min-height:calc(var(--u)*106);border-color:var(--meta-accent);border-radius:calc(var(--u)*16);background:linear-gradient(110deg,#23456a,#14233f 50%,#1b2e50);padding:calc(var(--u)*10);gap:calc(var(--u)*12);box-shadow:0 calc(var(--u)*5) 0 #07152d,inset 0 calc(var(--u)*3) 0 #ffffff35}
+.meta-hp{--meta-accent:#ff95b0;--meta-tint:#ffe0e9;--meta-dark:#af3f6b}
+.meta-magnet{--meta-accent:#9daaff;--meta-tint:#e7e8ff;--meta-dark:#6655ba}
+.meta-bonus{--meta-accent:#ffcf68;--meta-tint:#fff2c3;--meta-dark:#b77924}
+.meta-reroll{--meta-accent:#c89bff;--meta-tint:#f0e0ff;--meta-dark:#8855bb}
+.meta-revive{--meta-accent:#73efca;--meta-tint:#dafff0;--meta-dark:#248f80}
+.meta-row .ic{position:relative;overflow:hidden;width:calc(var(--u)*74);height:calc(var(--u)*74);border-radius:calc(var(--u)*17);border:calc(var(--u)*3) solid var(--meta-accent);background:radial-gradient(circle at 35% 25%,#fff,var(--meta-tint) 70%,var(--meta-accent));box-shadow:0 calc(var(--u)*4) 0 var(--meta-dark),inset 0 calc(var(--u)*3) 0 #ffffffb3}
+.meta-row .ic img{position:absolute;width:140%;height:140%;max-width:none;object-fit:contain;left:50%;top:50%;transform:translate(-50%,-50%)}
+.meta-row .tx b{font-size:calc(var(--u)*22);color:#fff;text-shadow:0 calc(var(--u)*2) 0 #07152d}
+.meta-row .tx p{color:#e3f4ff;font-weight:750;font-size:calc(var(--u)*14);line-height:1.55;margin-top:calc(var(--u)*4)}
+.meta-progress{display:flex;align-items:center;gap:calc(var(--u)*8);margin-top:calc(var(--u)*7)}
+.meta-progress .pips{margin:0;gap:calc(var(--u)*3);flex-wrap:wrap}
+.meta-progress .pips i{width:calc(var(--u)*12);height:calc(var(--u)*8);border-radius:calc(var(--u)*3);background:#09162c;border:calc(var(--u)*1) solid #4a6487;box-shadow:inset 0 calc(var(--u)*1) calc(var(--u)*2) #0008}
+.meta-progress .pips i.on{background:var(--meta-accent);border-color:#ffffffb3;box-shadow:0 0 calc(var(--u)*5) var(--meta-accent)}
+.meta-level{font-size:calc(var(--u)*13);font-weight:900;color:var(--meta-accent);white-space:nowrap}
+.meta-cost{width:calc(var(--u)*94);min-width:calc(var(--u)*94);height:calc(var(--u)*62);padding:calc(var(--u)*6);display:flex;align-items:center;justify-content:center;gap:calc(var(--u)*4);background:linear-gradient(#ffe8a1,#ffba3b);border-color:#fff1b5;border-radius:calc(var(--u)*12);font-size:calc(var(--u)*23);box-shadow:0 calc(var(--u)*5) 0 #8b541b,inset 0 calc(var(--u)*3) 0 #fff8d1}
+.meta-cost.gray{background:linear-gradient(#526d96,#2b4269);border-color:#8aaccd;box-shadow:0 calc(var(--u)*5) 0 #0a1831,inset 0 calc(var(--u)*3) 0 #ffffff35}
+.meta-cost[disabled]{filter:none;color:#b8f7dd;background:#1f4c47;border-color:#71c9b0;box-shadow:0 calc(var(--u)*4) 0 #0a1831}
+.meta-price-coin{position:relative;display:block;overflow:hidden;width:calc(var(--u)*26);height:calc(var(--u)*30);flex:none}
+.meta-price-coin img{position:absolute;width:250%;height:250%;max-width:none;object-fit:contain;left:50%;top:50%;transform:translate(-50%,-50%)}
+
 /* 도감·카드 그리드 */
 .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:calc(var(--u)*8)}
 .grid.cards{grid-template-columns:repeat(3,1fr);gap:calc(var(--u)*10)}
@@ -101,6 +125,10 @@ h2.ol{font-size:calc(var(--u)*38);margin:calc(var(--u)*6) 0 calc(var(--u)*14);te
 .ccard .e{font-size:calc(var(--u)*36)}
 .ccard .e:has(img){width:calc(var(--u)*100);height:calc(var(--u)*100);border-radius:50%;background:radial-gradient(#fff4d2,#b9eeff);border:calc(var(--u)*2) solid #fff0b5;box-shadow:0 calc(var(--u)*3) 0 #0b1632}
 .card-character{display:block;width:100%;height:100%;object-fit:contain}
+.card-scene{object-fit:cover;border-radius:inherit}
+.duo-mark{display:flex;align-items:center;justify-content:center;width:100%;height:100%;overflow:hidden}
+.duo-mark img{width:62%!important;height:85%!important;object-fit:contain!important;filter:drop-shadow(0 calc(var(--u)*2) calc(var(--u)*2) #10204080)}
+.duo-mark img+img{margin-left:-24%}
 .card-modal-art:has(img){width:calc(var(--u)*180);height:calc(var(--u)*180);margin:auto}
 .sec-label{font-size:calc(var(--u)*22);line-height:1.5;margin:calc(var(--u)*16) 0 calc(var(--u)*8);padding:calc(var(--u)*7) calc(var(--u)*12);background:rgba(12,20,48,.9);border:calc(var(--u)*2) solid #8bdfff;border-radius:calc(var(--u)*10)}
 .collection > h2.ol{background:rgba(12,20,48,.9);border-radius:calc(var(--u)*12);padding:calc(var(--u)*10) calc(var(--u)*8)}
@@ -210,6 +238,8 @@ h2.ol{font-size:calc(var(--u)*38);margin:calc(var(--u)*6) 0 calc(var(--u)*14);te
 .upgrade-screen .choice .name{z-index:1;color:#fff;background:linear-gradient(#293f68,#111d39);border:calc(var(--u)*2) solid #ffffffbd;padding:calc(var(--u)*7) calc(var(--u)*2);font-size:calc(var(--u)*19);box-shadow:0 calc(var(--u)*4) 0 #08122d77;text-shadow:0 calc(var(--u)*2) 0 #071128}
 .upgrade-screen .choice .art{position:relative;clip-path:none;border-radius:50%;width:calc(var(--u)*112);height:calc(var(--u)*112);background:radial-gradient(circle at 35% 25%,#fff,#fff7d2 65%,#ffc968);border:calc(var(--u)*4) solid #fff2b7;box-shadow:0 0 0 calc(var(--u)*3) var(--card-ink),0 calc(var(--u)*7) 0 var(--card-ink),0 calc(var(--u)*12) calc(var(--u)*14) #081b504d,inset 0 calc(var(--u)*4) 0 #fff;color:#172744;text-shadow:0 calc(var(--u)*3) 0 #fff}
 .upgrade-screen .choice .art img{border-radius:50%;object-fit:contain}
+.evolved-skill{display:block;width:100%;height:100%;filter:drop-shadow(0 0 calc(var(--u)*7) #ffe688) saturate(1.3);position:relative}
+.evolved-skill::after{content:'✦';position:absolute;right:0;top:0;font-size:calc(var(--u)*28);color:#fff4ae;text-shadow:0 0 calc(var(--u)*8) #ffb83a}
 .upgrade-screen .choice .dots{flex:none;height:calc(var(--u)*31);background:#0c1833;border-bottom:calc(var(--u)*1) solid #ffffff24}
 .upgrade-screen .choice .dots i.on{background:#ffe37b;box-shadow:0 0 calc(var(--u)*7) #ffcf60}
 .upgrade-screen .choice .desc{font-size:calc(var(--u)*17);line-height:1.6;padding:calc(var(--u)*12) calc(var(--u)*10);color:#fff;text-shadow:0 calc(var(--u)*2) 0 #071127}
