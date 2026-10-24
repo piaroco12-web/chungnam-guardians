@@ -136,7 +136,7 @@ h2.ol{font-size:calc(var(--u)*38);margin:calc(var(--u)*6) 0 calc(var(--u)*14);te
 
 /* 일시정지 (참고 이미지 5번) */
 .pausettl{margin-top:calc(var(--u)*70);font-size:calc(var(--u)*56)}
-.pausescroll{max-height:calc(var(--u)*640);overflow-y:auto;padding-bottom:calc(var(--u)*10)}
+.pausescroll{max-height:calc(var(--u)*600);overflow-y:auto;padding-bottom:calc(var(--u)*10)}
 .slotpanel{width:calc(var(--u)*490);margin-top:calc(var(--u)*24)}
 .slothead{height:calc(var(--u)*50);border:calc(var(--u)*4) solid var(--ink);border-bottom:0;border-radius:calc(var(--u)*14) calc(var(--u)*14) 0 0;display:flex;align-items:center;justify-content:center;gap:calc(var(--u)*12);font-family:var(--display);font-size:calc(var(--u)*26);color:var(--ink);background:#ffe47a}
 .slothead.blue{background:#86d2ea}

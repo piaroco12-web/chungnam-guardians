@@ -2,6 +2,7 @@
 import { PILOTS, SHIPS, DIFFS, REGIONS, CARDS, META_UPGRADES, BOSSES } from '../data/content.js';
 import { GODS, BOONS, DUOS, LEGENDS, RARITY, SLOT_NAMES } from '../data/boons.js';
 import { WEAPONS, UPGRADES, EVOLUTIONS, boonDef, godOf, MAX_SLOTS } from './progress.js';
+import { ZODIAC } from '../data/zodiac.js';
 import { save, view, persist, TEACHER_CODE, totalCodex, totalCards, resetAll } from './save.js';
 import { pic } from './assets.js';
 import { sfx, refreshBgm } from './audio.js';
@@ -110,7 +111,7 @@ function codex(bb) {
 }
 
 function cardsTab(bb) {
-  const groups = ['지역 상식', 'SW·AI 개념', '예방 수칙'];
+  const groups = ['지역 상식', 'SW·AI 개념', '예방 수칙', 'AI 역량'];
   const n = CARDS.filter(c => view.hasCard(c.id)).length;
   bb.innerHTML = `<h2 class="ol">카드첩 ${n}/${totalCards()}</h2>${groups.map(gname => `<div class="sec-label">${gname}</div><div class="grid cards">${CARDS.filter(c => c.kind === gname).map(c => view.hasCard(c.id)
     ? `<div class="ccard got" data-c="${c.id}"><span class="e">${c.e}</span><b>${esc(c.title)}</b></div>`
@@ -120,6 +121,7 @@ function cardsTab(bb) {
 function hintFor(c) {
   if (c.kind === '지역 상식') return REGIONS.find(r => 'r_' + r.id === c.id)?.name + ' 클리어';
   if (c.kind === 'SW·AI 개념') return godOf(c.god).name + ' 가호 얻기';
+  if (c.kind === 'AI 역량') return ZODIAC.find(z => z.id === c.zodiac).name + ' 동료 고르기';
   const b = Object.values(BOSSES).find(x => x.card === c.id); return b ? b.name + ' 처치' : '';
 }
 export function cardModal(c) { modal(`<div style="font-size:calc(var(--u)*64)">${c.e}</div><span class="note">${c.kind}</span><b class="ol" style="font-size:calc(var(--u)*30)">${esc(c.title)}</b><p style="font-size:calc(var(--u)*19);font-weight:700;line-height:1.6;text-align:left">${esc(c.text)}</p>`); }
@@ -227,6 +229,7 @@ export function pause(run, act) {
     <div class="slotpanel"><div class="slothead">🔫 무기</div>${slotCells(o.weapons)}</div>
     <div class="slotpanel" style="margin-top:calc(var(--u)*14)"><div class="slothead blue">📘 강화</div>${slotCells(o.ups)}</div>
     <div class="slotpanel" style="margin-top:calc(var(--u)*14)"><div class="slothead pink">✨ 수호신 가호</div>${slotCells(o.boons, nb, 'six')}</div>
+    ${run.companion ? (z => `<div class="row" style="margin:calc(var(--u)*14) auto 0;width:calc(var(--u)*490)"><div class="ic">${z.e}</div><div class="tx"><b>동료 ${z.name} · ${z.word}</b><p>${z.desc}</p></div></div>`)(ZODIAC.find(x => x.id === run.companion)) : ''}
     </div>
     <div class="pause-btns"><div class="col"><button class="btn blue icon" id="ps" aria-label="통계">📊</button><button class="btn blue icon" id="pg" aria-label="설정">⚙️</button></div>
       <button class="btn" id="pc" style="font-size:calc(var(--u)*40);padding:calc(var(--u)*14) calc(var(--u)*40)">계속하기</button>
@@ -315,3 +318,17 @@ export function statsModal(b) {
   modal(`<b class="ol" style="font-size:calc(var(--u)*26)">이번 판 기록</b>
     <p style="text-align:left;line-height:1.8;font-weight:700">지역: ${rg.name}<br>레벨: ${r.level}<br>처치: ${r.kills}<br>코인: ${r.coins}<br>체력: ${Math.ceil(r.hp)}/${b.maxHp}<br>공격력 배율: ×${b.st.atk.toFixed(2)}<br>가호: ${Object.keys(r.boons).length}개 · 듀오 ${r.duos.length}개${r.legend ? ' · 전설 1개' : ''}</p>`);
 }
+
+// ───────── AI 12지신 수호대: 중간 보스 뒤 동료 고르기 ─────────
+export function zodiacPick(choices, onPick) {
+  const card = (z, i) => {
+    const img = pic.zodiac(z);
+    return `<div class="choicewrap"><button class="choice" data-i="${i}"><div class="top" style="background:${z.color}"><div class="name">${z.name}</div><div class="art" style="background:#fff">${img ? `<img src="${img}" alt="">` : z.e}</div></div>
+      <div class="dots" style="color:#fff;font-size:calc(var(--u)*15);font-weight:900">${esc(z.word)}</div><div class="desc">${esc(z.desc)}</div><div class="elem"><i>🤖</i>${esc(z.key)}</div></button></div>`;
+  };
+  show(`<div class="screen dim altar"><div class="upttl ol" style="margin-top:calc(var(--u)*110);font-size:calc(var(--u)*34);width:calc(var(--u)*440)">AI 12지신 수호대</div>
+    <p class="ol" style="margin-top:calc(var(--u)*18);font-size:calc(var(--u)*22);text-align:center">이 지역 끝까지 함께 날아 줄<br>동료를 한 마리 고르세요</p>
+    <div class="choices">${choices.map(card).join('')}</div></div>`);
+  click('.choice', (e, el) => onPick(choices[+el.dataset.i]));
+}
+export function zodiacChoices() { const a = [...ZODIAC]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a.slice(0, 3); }

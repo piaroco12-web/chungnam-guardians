@@ -71,7 +71,9 @@ export const BOSSES = {
   aicore:    { name: '폭주 AI 코어', issue: 'AI 윤리·편향', hp: 6800, r: 92, color: '#ff3d5a', face: '👁️', patterns: ['biasLaser', 'dataStorm', 'chaos'], card: 'p_aiethics' },
 };
 
-// 카드 21장: 지역 상식 5, SW·AI 개념 6, 예방 수칙 10
+import { ZODIAC } from './zodiac.js';
+
+// 카드 33장: 지역 상식 5, SW·AI 개념 6, 예방 수칙 10, AI 역량(12지신) 12
 export const CARDS = [
   { id: 'r_asan', kind: '지역 상식', e: '🏯', title: '아산', text: '이순신 장군을 모신 현충사가 있고, 온양온천은 오래전부터 이름난 온천이에요. 충남소프트웨어교육체험센터도 아산에 있어요.' },
   { id: 'r_gongju', kind: '지역 상식', e: '🧱', title: '공주', text: '백제가 웅진(지금의 공주)을 수도로 삼았던 곳이에요. 공산성과 무령왕릉은 유네스코 세계유산 백제역사유적지구에 속해요.' },
@@ -96,6 +98,7 @@ export const CARDS = [
   { id: 'p_phish', kind: '예방 수칙', e: '🔒', title: '낯선 링크는 누르지 않기', text: '모르는 링크는 누르지 않아요. 이름·전화번호·비밀번호는 아무에게나 알려 주지 않아요.' },
   { id: 'p_climate', kind: '예방 수칙', e: '🌱', title: '작은 실천이 모여요', text: '안 쓰는 전기 끄기, 분리배출, 걷거나 자전거 타기. 작은 실천이 지구를 지켜요.' },
   { id: 'p_aiethics', kind: '예방 수칙', e: '⚖️', title: 'AI도 틀릴 수 있어요', text: 'AI는 한쪽으로 치우친 답을 낼 수 있어요. 결과를 그대로 믿지 말고 사람이 확인해요.' },
+  ...ZODIAC.map(z => ({ id: 'z_' + z.id, kind: 'AI 역량', zodiac: z.id, e: z.e, title: `${z.word} (${z.key})`, text: z.card })),
 ];
 
 // 영구 강화 (기지)

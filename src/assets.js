@@ -2,6 +2,7 @@
 // 파일 이름은 docs/chatgpt-brief.md(ChatGPT 지시서)와 같다.
 import { PILOTS, SHIPS, BOSSES, ENEMIES } from '../data/content.js';
 import { GODS } from '../data/boons.js';
+import { ZODIAC } from '../data/zodiac.js';
 
 const img = {};          // 이름 → 불러온 Image
 const cache = {};        // 임시 그림 캐시
@@ -17,6 +18,7 @@ const NAMES = [
   ...SHIPS.flatMap(s => ['ship_' + s.id, 'ship_' + s.id + '_hangar']),
   ...GODS.flatMap(g => [g.img, g.sheet]),
   ...Object.keys(BOSSES).map(bossFile),
+  ...ZODIAC.map(z => 'zodiac_' + z.id),
   'bg_asan', 'bg_gongju', 'bg_buyeo', 'bg_boryeong', 'bg_naepo',
 ];
 
@@ -153,6 +155,7 @@ export const art = {
   enemy: t => cell('enemy_sheet', ENEMY_ORDER.indexOf(t), 3, 2) || once('en' + t, () => enemyArt(t)),
   boss: id => get(bossFile(id)) || once('boss' + id, () => bossArt(id)),
   drone: () => get('unit_drone'),
+  zodiac: id => get('zodiac_' + id),
   item: k => cell('fx_items_sheet', ITEM_ORDER.indexOf(k), 6),
   bg: name => get(name),
 };
@@ -164,6 +167,7 @@ export const pic = {
   hangar: s => url(get('ship_' + s.id + '_hangar') || once('hg' + s.id, () => hangarArt(s))),
   god: gd => url(get(gd.img) || once('god' + gd.id, () => godArt(gd))),
   boss: id => url(art.boss(id)),
+  zodiac: z => (has('zodiac_' + z.id) ? get('zodiac_' + z.id).src : null),
   gift: (gd, slotIndex) => { const c = cell(gd.sheet, slotIndex, 5); return c ? c.toDataURL() : null; },
   keyart: () => (has('title_keyart') ? get('title_keyart').src : null),
   logo: () => (has('title_logo') ? get('title_logo').src : null),

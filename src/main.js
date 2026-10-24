@@ -133,7 +133,14 @@ function onBossDefeated(b, id, isRegion) {
   b.run.bossesBeaten.push(id);
   giveCard(b, BOSSES[id].card, cards);
   if (!isRegion) {
-    return showCards(cards, () => { b.stageCleared(); resumeBattle(b); });
+    // 중간 보스 뒤: AI 12지신 동료 고르기
+    return showCards(cards, () => ui.zodiacPick(ui.zodiacChoices(), z => {
+      sfx.pick();
+      b.run.companion = z.id; b.recalc();
+      const more = [];
+      giveCard(b, 'z_' + z.id, more);
+      showCards(more, () => { b.stageCleared(); resumeBattle(b); });
+    }));
   }
   // 지역 클리어
   const ri = b.run.region, rg = REGIONS[ri];

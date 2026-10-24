@@ -3,6 +3,9 @@ import { W, H } from './view.js';
 import { art } from './assets.js';
 import { isActive } from './input.js';
 import { REGIONS, ENEMIES } from '../data/content.js';
+import { ZODIAC } from '../data/zodiac.js';
+
+function emojiAt(g, e, x, y, size) { g.font = `${size}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(e, x, y); }
 
 const bgCache = {};
 function proceduralBg(reg) {
@@ -163,6 +166,7 @@ export function render(g, b, scale) {
   for (const o of b.objs) {
     if (o.kind === 'bomb') { g.fillStyle = '#333'; g.beginPath(); g.arc(o.x, o.y, 11, 0, 7); g.fill(); g.strokeStyle = '#ffb23d'; g.lineWidth = 3; g.stroke(); }
     if (o.kind === 'boomerang') { g.save(); g.translate(o.x, o.y); g.rotate(b.t * 18); g.fillStyle = '#e9f0ff'; g.strokeStyle = '#141414'; g.lineWidth = 3; g.beginPath(); g.moveTo(-o.r, 0); g.quadraticCurveTo(0, -o.r, o.r, 0); g.quadraticCurveTo(0, -o.r * 0.4, -o.r, 0); g.fill(); g.stroke(); g.restore(); }
+    if (o.kind === 'phoenix' && o.horse) { if (!sprite(g, art.zodiac('horse'), o.x, o.y, 80)) emojiAt(g, '🐴', o.x, o.y, 56); g.fillStyle = 'rgba(255,230,180,.35)'; g.fillRect(0, o.y - 40, o.x, 80); continue; }
     if (o.kind === 'phoenix') { g.save(); g.translate(o.x, o.y); const s = o.big ? 3 : 1; g.scale(o.dir < 0 ? -s : s, s); g.fillStyle = '#ff7a3d'; g.shadowColor = '#ffb23d'; g.shadowBlur = 20; g.beginPath(); g.moveTo(30, 0); g.lineTo(-10, -26); g.lineTo(-4, -6); g.lineTo(-40, -14); g.lineTo(-20, 4); g.lineTo(-40, 16); g.lineTo(-4, 8); g.lineTo(-10, 26); g.closePath(); g.fill(); g.restore(); }
   }
 
@@ -171,6 +175,13 @@ export function render(g, b, scale) {
   if (b.ship.drones) { const n = b.ship.drones + (b.evo('evo_main') ? 2 : 0); for (let i = 0; i < n; i++) { const p = b.dronePos(i, n); if (!sprite(g, art.drone(), p.x, p.y, 30)) { g.fillStyle = '#3fe0c0'; g.beginPath(); g.arc(p.x, p.y, 10, 0, 7); g.fill(); g.strokeStyle = '#141414'; g.lineWidth = 3; g.stroke(); g.fillStyle = '#141414'; g.beginPath(); g.arc(p.x, p.y, 3, 0, 7); g.fill(); } } }
   if (b.ultKind === 'drones') for (let i = 0; i < 6; i++) { const a = b.t * 3 + i * Math.PI / 3; const x = b.p.x + Math.cos(a) * 80, y = b.p.y + Math.sin(a) * 50; g.fillStyle = '#3fe0c0'; g.beginPath(); g.arc(x, y, 9, 0, 7); g.fill(); }
   if (b.ultKind === 'beam') { const w = 90 + Math.sin(b.t * 40) * 8; g.fillStyle = 'rgba(217,255,154,.55)'; g.fillRect(b.p.x - w / 2, 0, w, b.p.y - 20); g.fillStyle = 'rgba(255,255,255,.85)'; g.fillRect(b.p.x - w / 6, 0, w / 3, b.p.y - 20); }
+
+  // AI 12지신 동료
+  if (b.run.companion) {
+    const z = ZODIAC.find(x => x.id === b.run.companion), cp = b.companionPos();
+    g.fillStyle = 'rgba(255,255,255,.25)'; g.beginPath(); g.arc(cp.x, cp.y, 26, 0, 7); g.fill();
+    if (!sprite(g, art.zodiac(z.id), cp.x, cp.y, 62)) emojiAt(g, z.e, cp.x, cp.y, 40);
+  }
 
   // 플레이어
   const p = b.p;

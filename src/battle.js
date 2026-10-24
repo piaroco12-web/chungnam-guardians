@@ -23,6 +23,7 @@ export function newRun({ pilot, ship, diff, region = 0 }) {
     boons: {}, duos: [], legend: null, gauge: 0,
     rerolls: save.meta.reroll, reviveLeft: save.meta.revive,
     cardsGained: [], bossesBeaten: [],
+    companion: null, oxUsed: false,   // AI 12지신 동료 (지역마다 새로 고름)
   };
 }
 
@@ -54,7 +55,7 @@ export class Battle {
   recalc() {
     const u = id => this.up(id), m = save.meta;
     this.st = {
-      atk: (1 + u('atk') * 0.1 + m.atk * 0.03),
+      atk: (1 + u('atk') * 0.1 + m.atk * 0.03) * (this.run.companion === 'tiger' ? 1.25 : 1),
       rate: 1 + u('rate') * 0.08,
       speed: 1 + u('speed') * 0.1,
       cd: Math.max(0.4, 1 - u('cd') * 0.06),
@@ -62,7 +63,7 @@ export class Battle {
       area: 1 + u('area') * 0.1,
       dur: 1 + u('dur') * 0.12,
       magnet: 130 * (1 + u('magnet') * 0.25 + m.magnet * 0.1),
-      crit: u('crit') * 0.05,
+      crit: u('crit') * 0.05 + (this.run.companion === 'sheep' ? 0.15 : 0),
       elem: this.run.pilot === 'centeri' ? 1.3 : 1,
       elemDur: this.run.pilot === 'centeri' ? 1 : 0,
     };
@@ -164,7 +165,7 @@ export class Battle {
   nextRegion() {
     for (const it of this.items) if (it.kind !== 'fake') this.collect(it); // 남은 보상은 자동으로 챙긴다
     this.items = []; this.pendingLevels = 0;
-    this.run.region++; this.run.stage = 0;
+    this.run.region++; this.run.stage = 0; this.run.companion = null; this.run.oxUsed = false; this.recalc();
     this.eb = []; this.pb = []; this.hazards = []; this.overlays = [];
     this.startStage();
   }
@@ -187,6 +188,7 @@ export class Battle {
     this.playerFire(dt);
     this.updateWeapons(dt);
     this.updateBoonTimers(dt, active);
+    if (this.run.companion) this.updateCompanion(dt);
     this.updateObjs(dt);
     this.updatePB(dt);
     this.updateEnemies(dt);
@@ -259,6 +261,7 @@ export class Battle {
     const spacing = laser ? 16 : 14;
     for (let i = 0; i < count; i++) angles.push({ a: 0, ox: (i - (count - 1) / 2) * spacing });
     if (this.has('cg_bullet')) angles.push({ a: -0.14, ox: -8 }, { a: 0.14, ox: 8 });
+    if (this.run.companion === 'rabbit') angles.push({ a: -0.3, ox: -6 }, { a: 0.3, ox: 6 });
     if (this.evo('evo_main') && this.ship.id === 'byeolbit') angles.push({ a: -0.22, ox: -10 }, { a: 0.22, ox: 10 });
     p.shotN++;
     const beam = this.has('ta_bullet') && p.shotN % 5 === 0;
@@ -427,7 +430,7 @@ export class Battle {
         }
         case 'phoenix':
           if (o.big) { o.t -= dt; if ((o.acc = (o.acc || 0) + dt) > 0.3) { o.acc = 0; for (const e of [...this.enemies]) this.damage(e, o.dmg * 0.3, { elem: 'burn', always: true }); } if (o.t <= 0) alive = false; }
-          else { o.x += o.dir * 700 * dt; for (const e of [...this.enemies]) if (!o.hit.has(e) && Math.abs(e.x - o.x) < 40 && Math.abs(e.y - o.y) < 60) { o.hit.add(e); this.damage(e, o.dmg, { elem: 'burn', always: true }); } if (o.x < -100 || o.x > W + 100) alive = false; }
+          else { o.x += o.dir * 700 * dt; for (const e of [...this.enemies]) if (!o.hit.has(e) && Math.abs(e.x - o.x) < 40 && Math.abs(e.y - o.y) < 60) { o.hit.add(e); this.damage(e, o.dmg, { elem: o.horse ? null : 'burn', always: true }); } if (o.x < -100 || o.x > W + 100) alive = false; }
           break;
         case 'tornado': {
           o.t -= dt; o.y -= 70 * dt;
@@ -658,6 +661,9 @@ export class Battle {
     if (this.has('gy_hit')) this.explode(p.x, p.y, 200, 40 * this.rr('gy_hit') * this.st.atk, { elem: 'shock', color: '#fff27a' });
     if (this.has('sh_hit')) p.bubble = 3 * this.rr('sh_hit');
     if (this.has('bj_hit')) this.explode(p.x, p.y, 150, 60 * this.rr('bj_hit') * this.st.atk, { elem: 'burn', color: '#ff7a3d' });
+    if (this.run.hp <= 0 && this.run.companion === 'ox' && !this.run.oxUsed) {
+      this.run.oxUsed = true; this.run.hp = 1; p.inv = 2; this.texts.push({ x: p.x, y: p.y - 60, s: '🐮 끝까지 해내기!', t: 1.2, c: '#ffe14a', big: true }); return;
+    }
     if (this.run.hp <= 0) {
       if (this.run.reviveLeft > 0) { this.run.reviveLeft--; this.run.hp = this.maxHp * 0.5; p.inv = 3; this.eb = []; this.showBanner('부활!', '한 번 더 힘내요', 1.5); sfx.levelup(); return; }
       this.run.hp = 0; this.over = true; sfx.over();
@@ -682,11 +688,25 @@ export class Battle {
   collect(it) {
     const r = this.run;
     if (it.kind === 'xp') { r.xp += it.v; sfx.xp(); while (r.xp >= this.xpNeed()) { r.xp -= this.xpNeed(); r.level++; this.pendingLevels++; } }
-    else if (it.kind === 'coin') { r.coins += it.v; sfx.coin(); }
+    else if (it.kind === 'coin') { r.coins += it.v * (r.companion === 'pig' ? 2 : 1); sfx.coin(); }
     else if (it.kind === 'heart') { this.heal(it.v); sfx.pick(); }
     else if (it.kind === 'fake') { this.p.slowDebuff = 3; this.texts.push({ x: this.p.x, y: this.p.y - 40, s: '가짜 아이템! 느려짐', t: 1, c: '#ff8a3d' }); sfx.hurt(); }
   }
   xpNeed() { return 10 + this.run.level * 8; }
+
+  // ───────── AI 12지신 동료 ─────────
+  companionPos() { return { x: this.p.x - 62, y: this.p.y + 18 + Math.sin(this.t * 3) * 6 }; }
+  updateCompanion(dt) {
+    const c = this.run.companion, T = this.timers, st = this.st, pos = this.companionPos();
+    const tick = (k, iv) => { T[k] = (T[k] || 0) + dt; if (T[k] >= iv) { T[k] = 0; return true; } return false; };
+    if (c === 'rat' && tick('z', 4)) { const n = this.eb.length; this.eb = this.eb.filter(b => dist2(b, this.p) > 150 * 150); if (n !== this.eb.length) this.fx.push({ kind: 'ring', x: this.p.x, y: this.p.y, r: 150, t: 0.35, max: 0.35, c: '#ffffff' }); }
+    if (c === 'dragon' && tick('z', 3)) { let t = null; for (const e of this.enemies) if (!e.decoy && !e.dying && e.y > 0 && (!t || e.hp > t.hp)) t = e; if (t) { this.fx.push({ kind: 'bolt', x: t.x, y: t.y, t: 0.25 }); this.damage(t, 70 * st.atk, {}); } }
+    if (c === 'snake' && tick('z', 0.8)) this.homing(pos.x, pos.y, 16 * st.atk, { kind: 'drone' });
+    if (c === 'horse' && tick('z', 5)) { const y = clamp(this.p.y - 260, 160, 600); this.objs.push({ kind: 'phoenix', x: -60, y, dir: 1, hit: new Set(), dmg: 45 * st.atk, big: false, horse: true }); }
+    if (c === 'monkey' && tick('z', 6)) { const t = pick(this.enemies.filter(e => !e.decoy && !e.dying && e.y > 0)); if (t) { const el = pick(['shock', 'chill', 'burn', 'wave']); this.explode(t.x, t.y, 90 * st.area, 45 * st.atk, { elem: el, color: { shock: '#fff27a', chill: '#bfefff', burn: '#ff7a3d', wave: '#4f9bff' }[el] }); } }
+    if (c === 'rooster') this.addGauge(2 * dt);
+    if (c === 'dog' && tick('z', 10)) { if (this.p.shields < this.maxShields + 1) this.p.shields++; this.heal(3); sfx.shield(); }
+  }
 
   // ───────── 필살기 ─────────
   tryUlt() {
