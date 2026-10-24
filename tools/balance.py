@@ -7,7 +7,7 @@ import asyncio, json, sys
 from playwright.async_api import async_playwright
 
 N = int(sys.argv[1]) if len(sys.argv) > 1 else 3
-CONFIGS = [(d, s) for d in ['sprout', 'chall', 'legend'] for s in ['byeolbit', 'drone', 'beongae']]
+CONFIGS = [(d, s) for d in (sys.argv[2].split(',') if len(sys.argv) > 2 else ['sprout', 'chall', 'legend']) for s in ['byeolbit', 'drone', 'beongae']]
 
 async def main():
     async with async_playwright() as p:

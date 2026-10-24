@@ -7,7 +7,8 @@ import { save, persist, progress, saveRun, loadRun, clearRun, view } from './sav
 import { Battle, newRun } from './battle.js';
 import { render } from './render.js';
 import { levelChoices, applyLevelChoice, altarChoices, applyAltarChoice, godOf } from './progress.js';
-import { PILOTS, DIFFS, REGIONS, BOSSES, CARDS } from '../data/content.js';
+import { PILOTS, SHIPS, DIFFS, REGIONS, BOSSES, CARDS } from '../data/content.js';
+import { PATHS, PACTS, STORY } from '../data/extras.js';
 import { BOONS } from '../data/boons.js';
 import * as ui from './ui.js';
 import { FlowArt } from './bgart.js';
@@ -23,18 +24,33 @@ ui.initUi();
 const state = { scene: 'loading', tab: 'sortie', pilot: 'chungnami', ship: 'byeolbit', diff: 'sprout', battle: null, sel: {} };
 let menuBg = null;
 
+// ───────── 오늘의 도전: 날짜로 정해지는 같은 판 ─────────
+const realRandom = Math.random;
+function seeded(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function todayKey() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+function dailyInfo() {
+  const key = todayKey(), seed = +key.replace(/-/g, '');
+  const r = seeded(seed);
+  const pilot = PILOTS[Math.floor(r() * PILOTS.length)], ship = SHIPS[Math.floor(r() * SHIPS.length)];
+  const d = new Date();
+  return { key, seed, pilot: pilot.id, ship: ship.id, pilotName: pilot.name, shipName: ship.name, label: `${d.getMonth() + 1}월 ${d.getDate()}일`, best: save.daily[key] || null };
+}
+function restoreRandom() { Math.random = realRandom; }
+
 // ───────── 화면 전환 ─────────
 function toTitle() {
+  restoreRandom();
   state.scene = 'title'; state.battle = null; bgm('title');
   ui.title({ hasRun: !!loadRun(), onStart: () => { unlockAudio(); toBase(); }, onContinue: () => { unlockAudio(); continueRun(); } });
 }
 
 function toBase(tab) {
+  restoreRandom();
   state.scene = 'base'; state.battle = null; if (tab) state.tab = tab; bgm('base');
   if (!view.pilotUnlocked(PILOTS.find(p => p.id === state.pilot))) state.pilot = 'chungnami';
-  ui.base({ tab: state.tab, pilot: state.pilot, ship: state.ship, hasRun: !!loadRun() }, {
+  ui.base({ tab: state.tab, pilot: state.pilot, ship: state.ship, hasRun: !!loadRun(), daily: dailyInfo() }, {
     tab: t => toBase(t), refresh: () => toBase(), title: toTitle,
-    sortie: () => toSelect('pilot'), cont: continueRun,
+    sortie: () => { state.sel = {}; toSelect('pilot'); }, cont: continueRun, daily: startDaily,
   });
 }
 
@@ -42,14 +58,15 @@ function toSelect(step) {
   state.scene = 'select';
   ui.select(step, state.sel, {
     back: () => {
-      const order = ['pilot', 'ship', 'diff', 'region'];
+      const order = ['pilot', 'ship', 'diff', 'pact', 'region'].filter(x => x !== 'pact' || view.pactsUnlocked());
       const i = order.indexOf(step); i <= 0 ? toBase() : toSelect(order[i - 1]);
     },
     pick: (st, v) => {
       sfx.pick();
       if (st === 'pilot') { state.pilot = v; toSelect('ship'); }
       else if (st === 'ship') { state.ship = v; toSelect('diff'); }
-      else if (st === 'diff') { state.diff = v; save.teacher ? toSelect('region') : startRun(0); }
+      else if (st === 'diff') { state.diff = v; view.pactsUnlocked() ? toSelect('pact') : save.teacher ? toSelect('region') : startRun(0); }
+      else if (st === 'pactgo') { save.teacher ? toSelect('region') : startRun(0); }
       else startRun(+v);
     },
   });
@@ -58,8 +75,14 @@ function toSelect(step) {
 // ───────── 판 시작·이어하기 ─────────
 function startRun(region) {
   clearRun();
-  const run = newRun({ pilot: state.pilot, ship: state.ship, diff: state.diff, region });
+  const run = newRun({ pilot: state.pilot, ship: state.ship, diff: state.diff, region, pacts: [...(state.sel.pacts || [])] });
   beginBattle(run);
+}
+function startDaily() {
+  clearRun();
+  const d = dailyInfo();
+  Math.random = seeded(d.seed);   // 오늘 하루는 모두 같은 하늘
+  beginBattle(newRun({ pilot: d.pilot, ship: d.ship, diff: 'chall', daily: d.key }));
 }
 function continueRun() {
   const run = loadRun(); if (!run) return toBase();
@@ -75,8 +98,10 @@ function beginBattle(run) {
     levelUp: () => openLevelUp(b),
     bossDefeated: (id, isRegion) => onBossDefeated(b, id, isRegion),
     death: () => finish(b, false),
+    path: () => openPath(b),
   });
   state.battle = b;
+  if (save.settings.classMin > 0) b.classLeft = save.settings.classMin * 60;
   ui.hud({ pause: () => openPause(b), ult: () => b.tryUlt() });
   b.hooks.hud();
   if (!save.tutorialDone) {
@@ -136,14 +161,22 @@ function onBossDefeated(b, id, isRegion) {
 }
 
 function afterStamp(b, id, isRegion) {
+  // 정화 퀴즈를 먼저 풀고 카드로
+  ui.quiz(id, ok => { if (ok) b.run.coins += 15; afterQuiz(b, id, isRegion); });
+}
+
+function afterQuiz(b, id, isRegion) {
   const cards = [];
   b.run.bossesBeaten.push(id);
+  progress(s => { if (!s.bosses.includes(id)) s.bosses.push(id); });
   giveCard(b, BOSSES[id].card, cards);
   if (!isRegion) {
     // 중간 보스 뒤: AI 12지신 동료 고르기
+    if (b.pact('solo')) return showCards(cards, () => { b.stageCleared(); resumeBattle(b); });
     return showCards(cards, () => ui.zodiacPick(ui.zodiacChoices(), z => {
       sfx.pick();
       b.run.companion = z.id; b.recalc();
+      progress(s => { s.stats.zodiac++; });
       const more = [];
       giveCard(b, 'z_' + z.id, more);
       showCards(more, () => { b.stageCleared(); resumeBattle(b); });
@@ -183,31 +216,74 @@ function openAltar(b) {
     if (c.type === 'boon' && !before.has(c.god.id)) giveCard(b, CARDS.find(x => x.god === c.god.id)?.id, cards);
     showCards(cards, () => {
       b.nextRegion();
-      saveRun(b.run);
+      if (!b.run.daily) saveRun(b.run);
       resumeBattle(b); bgm('battle');
     });
   }, () => { if (b.run.rerolls > 0) { b.run.rerolls--; choices = altarChoices(b.run); draw(); } });
   draw();
 }
 
+// ───────── 갈림길 ─────────
+function openPath(b) {
+  b.paused = true;
+  const beforeBoss = b.run.stage === 4;
+  let pool = PATHS.filter(p => !(p.id === 'heal' && b.pact('noHeal')) && !(p.id === 'elite' && beforeBoss));
+  pool = pool.sort(() => Math.random() - 0.5).slice(0, 2);
+  ui.pathPick(pool, p => {
+    sfx.pick();
+    const next = () => { b.startStage(); resumeBattle(b); };
+    if (p.id === 'heal') { b.heal(b.maxHp * 0.35); return next(); }
+    if (p.id === 'boon') {
+      let choices = altarChoices(b.run, 2);
+      const draw = () => ui.altar(b.run, choices, c => {
+        sfx.pick();
+        const gained = applyAltarChoice(b.run, c);
+        if (gained) progress(s => { if (!s.codex.includes(gained)) s.codex.push(gained); });
+        b.recalc(); next();
+      }, () => { if (b.run.rerolls > 0) { b.run.rerolls--; choices = altarChoices(b.run, 2); draw(); } });
+      return draw();
+    }
+    b.run.buff = { kind: p.id, stage: b.run.stage };
+    next();
+  });
+}
+
 // ───────── 판 종료 ─────────
-function finish(b, win) {
+function finish(b, win, reason = '') {
+  if (b.finished) return; b.finished = true;
   b.over = true; b.paused = true;
+  restoreRandom();
   clearRun();
   const d = DIFFS.find(x => x.id === b.run.diff);
-  const earned = Math.floor(b.run.coins * d.coin * (1 + save.meta.bonus * 0.05)) + (win ? 100 : 0);
+  const pactBonus = PACTS.filter(p => (b.run.pacts || []).includes(p.id)).reduce((a, p) => a + p.bonus, 0);
+  const earned = Math.floor(b.run.coins * d.coin * (1 + save.meta.bonus * 0.05 + pactBonus)) + (win ? 100 : 0);
   const unlocks = [...(b.unlocksThisRun || [])];
   progress(s => {
     s.coins += earned;
     if (b.run.kills > s.best.kills) s.best.kills = b.run.kills;
     if (win && (d.id === 'legend' || d.id === 'hell') && !s.beatLegend) { s.beatLegend = true; unlocks.push('지옥 난이도'); }
+    s.stats.runs++;
+    if (win) s.stats.wins++; else if (reason !== 'time') s.stats.deaths++;
+    if (win && (d.id === 'legend' || d.id === 'hell')) s.stats.legendWin = true;
+    if ((b.run.pacts || []).length) s.stats.pact++;
+    if (b.run.daily) {
+      s.stats.daily++;
+      const best = s.daily[b.run.daily], cur = { region: b.run.region + 1, kills: b.run.kills };
+      if (!best || cur.region > best.region || (cur.region === best.region && cur.kills > best.kills)) s.daily[b.run.daily] = cur;
+    }
   });
+  if (win && save.stats.wins === 1) unlocks.push('도전 계약');
+  // 이야기 조각
+  const snap = { ...save.stats, bosses: save.bosses, cleared: save.cleared.length, cards: save.cards.length };
+  const stories = save.teacher ? [] : STORY.filter(st => !save.story.includes(st.id) && st.when(snap)).slice(0, 2);
+  progress(s => { for (const st of stories) s.story.push(st.id); });
   if (win) sfx.clear();
   bgm(null);
   ui.result({
-    win, region: `${b.run.region + 1}. ${REGIONS[b.run.region].name}`, diff: d.name, kills: b.run.kills, level: b.run.level,
+    win: !!win, region: `${b.run.region + 1}. ${REGIONS[b.run.region].name}`, diff: d.name, kills: b.run.kills, level: b.run.level,
     coins: earned, cards: b.run.cardsGained.length, unlocks, teacher: save.teacher,
-  }, { again: () => toSelect('pilot'), base: () => toBase('sortie') });
+    reason, stories, cardList: b.run.cardsGained.map(id => CARDS.find(c => c.id === id)).filter(Boolean),
+  }, { again: () => { state.sel = {}; toSelect('pilot'); }, base: () => toBase('sortie') });
 }
 
 // ───────── 루프 ─────────
@@ -219,6 +295,7 @@ function loop(now) {
   if (b) {
     if (input.pausePressed) { input.pausePressed = false; if (state.scene === 'battle' && !b.paused) openPause(b); }
     b.update(dt);
+    if (b.classLeft != null && !b.paused && !b.over) { b.classLeft -= dt; if (b.classLeft <= 0) finish(b, false, 'time'); }
     render(g, b, scale);
   } else {
     input.pausePressed = false;
@@ -235,6 +312,11 @@ function drawMenuBg(dt) {
 }
 
 document.addEventListener('visibilitychange', () => { const b = state.battle; if (document.hidden && b && state.scene === 'battle' && !b.paused && !b.over) openPause(b); });
+
+// 설치형(오프라인) 지원: 지원하는 브라우저에서만 조용히 등록
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  navigator.serviceWorker.register('sw.js').catch(() => { /* 등록이 막힌 환경이면 그냥 온라인으로 실행 */ });
+}
 
 ui.loading(0);
 loadAssets(p => ui.loading(p)).then(() => { toTitle(); requestAnimationFrame(loop); });

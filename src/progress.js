@@ -73,8 +73,9 @@ function offerFor(run, god) {
   return { type: 'gift', god, coins: 40 };
 }
 
-export function altarChoices(run) {
-  const gods = shuffle([...GODS]).slice(0, 3);
+export function altarChoices(run, n = 3) {
+  if ((run.pacts || []).includes('altar2')) n = Math.min(n, 2);
+  const gods = shuffle([...GODS]).slice(0, n);
   return gods.map(g => offerFor(run, g));
 }
 

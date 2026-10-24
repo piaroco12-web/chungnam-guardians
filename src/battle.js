@@ -15,15 +15,16 @@ const dist2 = (a, b) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2;
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const BOON = Object.fromEntries(BOONS.map(b => [b.id, b]));
 
-export function newRun({ pilot, ship, diff, region = 0 }) {
+export function newRun({ pilot, ship, diff, region = 0, pacts = [], daily = null }) {
   return {
     pilot, ship, diff, region, stage: 0, startRegion: region,
     hp: null, level: 1, xp: 0, coins: 0, kills: 0,
     weapons: { main: 1 }, upgrades: {}, evolved: [],
     boons: {}, duos: [], legend: null, gauge: 0,
-    rerolls: save.meta.reroll, reviveLeft: save.meta.revive,
+    rerolls: save.meta.reroll, reviveLeft: save.meta.revive, pacts, daily,
     cardsGained: [], bossesBeaten: [],
     companion: null, oxUsed: false,   // AI 12지신 동료 (지역마다 새로 고름)
+    buff: null,                       // 갈림길 효과 (pacts·daily는 위에서 받음)
   };
 }
 
@@ -45,6 +46,8 @@ export class Battle {
   }
 
   // ───────── 능력치 ─────────
+  pact(id) { return (this.run.pacts || []).includes(id); }
+  buffOn(kind) { const bf = this.run.buff; return bf && bf.kind === kind && bf.stage === this.run.stage; }
   has(id) { return id in this.run.boons; }
   rr(id) { return RARITY[this.run.boons[id]]?.mul || 1; }
   up(id) { return this.run.upgrades[id] || 0; }
@@ -76,7 +79,7 @@ export class Battle {
 
   // ───────── 스테이지 진행 ─────────
   get region() { return REGIONS[this.run.region]; }
-  scaleHp() { return this.diff.hp * (1 + this.run.region * 0.38) * (1 + this.run.stage * 0.08); }
+  scaleHp() { return this.diff.hp * (1 + this.run.region * 0.38) * (1 + this.run.stage * 0.08) * (this.pact('tough') ? 1.4 : 1); }
 
   startStage() {
     const kind = STAGES[this.run.stage];
@@ -112,6 +115,10 @@ export class Battle {
       q.push({ t, type, form, count });
       t += rnd(2.4, 3.6) - this.run.region * 0.15;
     }
+    // 정예 적: 두 번째 웨이브부터 가끔, 정예 길을 골랐으면 2마리 더
+    let elites = (this.waveNo >= 2 && Math.random() < 0.6 ? 1 : 0) + (this.buffOn('elite') ? 2 : 0);
+    for (let k = 0; k < elites; k++) q.push({ t: 4 + k * 6 + Math.random() * 3, type: pick(reg.enemies.filter(x => x !== 'notify')), form: 'elite', count: 1 });
+    q.sort((a, b) => a.t - b.t);
     return q;
   }
 
@@ -124,9 +131,10 @@ export class Battle {
         case 'vee': x = W / 2 + (i - (n - 1) / 2) * 60; y = -40 - Math.abs(i - (n - 1) / 2) * 40; break;
         case 'column': x = g.x ?? (g.x = rnd(100, W - 100)); delay = i * 0.35; break;
         case 'sides': x = i % 2 ? 50 : W - 50; delay = Math.floor(i / 2) * 0.4; break;
+        case 'elite': x = rnd(120, W - 120); y = -60; break;
         default: x = rnd(50, W - 50); delay = i * 0.25;
       }
-      this.objs.push({ kind: 'spawnLater', t: delay, fn: () => this.spawnEnemy(g.type, x, y, i) });
+      this.objs.push({ kind: 'spawnLater', t: delay, fn: () => this.spawnEnemy(g.type, x, y, i, g.form === 'elite' ? { elite: true } : {}) });
     }
   }
 
@@ -135,6 +143,7 @@ export class Battle {
     const hp = d.hp * this.scaleHp();
     const e = { type, x, y, x0: x, r: d.r, hp, maxHp: hp, speed: d.speed, t: 0, i, shootT: d.shoot ? rnd(0.5, d.shoot) : 0,
       chill: 0, chillT: 0, frozen: 0, burn: 0, burnDps: 0, hitCd: {}, flash: 0, ...extra };
+    if (e.elite) { e.hp = e.maxHp = hp * 7; e.r = d.r * 1.35; e.speed = d.speed * 0.6; }
     if (d.move === 'hover') e.ty = rnd(140, 360);
     this.enemies.push(e);
     return e;
@@ -143,7 +152,7 @@ export class Battle {
   spawnBoss(id) {
     const b = BOSSES[id];
     const isMid = this.stageKind === 'mid';
-    const hp = b.hp * this.diff.hp * (1 + this.run.region * 0.35);
+    const hp = b.hp * this.diff.hp * (1 + this.run.region * 0.35) * (this.pact('tough') ? 1.4 : 1);
     const patterns = [...b.patterns];
     if (this.diff.id === 'hell') patterns.push('aimed');
     this.boss = { id, name: b.name, issue: b.issue, x: W / 2, y: -120, ty: isMid ? 270 : 290, r: b.r, hp, maxHp: hp, t: 0,
@@ -158,6 +167,9 @@ export class Battle {
     this.run.stage++;
     if (kind === 'wave') { sfx.clear(); }
     if (this.run.stage >= STAGES.length) return; // 지역 보스는 onBossDefeated에서 처리
+    // 웨이브 1 뒤(다음도 웨이브)와 웨이브 3 뒤(다음은 지역 보스)에는 갈림길
+    const next = STAGES[this.run.stage];
+    if (kind === 'wave' && (next === 'wave' || next === 'boss') && this.hooks.path) { this.real.push({ t: 1.2, fn: () => this.hooks.path() }); return; }
     this.real.push({ t: 1.2, fn: () => this.startStage() });
   }
 
@@ -545,7 +557,8 @@ export class Battle {
     sfx.boom(false);
     const xp = ENEMIES[e.type].xp;
     this.items.push({ kind: 'xp', x: e.x, y: e.y, v: xp, vy: 0 });
-    if (Math.random() < 0.3) this.items.push({ kind: 'coin', x: e.x + rnd(-10, 10), y: e.y, v: 1, vy: 0 });
+    if (Math.random() < (this.buffOn('coin') ? 0.75 : 0.3)) this.items.push({ kind: 'coin', x: e.x + rnd(-10, 10), y: e.y, v: 1, vy: 0 });
+    if (e.elite) { this.items.push({ kind: 'chest', x: e.x, y: e.y, v: 1, vy: 0 }); this.showBanner('정예 처치!', '보물 상자를 챙기세요', 1.1); }
     if (ENEMIES[e.type].explode && this.diff.id !== 'sprout') this.ring(e.x, e.y, 6, 150, '#ff4d5e');
     if (e.burn > 0 && this.duo('duo_glowfire')) this.heal(1);
     if (!isActive() && this.slowBoon === 'bj_slow') this.explode(e.x, e.y, 80 * this.st.area, 30 * this.rr('bj_slow') * this.st.atk, { color: '#ff7a3d', silent: true });
@@ -565,7 +578,8 @@ export class Battle {
 
   addGauge(n) { this.run.gauge = Math.min(100, this.run.gauge + n); }
 
-  heal(n, text = true) {
+  heal(n, text = true, force = false) {
+    if (this.pact('noHeal') && !force) return;
     const before = this.run.hp;
     this.run.hp = Math.min(this.maxHp, this.run.hp + n);
     if (text && this.run.hp - before >= 1) this.texts.push({ x: this.p.x, y: this.p.y - 40, s: '+' + Math.round(this.run.hp - before), t: 0.8, c: '#2fd35b' });
@@ -617,7 +631,7 @@ export class Battle {
 
   // ───────── 적 탄 ─────────
   ebSpeed() { let m = this.diff.bspd; if (!isActive() && this.slowBoon === 'gg_slow') m *= 1 - 0.3 * this.rr('gg_slow'); return m; }
-  shot(x, y, a, sp, o = {}) { const s = sp * this.diff.bspd; this.eb.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: o.r || 8, c: o.c || '#ff3d5a', t: 0, ...o }); }
+  shot(x, y, a, sp, o = {}) { const s = sp * this.diff.bspd * (this.pact('fastShots') ? 1.25 : 1); this.eb.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: o.r || 8, c: o.c || '#ff3d5a', t: 0, ...o }); }
   aim(x, y, sp, o) { this.shot(x, y, Math.atan2(this.p.y - y, this.p.x - x), sp, o); }
   fan(x, y, n, spread, sp, c) { const base = Math.atan2(this.p.y - y, this.p.x - x); for (let i = 0; i < n; i++) this.shot(x, y, base + (i - (n - 1) / 2) * spread / Math.max(1, n - 1) * 2, sp, { c }); }
   ring(x, y, n, sp, c, off = 0) { for (let i = 0; i < n; i++) this.shot(x, y, off + i / n * Math.PI * 2, sp, { c }); }
@@ -690,7 +704,8 @@ export class Battle {
 
   collect(it) {
     const r = this.run;
-    if (it.kind === 'xp') { r.xp += it.v; sfx.xp(); while (r.xp >= this.xpNeed()) { r.xp -= this.xpNeed(); r.level++; this.pendingLevels++; } }
+    if (it.kind === 'chest') { this.pendingLevels++; r.coins += 10; sfx.levelup(); this.texts.push({ x: this.p.x, y: this.p.y - 60, s: '🎁 보물 상자! 레벨업 +1', t: 1.2, c: '#ffe14a', big: true }); return; }
+    if (it.kind === 'xp') { r.xp += it.v * (this.buffOn('xp') ? 1.6 : 1); sfx.xp(); while (r.xp >= this.xpNeed()) { r.xp -= this.xpNeed(); r.level++; this.pendingLevels++; } }
     else if (it.kind === 'coin') { r.coins += it.v * (r.companion === 'pig' ? 2 : 1); sfx.coin(); }
     else if (it.kind === 'heart') { this.heal(it.v); sfx.pick(); }
     else if (it.kind === 'fake') { this.p.slowDebuff = 3; this.texts.push({ x: this.p.x, y: this.p.y - 40, s: '가짜 아이템! 느려짐', t: 1, c: '#ff8a3d' }); sfx.hurt(); }
@@ -757,6 +772,7 @@ export class Battle {
     if (b.y < b.ty) { b.y += 120 * dt; return; }
     let bdt = dt;
     if (b.frozen > 0) { b.frozen -= dt; bdt = dt * 0.2; }
+    if (this.pact('bossRage')) bdt *= 1.3;
     b.t += bdt;
     const pat = b.patterns[b.pi];
     if (pat !== 'swipe') b.x = W / 2 + Math.sin(b.t * 0.6) * 120;

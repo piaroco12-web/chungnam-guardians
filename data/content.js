@@ -28,7 +28,7 @@ export const SHIPS = [
 
 export const DIFFS = [
   { id: 'sprout', name: '새싹', hp: 0.7, bspd: 0.7, dmg: 0.45, slow: 0.3, coin: 1.0, color: '#2fd35b', desc: '처음 하는 친구에게' },
-  { id: 'chall',  name: '도전', hp: 0.95, bspd: 1.0, dmg: 0.8, slow: 0.4, coin: 1.3, color: '#2f6ff0', desc: '보통 난이도' },
+  { id: 'chall',  name: '도전', hp: 1.05, bspd: 1.05, dmg: 0.9, slow: 0.4, coin: 1.3, color: '#2f6ff0', desc: '보통 난이도' },
   { id: 'legend', name: '전설', hp: 1.5, bspd: 1.2, dmg: 1.0, slow: 0.5, coin: 1.6, color: '#a24bff', desc: '탄막이 빽빽해요' },
   { id: 'hell',   name: '지옥', hp: 2.2, bspd: 1.4, dmg: 1.25, slow: 0.6, coin: 2.2, color: '#e0344f', desc: '보스가 패턴을 하나 더 써요', locked: true },
 ];

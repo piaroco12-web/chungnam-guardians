@@ -3,6 +3,7 @@ import { PILOTS, SHIPS, DIFFS, REGIONS, CARDS, META_UPGRADES, BOSSES } from '../
 import { GODS, BOONS, DUOS, LEGENDS, RARITY, SLOT_NAMES } from '../data/boons.js';
 import { WEAPONS, UPGRADES, EVOLUTIONS, boonDef, godOf, MAX_SLOTS } from './progress.js';
 import { ZODIAC } from '../data/zodiac.js';
+import { PATHS, QUIZ, PACTS, STORY } from '../data/extras.js';
 import { save, view, persist, TEACHER_CODE, totalCodex, totalCards, resetAll } from './save.js';
 import { pic } from './assets.js';
 import { sfx, refreshBgm } from './audio.js';
@@ -79,9 +80,12 @@ function sortie(bb, state, act) {
     <p class="note">파일럿과 기체는 출격할 때 바꿀 수 있어요.<br>최고 기록: ${REGIONS[save.best.region]?.name || '아산'}까지 · 처치 ${save.best.kills}</p>
     <button class="btn" id="go" style="font-size:calc(var(--u)*40);padding:calc(var(--u)*14) calc(var(--u)*60)">출격하기</button>
     ${state.hasRun ? '<button class="btn blue sm" id="cont">이어하기</button>' : ''}
+    ${state.daily ? `<div class="row daily" style="width:100%"><div class="ic">📅</div><div class="tx"><b>오늘의 도전 · ${esc(state.daily.label)}</b>
+      <p>${esc(state.daily.pilotName)} + ${esc(state.daily.shipName)} · 도전 난이도 · 모두 같은 하늘<br>오늘 내 최고: ${state.daily.best ? `${state.daily.best.region}지역 · 처치 ${state.daily.best.kills}` : '아직 없음'}</p></div>
+      <button class="btn blue sm" id="daily">도전</button></div>` : ''}
     <button class="btn gray sm" id="home">타이틀로</button>
   </div>`;
-  click('#go', act.sortie, bb); click('#cont', act.cont, bb); click('#home', act.title, bb);
+  click('#go', act.sortie, bb); click('#cont', act.cont, bb); click('#home', act.title, bb); click('#daily', act.daily, bb);
 }
 
 function metaTab(bb, state, act) {
@@ -123,6 +127,10 @@ function cardsTab(bb) {
   bb.innerHTML = `<h2 class="ol">카드첩 ${n}/${totalCards()}</h2>${groups.map(gname => `<div class="sec-label">${gname}</div><div class="grid cards">${CARDS.filter(c => c.kind === gname).map(c => view.hasCard(c.id)
     ? `<div class="ccard got" data-c="${c.id}"><span class="e">${c.e}</span><b>${esc(c.title)}</b></div>`
     : `<div class="ccard"><span class="e">❔</span><span class="k">${hintFor(c)}</span></div>`).join('')}</div>`).join('')}`;
+  const opened = STORY.filter(st => save.teacher || save.story.includes(st.id));
+  bb.insertAdjacentHTML('beforeend', `<div class="sec-label">이야기 조각 ${opened.length}/${STORY.length}</div><div class="rows">${STORY.map(st => (save.teacher || save.story.includes(st.id))
+    ? `<div class="row"><div class="ic">${st.e}</div><div class="tx"><b>${esc(st.who)}</b><p style="color:#fff">${esc(st.text)}</p></div></div>`
+    : '<div class="row" style="opacity:.5"><div class="ic">🔒</div><div class="tx"><p>출격을 거듭하면 열려요</p></div></div>').join('')}</div>`);
   click('[data-c]', (e, el) => cardModal(CARDS.find(c => c.id === el.dataset.c)), bb);
 }
 function hintFor(c) {
@@ -139,6 +147,8 @@ function settings(bb, state, act) {
     ${row('sfx', '효과음', '총소리·폭발음')}
     ${row('bgm', '배경음', 'assets/bgm 폴더에 음악이 있을 때')}
     ${row('vibe', '진동', '맞았을 때 진동 (지원 기기만)')}
+    ${save.teacher ? `<div class="row"><div class="tx"><b>수업 시간 모드</b><p>정한 시간이 지나면 판을 마무리하고 오늘 얻은 카드를 보여 줘요.</p></div>
+      <div style="display:flex;gap:calc(var(--u)*4)">${[0, 10, 15, 20, 30].map(m => `<button class="btn sm ${save.settings.classMin === m ? '' : 'gray'}" data-cm="${m}" style="padding:calc(var(--u)*6) calc(var(--u)*8)">${m ? m + '분' : '끔'}</button>`).join('')}</div></div>` : ''}
     <div class="row"><div class="tx"><b>조작 방법</b><p>화면을 드래그해서 이동, 손을 떼면 슬로우 모션. PC는 방향키·WASD로 이동, Space 필살기, Esc 일시정지.</p></div></div>
     <div class="row"><div class="tx"><b>만든 사람들</b><p>음악·효과음·그림 출처와 라이선스</p></div><button class="btn blue sm" id="credits">보기</button></div>
     <div class="row"><div class="tx"><b>기록 초기화</b><p>코인·강화·카드·도감을 모두 지워요.</p></div><button class="btn red sm" id="reset">초기화</button></div>
@@ -147,6 +157,7 @@ function settings(bb, state, act) {
   click('[data-s]', (e, el) => { const k = el.dataset.s; save.settings[k] = !save.settings[k]; persist(); if (k === 'bgm') refreshBgm(); act.refresh(); }, bb);
   click('#reset', () => modal(`<b class="ol" style="font-size:calc(var(--u)*26)">정말 지울까요?</b><p>되돌릴 수 없어요.</p>`, [['지우기', 'red', () => { resetAll(); act.refresh(); toast('기록을 지웠어요'); }], ['취소', 'gray']]), bb);
   click('#credits', showCredits, bb);
+  click('[data-cm]', (e, el) => { save.settings.classMin = +el.dataset.cm; persist(); act.refresh(); toast(save.settings.classMin ? `수업 시간 ${save.settings.classMin}분으로 정했어요` : '수업 시간 모드를 껐어요'); }, bb);
   click('#toff', () => { save.teacher = false; persist(); act.refresh(); toast('교사 모드를 껐어요'); }, bb);
   let taps = 0;
   on('#ver', 'click', () => {
@@ -167,7 +178,8 @@ export function modal(html, buttons = [['닫기', 'gray']]) {
 
 // ───────── 출격 선택: 파일럿 → 기체 → 난이도 (→ 교사 모드면 지역) ─────────
 export function select(step, sel, act) {
-  const head = (n, t) => `<button class="btn gray sm back" id="back">뒤로</button><div class="sel-head"><div class="step">${n}/${save.teacher ? 4 : 3}</div><h2 class="ol">${t}</h2></div>`;
+  const steps = ['pilot', 'ship', 'diff', ...(view.pactsUnlocked() ? ['pact'] : []), ...(save.teacher ? ['region'] : [])];
+  const head = (n, t) => `<button class="btn gray sm back" id="back">뒤로</button><div class="sel-head"><div class="step">${steps.indexOf(step) + 1}/${steps.length}</div><h2 class="ol">${t}</h2></div>`;
   let body = '';
   if (step === 'pilot') body = head(1, '파일럿 선택') + `<div class="picks">${PILOTS.map(p => {
     const ok = view.pilotUnlocked(p);
@@ -182,12 +194,31 @@ export function select(step, sel, act) {
     return `<button class="pick diff ${ok ? '' : 'lock'}" data-v="${d.id}" style="border-color:${d.color}"><div class="tx"><b style="color:${d.color}">${d.name}</b>
       <p>${ok ? `${esc(d.desc)} · 코인 ×${d.coin} · 슬로우 ${Math.round(d.slow * 100)}%` : '🔒 전설 난이도를 끝까지 깨면 열려요'}</p></div></button>`;
   }).join('')}</div>`;
+  if (step === 'pact') {
+    const on = sel.pacts || (sel.pacts = []);
+    const bonus = PACTS.filter(p => on.includes(p.id)).reduce((a, p) => a + p.bonus, 0);
+    body = head(0, '도전 계약') + `<p class="note" style="margin-top:calc(var(--u)*8)">조건을 걸수록 코인을 더 받아요. 안 걸어도 돼요.</p><div class="picks">${PACTS.map(p => `<button class="pick diff pact" data-v="${p.id}" aria-pressed="${on.includes(p.id)}" style="border-color:${on.includes(p.id) ? '#ffc53d' : 'var(--ink)'}"><div class="tx"><b>${p.e} ${p.name} <span class="ck">${on.includes(p.id) ? '✓' : ''}</span></b><p>${p.desc} · 코인 +${Math.round(p.bonus * 100)}%</p></div></button>`).join('')}
+      <button class="btn" id="pactgo">출격 (코인 +<span id="pb">${Math.round(bonus * 100)}</span>%)</button></div>`;
+  }
   if (step === 'region') body = head(4, '시작 지역 (교사 모드)') + `<div class="picks">${REGIONS.map((rg, i) => `<button class="pick diff" data-v="${i}"><div class="tx"><b>${i + 1}. ${rg.name}</b><p>중간 보스 ${BOSSES[rg.mid].name} · 지역 보스 ${BOSSES[rg.boss].name}</p></div></button>`).join('')}</div>`;
   const r = show(`<div class="screen" style="background:rgba(20,26,58,.6);overflow-y:auto">${body}</div>`);
   click('#back', act.back);
-  click('.pick', (e, el) => { if (el.classList.contains('lock')) { nope(el); return toast('아직 잠겨 있어요'); } act.pick(step, el.dataset.v); });
+  click('.pick', (e, el) => {
+    if (el.classList.contains('lock')) { nope(el); return toast('아직 잠겨 있어요'); }
+    if (step === 'pact') { // 다시 그리지 않고 그 자리에서 켜고 끈다
+      const on = sel.pacts || (sel.pacts = []), id = el.dataset.v, i = on.indexOf(id);
+      i >= 0 ? on.splice(i, 1) : on.push(id);
+      const now = on.includes(id);
+      el.setAttribute('aria-pressed', now); el.style.borderColor = now ? '#ffc53d' : 'var(--ink)'; el.querySelector('.ck').textContent = now ? '✓' : '';
+      if (now) jelly(el);
+      r.querySelector('#pb').textContent = Math.round(PACTS.filter(p => on.includes(p.id)).reduce((a, p) => a + p.bonus, 0) * 100);
+      return;
+    }
+    act.pick(step, el.dataset.v);
+  });
+  click('#pactgo', () => act.pick('pactgo'));
   stagger(r.querySelectorAll('.pick'));
-  void sel; return r;
+  return r;
 }
 
 // ───────── 전투 HUD ─────────
@@ -199,9 +230,10 @@ export function hud(act) {
     <div class="counters"><div class="counter"><span class="coin"></span><span id="hc">0</span></div><div class="counter"><b class="skull">💀</b><span id="hk">0</span></div></div>
     <button class="ult act" id="ult" aria-label="필살기"><span class="fill" id="uf"></span><span class="lab ol" id="ul">필살기</span></button>
     <div class="slowtag ol" id="hs" hidden>슬로우 모션</div>
+    <div class="ol" id="ht" hidden style="position:absolute;left:calc(var(--u)*24);top:calc(var(--u)*118);font-size:calc(var(--u)*18)"></div>
     <div class="tut ol" id="tut" hidden><div class="arrows">⬅️➡️</div>화면을 드래그해서 전투기를 조종하세요.<br><span style="font-size:calc(var(--u)*22)">손을 떼면 시간이 느려져요!</span></div>
   </div>`);
-  hudEls = { w: r.querySelector('#hw'), l: r.querySelector('#hl'), x: r.querySelector('#hx'), c: r.querySelector('#hc'), k: r.querySelector('#hk'), u: r.querySelector('#ult'), uf: r.querySelector('#uf'), ul: r.querySelector('#ul'), s: r.querySelector('#hs'), tut: r.querySelector('#tut') };
+  hudEls = { w: r.querySelector('#hw'), l: r.querySelector('#hl'), x: r.querySelector('#hx'), c: r.querySelector('#hc'), k: r.querySelector('#hk'), u: r.querySelector('#ult'), uf: r.querySelector('#uf'), ul: r.querySelector('#ul'), s: r.querySelector('#hs'), tut: r.querySelector('#tut'), t: r.querySelector('#ht') };
   r.querySelector('#pz').addEventListener('click', () => { sfx.click(); act.pause(); });
   r.querySelector('#ult').addEventListener('pointerdown', e => { e.preventDefault(); act.ult(); });
 }
@@ -217,6 +249,8 @@ export function updateHud(b, slow) {
   hudEls.u.classList.toggle('ready', run.gauge >= 100);
   hudEls.ul.innerHTML = run.gauge >= 100 ? b.ship.ult.name.replace(' ', '<br>') : Math.floor(run.gauge) + '%';
   hudEls.s.hidden = !slow;
+  if (b.classLeft != null) { const m = Math.max(0, Math.ceil(b.classLeft)); hudEls.t.hidden = false; hudEls.t.textContent = `⏰ ${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`; }
+  else if (b.run.daily) { hudEls.t.hidden = false; hudEls.t.textContent = '📅 오늘의 도전'; }
 }
 export function tutorial(showIt) { if (hudEls) hudEls.tut.hidden = !showIt; }
 
@@ -314,7 +348,8 @@ export function cardReveal(c, onNext) {
 
 // ───────── 결과 ─────────
 export function result(r, act) {
-  show(`<div class="screen dim result"><h1 class="ol" style="color:${r.win ? '#ffc53d' : '#fff'}">${r.win ? '충남을 지켰어요!' : '작전 종료'}</h1>
+  const title = r.win ? '충남을 지켰어요!' : r.reason === 'time' ? '오늘은 여기까지!' : '작전 종료';
+  show(`<div class="screen dim result" style="overflow-y:auto"><h1 class="ol" style="color:${r.win || r.reason === 'time' ? '#ffc53d' : '#fff'}">${title}</h1>
     <div class="stats">
       <div class="stat"><span>도달 지역</span><span>${r.region}</span></div>
       <div class="stat"><span>난이도</span><span>${r.diff}</span></div>
@@ -322,6 +357,8 @@ export function result(r, act) {
       <div class="stat"><span>레벨</span><span>${r.level}</span></div>
       <div class="stat"><span>얻은 코인</span><span><span data-count="${r.coins}">0</span>${r.teacher ? ' (저장 안 됨)' : ''}</span></div>
       ${r.cards ? `<div class="stat"><span>새 카드</span><span>${r.cards}장</span></div>` : ''}
+      ${r.cardList && r.cardList.length ? `<div class="stat" style="flex-direction:column;gap:calc(var(--u)*4)"><span>오늘 배운 것</span><span style="font-family:var(--body);font-size:calc(var(--u)*17);color:#fff;font-weight:700">${r.cardList.map(c => `${c.e} ${esc(c.title)}`).join('<br>')}</span></div>` : ''}
+      ${r.stories.map(st => `<div class="stat" style="flex-direction:column;gap:calc(var(--u)*4)"><span>📜 새 이야기 조각 · ${esc(st.who)}</span><span style="font-family:var(--body);font-size:calc(var(--u)*16);color:#fff;font-weight:700;line-height:1.5">${esc(st.text)}</span></div>`).join('')}
       ${r.unlocks.map(u => `<div class="stat"><span>해금</span><span>${esc(u)}</span></div>`).join('')}
     </div>
     <div class="btns"><button class="btn" id="again">다시 출격</button><button class="btn blue" id="tobase">기지로</button></div></div>`);
@@ -369,4 +406,36 @@ async function showCredits() {
       <div style="text-align:left"><b>충남 수호대 — 코딩 블라스터</b><br><span class="note" style="text-align:left;display:block">충남소프트웨어교육체험센터 · 원작 네온블라스터</span></div>
       ${rows}
     </div>`);
+}
+
+// ───────── 갈림길 ─────────
+export function pathPick(opts, onPick) {
+  const r = show(`<div class="screen dim altar"><div class="upttl ol" style="margin-top:calc(var(--u)*150)">갈림길</div>
+    <p class="ol" style="margin-top:calc(var(--u)*18);font-size:calc(var(--u)*22);text-align:center">어느 길로 갈까요?</p>
+    <div class="choices" style="grid-template-columns:repeat(2,1fr);padding-inline:calc(var(--u)*40)">${opts.map((p, i) => `<div class="choicewrap"><button class="choice" data-i="${i}" style="height:calc(var(--u)*330)">
+      <div class="top" style="height:calc(var(--u)*190)"><div class="name">${p.name}</div><div class="art" style="background:#fff">${p.e}</div></div><div class="desc" style="font-size:calc(var(--u)*18)">${p.desc}</div></button></div>`).join('')}</div></div>`);
+  mountFlow(r.querySelector('.altar'), { seed: 7, colors: ['#ffc53d', '#3fe0c0'], base: '#141a3a', count: 120 });
+  stagger(r.querySelectorAll('.choicewrap'), 140, 30);
+  let picked = false;
+  click('.choice', (e, el) => { if (picked) return; picked = true; jelly(el, () => onPick(opts[+el.dataset.i])); });
+}
+
+// ───────── 정화 퀴즈 (OX) ─────────
+export function quiz(bossId, onDone) {
+  const q = QUIZ[bossId]; if (!q) return onDone(false);
+  const r = show(`<div class="screen dim"><div class="upttl ol" style="margin-top:calc(var(--u)*150)">정화 퀴즈</div>
+    <div class="bigcard" style="margin-top:calc(var(--u)*40);min-height:0"><span class="k">${esc(BOSSES[bossId].name)} · ${esc(BOSSES[bossId].issue)}</span><p style="text-align:center;font-size:calc(var(--u)*24)">${esc(q.q)}</p></div>
+    <div style="display:flex;gap:calc(var(--u)*30);margin-top:calc(var(--u)*40)"><button class="btn blue" id="qo" style="font-size:calc(var(--u)*56);width:calc(var(--u)*150)">O</button><button class="btn red" id="qx" style="font-size:calc(var(--u)*56);width:calc(var(--u)*150)">X</button></div>
+    <div id="qa"></div></div>`);
+  stagger(r.querySelectorAll('.bigcard, #qo, #qx'), 120, 20);
+  let done = false;
+  const answer = (ans, el) => {
+    if (done) return; done = true;
+    const ok = ans === q.a;
+    if (ok) sfx.levelup(); else { sfx.hurt(); nope(el); }
+    r.querySelector('#qa').innerHTML = `<div class="bigcard" style="margin-top:calc(var(--u)*24);min-height:0"><b style="color:${ok ? '#1f8a5b' : '#e0344f'}">${ok ? '정답! 코인 +15' : `아쉬워요, 정답은 ${q.a ? 'O' : 'X'}`}</b><p>${esc(q.why)}</p></div><button class="btn" id="qn" style="margin-top:calc(var(--u)*20)">다음</button>`;
+    unfold(r.querySelector('#qa .bigcard'));
+    click('#qn', () => onDone(ok));
+  };
+  click('#qo', (e, el) => answer(true, el)); click('#qx', (e, el) => answer(false, el));
 }

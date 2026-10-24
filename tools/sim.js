@@ -4,6 +4,7 @@ import { Battle, newRun } from '../src/battle.js';
 import { input } from '../src/input.js';
 import { levelChoices, applyLevelChoice, altarChoices, applyAltarChoice } from '../src/progress.js';
 import { ZODIAC } from '../data/zodiac.js';
+import { PATHS } from '../data/extras.js';
 import { W, H } from '../src/view.js';
 
 function botMove(b, skill) {
@@ -47,6 +48,14 @@ export function simulate({ pilot = 'chungnami', ship = 'byeolbit', diff = 'sprou
       b.nextRegion();
     },
     death() { state = 'dead'; },
+    path() {
+      const opts = PATHS.filter(p => !(p.id === 'elite' && run.stage === 4)).sort(() => Math.random() - 0.5).slice(0, 2);
+      const p = opts[Math.floor(Math.random() * 2)];
+      if (p.id === 'heal') b.heal(b.maxHp * 0.35);
+      else if (p.id === 'boon') { const cs = altarChoices(run, 2); applyAltarChoice(run, cs[0]); b.recalc(); }
+      else run.buff = { kind: p.id, stage: run.stage };
+      b.startStage();
+    },
   });
   input.dragging = true;
   const dt = 1 / 60, maxSteps = maxMinutes * 60 * 60;

@@ -123,6 +123,7 @@ export function render(g, b, scale) {
   for (const it of b.items) {
     const im = art.item(it.kind === 'xp' ? 'xp' : it.kind === 'coin' ? 'coin' : it.kind === 'heart' ? 'heart' : 'xp');
     if (it.kind === 'fake') { g.save(); g.globalAlpha = 0.9; g.fillStyle = '#c86bff'; g.translate(it.x, it.y); g.rotate(Math.PI / 4); g.fillRect(-9, -9, 18, 18); g.strokeStyle = '#141414'; g.lineWidth = 3; g.strokeRect(-9, -9, 18, 18); g.restore(); continue; }
+    if (it.kind === 'chest') { const bob = Math.sin(b.t * 6) * 3; g.save(); g.shadowColor = '#ffe14a'; g.shadowBlur = 18; emojiAt(g, '🎁', it.x, it.y + bob, 38); g.restore(); continue; }
     if (sprite(g, im, it.x, it.y, it.kind === 'heart' ? 34 : 26)) continue;
     g.save(); g.translate(it.x, it.y);
     if (it.kind === 'xp') { g.rotate(Math.PI / 4); g.fillStyle = '#3fe0c0'; g.fillRect(-7, -7, 14, 14); g.strokeStyle = '#141414'; g.lineWidth = 3; g.strokeRect(-7, -7, 14, 14); }
@@ -142,6 +143,7 @@ export function render(g, b, scale) {
     if (e.isBoss) continue;
     g.save();
     if (e.decoy) { g.globalAlpha = 0.55 + 0.25 * Math.sin(b.t * 12); sprite(g, art.boss(e.boss), e.x, e.y, e.r * 2.4); g.restore(); continue; }
+    if (e.elite) { g.strokeStyle = '#ffd23d'; g.lineWidth = 5; g.shadowColor = '#ffd23d'; g.shadowBlur = 16; g.beginPath(); g.arc(e.x, e.y, e.r + 8, 0, 7); g.stroke(); g.shadowBlur = 0; emojiAt(g, '👑', e.x, e.y - e.r - 14, 24); }
     if (e.flash > 0) g.filter = 'brightness(2.2)';
     sprite(g, art.enemy(e.type), e.x, e.y, e.r * 2.6);
     g.restore();
