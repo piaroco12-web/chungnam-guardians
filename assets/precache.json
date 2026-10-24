@@ -126,5 +126,8 @@
   "assets/sfx/sfx_wind.mp3",
   "assets/sfx/sfx_xp.mp3",
   "assets/img/upgrade_icons_sheet.png",
-  "assets/img/enemy_bug_round_sheet.png"
+  "assets/img/enemy_bug_round_sheet.png",
+  "assets/img/meta_upgrade_sheet.png",
+  "assets/img/upgrade_full_sheet.png",
+  "assets/img/missile_refined_sheet.png"
 ]

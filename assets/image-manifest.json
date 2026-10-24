@@ -1,6 +1,6 @@
 {
-  "version": "2.2.2",
-  "count": 85,
+  "version": "2.2.4",
+  "count": 88,
   "images": [
     {
       "path": "assets/img/bg_asan.png",
@@ -933,6 +933,39 @@
       "bytes": 1419522,
       "grid": [
         2,
+        1
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/meta_upgrade_sheet.png",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 2208312,
+      "grid": [
+        3,
+        2
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/upgrade_full_sheet.png",
+      "width": 1983,
+      "height": 793,
+      "bytes": 1602297,
+      "grid": [
+        5,
+        2
+      ],
+      "hasTransparency": true
+    },
+    {
+      "path": "assets/img/missile_refined_sheet.png",
+      "width": 2172,
+      "height": 724,
+      "bytes": 1235108,
+      "grid": [
+        3,
         1
       ],
       "hasTransparency": true
