@@ -140,11 +140,13 @@ function settings(bb, state, act) {
     ${row('bgm', '배경음', 'assets/bgm 폴더에 음악이 있을 때')}
     ${row('vibe', '진동', '맞았을 때 진동 (지원 기기만)')}
     <div class="row"><div class="tx"><b>조작 방법</b><p>화면을 드래그해서 이동, 손을 떼면 슬로우 모션. PC는 방향키·WASD로 이동, Space 필살기, Esc 일시정지.</p></div></div>
+    <div class="row"><div class="tx"><b>만든 사람들</b><p>음악·효과음·그림 출처와 라이선스</p></div><button class="btn blue sm" id="credits">보기</button></div>
     <div class="row"><div class="tx"><b>기록 초기화</b><p>코인·강화·카드·도감을 모두 지워요.</p></div><button class="btn red sm" id="reset">초기화</button></div>
     ${save.teacher ? '<div class="row"><div class="tx"><b>교사 모드 켜짐</b><p>모든 파일럿·난이도·카드가 열려 있어요. 학생 기록은 바뀌지 않아요.</p></div><button class="btn gray sm" id="toff">끄기</button></div>' : ''}
   </div><p class="note" id="ver" style="margin-top:calc(var(--u)*24)">충남 수호대 버전 ${VERSION}</p>`;
   click('[data-s]', (e, el) => { const k = el.dataset.s; save.settings[k] = !save.settings[k]; persist(); if (k === 'bgm') refreshBgm(); act.refresh(); }, bb);
   click('#reset', () => modal(`<b class="ol" style="font-size:calc(var(--u)*26)">정말 지울까요?</b><p>되돌릴 수 없어요.</p>`, [['지우기', 'red', () => { resetAll(); act.refresh(); toast('기록을 지웠어요'); }], ['취소', 'gray']]), bb);
+  click('#credits', showCredits, bb);
   click('#toff', () => { save.teacher = false; persist(); act.refresh(); toast('교사 모드를 껐어요'); }, bb);
   let taps = 0;
   on('#ver', 'click', () => {
@@ -353,3 +355,18 @@ export function zodiacPick(choices, onPick) {
 // 보스 정화 도장 (M06)
 export function stamp(html, done) { stampFx(root(), html, done); }
 export function zodiacChoices() { const a = [...ZODIAC]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a.slice(0, 3); }
+
+// ───────── 만든 사람들 (음원·그림 출처) ─────────
+async function showCredits() {
+  let items = [];
+  try { const r = await fetch('assets/credits.json', { cache: 'no-store' }); if (r.ok) items = (await r.json()).items || []; } catch { /* 파일이 없으면 기본 문구만 */ }
+  const kind = { bgm: '🎵', sfx: '🔊', img: '🎨' };
+  const rows = items.map(it => `<div style="text-align:left;border-top:1px solid rgba(255,255,255,.15);padding-top:calc(var(--u)*8)">
+    <b>${kind[it.type] || ''} ${esc(it.title || '')}</b><br><span class="note" style="text-align:left;display:block">${esc(it.author || '')}${it.license ? ' · ' + esc(it.license) : ''}${it.note ? ' · ' + esc(it.note) : ''}</span>
+    ${it.source ? `<span class="note" style="display:block;text-align:left;word-break:break-all">${esc(it.source)}</span>` : ''}</div>`).join('');
+  modal(`<b class="ol" style="font-size:calc(var(--u)*28)">만든 사람들</b>
+    <div style="max-height:calc(var(--u)*520);overflow-y:auto;display:grid;gap:calc(var(--u)*10);font-size:calc(var(--u)*17)">
+      <div style="text-align:left"><b>충남 수호대 — 코딩 블라스터</b><br><span class="note" style="text-align:left;display:block">충남소프트웨어교육체험센터 · 원작 네온블라스터</span></div>
+      ${rows}
+    </div>`);
+}

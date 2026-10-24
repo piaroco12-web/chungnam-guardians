@@ -17,8 +17,8 @@ export const SHIPS = [
     ult: { name: '별빛 파동', desc: '적 탄 전부 소거 + 전체 피해' } },
   { id: 'drone', name: '드론호', tag: '유도', color: '#a77bff', trim: '#3fe0c0',
     desc: '기관포와 자동 유도 드론 2대. 피하기에 집중하기 좋다.',
-    fire: { rate: 5, dmg: 8, speed: 850, count: 1, spread: 0, pierce: 0, kind: 'bullet' },
-    drones: 2, droneRate: 2, droneDmg: 7,
+    fire: { rate: 5, dmg: 9, speed: 850, count: 1, spread: 0, pierce: 0, kind: 'bullet' },
+    drones: 2, droneRate: 2.2, droneDmg: 9,
     ult: { name: '드론 편대', desc: '드론 6대가 5초간 돌격' } },
   { id: 'beongae', name: '번개호', tag: '관통', color: '#8fd14f', trim: '#ff9a3c',
     desc: '느리지만 모든 적을 꿰뚫는 레이저. 보스 저격용.',
@@ -27,10 +27,10 @@ export const SHIPS = [
 ];
 
 export const DIFFS = [
-  { id: 'sprout', name: '새싹', hp: 0.7, bspd: 0.7, slow: 0.3, coin: 1.0, color: '#2fd35b', desc: '처음 하는 친구에게' },
-  { id: 'chall',  name: '도전', hp: 1.0, bspd: 1.0, slow: 0.4, coin: 1.3, color: '#2f6ff0', desc: '보통 난이도' },
-  { id: 'legend', name: '전설', hp: 1.5, bspd: 1.2, slow: 0.5, coin: 1.6, color: '#a24bff', desc: '탄막이 빽빽해요' },
-  { id: 'hell',   name: '지옥', hp: 2.2, bspd: 1.4, slow: 0.6, coin: 2.2, color: '#e0344f', desc: '보스가 패턴을 하나 더 써요', locked: true },
+  { id: 'sprout', name: '새싹', hp: 0.7, bspd: 0.7, dmg: 0.45, slow: 0.3, coin: 1.0, color: '#2fd35b', desc: '처음 하는 친구에게' },
+  { id: 'chall',  name: '도전', hp: 0.95, bspd: 1.0, dmg: 0.8, slow: 0.4, coin: 1.3, color: '#2f6ff0', desc: '보통 난이도' },
+  { id: 'legend', name: '전설', hp: 1.5, bspd: 1.2, dmg: 1.0, slow: 0.5, coin: 1.6, color: '#a24bff', desc: '탄막이 빽빽해요' },
+  { id: 'hell',   name: '지옥', hp: 2.2, bspd: 1.4, dmg: 1.25, slow: 0.6, coin: 2.2, color: '#e0344f', desc: '보스가 패턴을 하나 더 써요', locked: true },
 ];
 
 // 지역: 배경 색과 장식, 중간 보스, 지역 보스
@@ -68,7 +68,7 @@ export const BOSSES = {
   slot:      { name: '잭팟 슬롯킹', issue: '사이버도박', hp: 2900, r: 76, color: '#ffb23d', face: '🎰', patterns: ['roulette', 'coinshot'], line: '이번엔 진짜 대박 날 거야!', card: 'p_gamble' },
   octopus:   { name: '피싱 문어', issue: '개인정보·피싱', hp: 4700, r: 82, color: '#ff8a3d', face: '🐙', patterns: ['tentacle', 'fakeitem', 'ink'], line: '선물 당첨! 이 링크만 누르면 돼~', card: 'p_phish' },
   smog:      { name: '스모그 대왕', issue: '기후위기', hp: 3600, r: 88, color: '#8a8f99', face: '🏭', patterns: ['fog', 'bottles'], line: '콜록, 좀 더 태워 볼까?', card: 'p_climate' },
-  aicore:    { name: '폭주 AI 코어', issue: 'AI 윤리·편향', hp: 6800, r: 92, color: '#ff3d5a', face: '👁️', patterns: ['biasLaser', 'dataStorm', 'chaos'], line: '내 판단이 무조건 정답이다!', card: 'p_aiethics' },
+  aicore:    { name: '폭주 AI 코어', issue: 'AI 윤리·편향', hp: 5600, r: 92, color: '#ff3d5a', face: '👁️', patterns: ['biasLaser', 'dataStorm', 'chaos'], line: '내 판단이 무조건 정답이다!', card: 'p_aiethics' },
 };
 
 import { ZODIAC } from './zodiac.js';

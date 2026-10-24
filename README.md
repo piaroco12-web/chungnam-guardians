@@ -26,6 +26,31 @@ ES 모듈을 쓰므로 파일을 더블클릭하면 열리지 않습니다. 아�
 
 `docs/chatgpt-brief.md`의 파일 이름 그대로 `assets/img/`에 PNG를 넣으면 다음 실행부터 자동으로 바뀝니다. 없는 그림은 코드로 그린 임시 그림을 씁니다. 배경음은 `assets/bgm/bgm_title.mp3`, `bgm_base`, `bgm_battle`, `bgm_altar` 이름으로 넣습니다.
 
+## 그림 정리 도구
+
+ChatGPT가 만든 그림을 한 폴더에 모아 두고 아래를 실행하면, 이름을 게임 파일명으로 맞추고 흰 배경을 지우고 여백·크기를 정리해 `assets/img/`에 넣어 줍니다. 아이콘 시트는 칸 간격이 고르지 않아도 같은 크기 칸으로 다시 맞춥니다.
+
+```
+pip install pillow
+python tools/prepare_images.py 받은그림폴더          # 정리해서 저장
+python tools/prepare_images.py 받은그림폴더 --dry    # 결과만 미리 보기
+```
+
+파일 이름은 `충남이.png`, `무한스크롤러.png`, `계룡 가호.png`처럼 한글 이름이어도 알아봅니다.
+
+## 음악·그림 출처
+
+`assets/credits.json`에 한 줄씩 넣으면 설정 → 만든 사람들 화면에 나옵니다.
+
+## 밸런스 점검
+
+자동 조종 봇이 난이도·기체별로 몇 번째 지역까지 가는지 잽니다.
+
+```
+python -m http.server 8765        # 다른 창에서 켜 두기
+python tools/balance.py 3         # 조합마다 3판씩
+```
+
 ## 교사 모드
 
 설정 탭 맨 아래 버전 글자를 7번 누르고 비밀번호 `cnsw2026`을 입력하면 모든 파일럿·난이도·카드가 열리고 시작 지역을 고를 수 있습니다. 학생 기록은 바뀌지 않습니다. 비밀번호는 `src/save.js`의 `TEACHER_CODE`에서 바꿉니다.

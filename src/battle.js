@@ -76,7 +76,7 @@ export class Battle {
 
   // ───────── 스테이지 진행 ─────────
   get region() { return REGIONS[this.run.region]; }
-  scaleHp() { return this.diff.hp * (1 + this.run.region * 0.45) * (1 + this.run.stage * 0.08); }
+  scaleHp() { return this.diff.hp * (1 + this.run.region * 0.38) * (1 + this.run.stage * 0.08); }
 
   startStage() {
     const kind = STAGES[this.run.stage];
@@ -183,7 +183,10 @@ export class Battle {
     this.t += dt; this.scroll += dt * 70;
 
     this.movePlayer(rdt);
-    this.real = this.real.filter(r => { r.t -= rdt; if (r.t <= 0) { r.fn(); return false; } return true; });
+    for (const r of this.real) r.t -= rdt;
+    const due = this.real.filter(r => r.t <= 0);
+    this.real = this.real.filter(r => r.t > 0);
+    due.forEach(r => r.fn()); // 콜백 안에서 새로 예약한 타이머도 잃지 않게
     this.updateStage(dt, rdt);
     this.playerFire(dt);
     this.updateWeapons(dt);
@@ -653,7 +656,7 @@ export class Battle {
     if (this.has('cg_hit') && Math.random() < Math.min(0.35, 0.15 * this.rr('cg_hit'))) { p.inv = 0.4; this.texts.push({ x: p.x, y: p.y - 40, s: '회피!', t: 0.6, c: '#6fdc6a' }); return; }
     if (p.shields > 0) { p.shields--; p.inv = 0.8; sfx.shield(); this.spark(p.x, p.y, '#bfefff', 12); return; }
     if (this.has('gg_hit') && p.iceShell > 0) { p.iceShell = 0; p.inv = 0.8; sfx.ice(); this.spark(p.x, p.y, '#bfefff', 12); return; }
-    n *= 1 + this.run.region * 0.1;
+    n *= (1 + this.run.region * 0.1) * (this.diff.dmg ?? 1);
     this.run.hp -= n; p.inv = 1; this.shake = 8; sfx.hurt();
     if (save.settings.vibe && navigator.vibrate) { try { navigator.vibrate(60); } catch { /* 무시 */ } }
     this.texts.push({ x: p.x, y: p.y - 40, s: '-' + Math.round(n), t: 0.7, c: '#ff5a72' });
