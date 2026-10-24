@@ -3,8 +3,8 @@ import { PILOTS, SHIPS, DIFFS, REGIONS, CARDS, META_UPGRADES, BOSSES } from '../
 import { GODS, BOONS, DUOS, LEGENDS, RARITY, SLOT_NAMES } from '../data/boons.js';
 import { WEAPONS, UPGRADES, EVOLUTIONS, boonDef, godOf, MAX_SLOTS } from './progress.js';
 import { ZODIAC } from '../data/zodiac.js';
-import { PATHS, QUIZ, PACTS, STORY } from '../data/extras.js';
-import { save, view, persist, TEACHER_CODE, totalCodex, totalCards, resetAll } from './save.js';
+import { PATHS, QUIZ, CARD_QUIZ, PACTS, STORY } from '../data/extras.js';
+import { save, view, persist, TEACHER_CODE, totalCodex, totalCards, resetAll, resetForNextStudent } from './save.js';
 import { art, pic } from './assets.js';
 import { sfx, refreshBgm } from './audio.js';
 import { scatterText, stagger, stamp as stampFx, unfold, highlight, countUp, bouncy, jelly, nope } from './motion.js';
@@ -12,7 +12,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.2.4';
+export const VERSION = '2.3.0';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -70,7 +70,7 @@ export function base(state, act) {
   const tabs = [['sortie', '🚀', '출격'], ['meta', '⬆️', '강화'], ['codex', '📖', '도감'], ['cards', '🃏', '카드첩'], ['settings', '⚙️', '설정']];
   const bg = pic.base();
   const r = show(`<div class="screen" style="background:${bg ? `url(${bg}) center/cover` : 'rgba(20,26,58,.55)'}">
-    <div class="base-top"><div class="ol" style="font-size:calc(var(--u)*26)">기지${save.teacher ? ' · 교사 모드' : ''}</div><div class="coinbox ol">${coinIcon}${save.coins}</div></div>
+    <div class="base-top"><div class="ol" style="font-size:calc(var(--u)*26)">기지${save.teacher ? ' · 교사 모드' : save.settings.kiosk ? ' · 체험관' : ''}</div><div class="coinbox ol">${coinIcon}${save.coins}</div></div>
     <div class="base-body ${['codex', 'cards'].includes(state.tab) ? 'collection' : ''}" id="bb"></div>
     <nav class="tabs">${tabs.map(([id, e, n]) => `<button class="tab ${state.tab === id ? 'on' : ''}" data-t="${id}"><b>${e}</b>${n}</button>`).join('')}</nav>
   </div>`);
@@ -164,11 +164,14 @@ function settings(bb, state, act) {
     ${row('sfx', '효과음', '총소리·폭발음')}
     ${row('bgm', '배경음', '타이틀·기지·전투·보스·제단 음악')}
     ${row('vibe', '진동', '맞았을 때 진동 (지원 기기만)')}
+    ${row('calm', '섬광 줄이기', '번쩍임·화면 흔들림·깜빡임을 약하게 해요. 빛에 예민한 친구에게 권해요.')}
     ${save.teacher ? `<div class="row"><div class="tx"><b>수업 시간 모드</b><p>정한 시간이 지나면 판을 마무리하고 오늘 얻은 카드를 보여 줘요.</p></div>
       <div style="display:flex;gap:calc(var(--u)*4)">${[0, 10, 15, 20, 30].map(m => `<button class="btn sm ${save.settings.classMin === m ? '' : 'gray'}" data-cm="${m}" style="padding:calc(var(--u)*6) calc(var(--u)*8)">${m ? m + '분' : '끔'}</button>`).join('')}</div></div>` : ''}
     <div class="row"><div class="tx"><b>조작 방법</b><p>화면을 드래그해서 이동, 손을 떼면 슬로우 모션. PC는 방향키·WASD로 이동, Space 필살기, Esc 일시정지.</p></div></div>
     <div class="row"><div class="tx"><b>만든 사람들</b><p>음악·효과음·그림 출처와 라이선스</p></div><button class="btn blue sm" id="credits">보기</button></div>
     <div class="row"><div class="tx"><b>기록 초기화</b><p>코인·강화·카드·도감을 모두 지워요.</p></div><button class="btn red sm" id="reset">초기화</button></div>
+    ${save.teacher ? `${row('kiosk', '체험관 모드', '공용 기기용. 게임을 새로 열 때마다 학생 기록이 처음 상태로 돌아가고, 결과 화면에 \'다음 친구에게 넘기기\' 버튼이 생겨요.')}
+      <div class="row"><div class="tx"><b>다음 학생 준비</b><p>설정은 그대로 두고 코인·강화·카드·해금 기록만 지운 뒤 교사 모드를 꺼요.</p></div><button class="btn red sm" id="nextkid">준비</button></div>` : ''}
     ${save.teacher ? '<div class="row"><div class="tx"><b>교사 모드 켜짐</b><p>모든 파일럿·난이도·카드가 열려 있어요. 학생 기록은 바뀌지 않아요.</p></div><button class="btn gray sm" id="toff">끄기</button></div>' : ''}
   </div><p class="note" id="ver" style="margin-top:calc(var(--u)*24)">충남 수호대 버전 ${VERSION}</p>`;
   click('[data-s]', (e, el) => { const k = el.dataset.s; save.settings[k] = !save.settings[k]; persist(); if (k === 'bgm') refreshBgm(); act.refresh(); }, bb);
@@ -176,6 +179,7 @@ function settings(bb, state, act) {
   click('#credits', showCredits, bb);
   click('[data-cm]', (e, el) => { save.settings.classMin = +el.dataset.cm; persist(); act.refresh(); toast(save.settings.classMin ? `수업 시간 ${save.settings.classMin}분으로 정했어요` : '수업 시간 모드를 껐어요'); }, bb);
   click('#toff', () => { save.teacher = false; persist(); act.refresh(); toast('교사 모드를 껐어요'); }, bb);
+  click('#nextkid', () => modal(`<b class="ol" style="font-size:calc(var(--u)*26)">다음 학생을 준비할까요?</b><p>학생 기록을 지우고 교사 모드를 꺼요. 설정은 그대로예요.</p>`, [['준비', 'red', () => { resetForNextStudent(); act.title(); toast('다음 친구가 처음부터 시작할 수 있어요'); }], ['취소', 'gray']]), bb);
   let taps = 0;
   on('#ver', 'click', () => {
     if (++taps < 7) return; taps = 0;
@@ -305,8 +309,8 @@ export function pause(run, act) {
   click('#ph', () => modal('<b class="ol" style="font-size:calc(var(--u)*26)">기지로 나갈까요?</b><p>마지막으로 수호신 제단을 지난 곳부터 이어할 수 있어요.</p>', [['나가기', 'red', act.home], ['취소', 'gray']]));
   click('#ps', act.stats);
   click('#pg', () => {
-    const label = k => `${k === 'sfx' ? '효과음' : '배경음'} ${save.settings[k] ? '켜짐' : '꺼짐'}`;
-    modal(`<b class="ol" style="font-size:calc(var(--u)*26)">설정</b>${['sfx', 'bgm'].map(k => `<button class="btn sm ${save.settings[k] ? '' : 'gray'}" data-k="${k}">${label(k)}</button>`).join('')}`);
+    const label = k => `${{ sfx: '효과음', bgm: '배경음', calm: '섬광 줄이기' }[k]} ${save.settings[k] ? '켜짐' : '꺼짐'}`;
+    modal(`<b class="ol" style="font-size:calc(var(--u)*26)">설정</b>${['sfx', 'bgm', 'calm'].map(k => `<button class="btn sm ${save.settings[k] ? '' : 'gray'}" data-k="${k}">${label(k)}</button>`).join('')}`);
     root().querySelectorAll('.modal [data-k]').forEach(b => b.addEventListener('click', () => {
       const k = b.dataset.k; save.settings[k] = !save.settings[k]; persist(); if (k === 'bgm') refreshBgm();
       b.textContent = label(k); b.classList.toggle('gray', !save.settings[k]);
@@ -380,15 +384,17 @@ export function result(r, act) {
       <div class="stat"><span>처치</span><span data-count="${r.kills}">0</span></div>
       <div class="stat"><span>레벨</span><span>${r.level}</span></div>
       <div class="stat"><span>얻은 코인</span><span><span data-count="${r.coins}">0</span>${r.teacher ? ' (저장 안 됨)' : ''}</span></div>
+      ${r.review ? `<div class="stat"><span>오늘의 복습</span><span>${r.review.ok}/${r.review.total} 정답</span></div>` : ''}
       ${r.cards ? `<div class="stat"><span>새 카드</span><span>${r.cards}장</span></div>` : ''}
       ${r.cardList && r.cardList.length ? `<div class="stat" style="flex-direction:column;gap:calc(var(--u)*4)"><span>오늘 배운 것</span><span style="font-family:var(--body);font-size:calc(var(--u)*17);color:#fff;font-weight:700">${r.cardList.map(c => `${c.e} ${esc(c.title)}`).join('<br>')}</span></div>` : ''}
       ${r.stories.map(st => `<div class="stat" style="flex-direction:column;gap:calc(var(--u)*4)">${pic.story(st.id) ? `<img src="${pic.story(st.id)}" alt="" style="width:100%;border-radius:calc(var(--u)*8)">` : ''}<span>📜 새 이야기 조각 · ${esc(st.who)}</span><span style="font-family:var(--body);font-size:calc(var(--u)*16);color:#fff;font-weight:700;line-height:1.5">${esc(st.text)}</span></div>`).join('')}
       ${r.unlocks.map(u => `<div class="stat"><span>해금</span><span>${esc(u)}</span></div>`).join('')}
     </div>
-    <div class="btns"><button class="btn" id="again">다시 출격</button><button class="btn blue" id="tobase">기지로</button></div></div>`);
+    <div class="btns"><button class="btn" id="again">다시 출격</button><button class="btn blue" id="tobase">기지로</button></div>
+    ${r.kiosk ? '<button class="btn red sm" id="nextkid" style="margin-top:calc(var(--u)*14)">다음 친구에게 넘기기</button><p class="note" style="margin-top:calc(var(--u)*6)">체험관 모드: 누르면 기록을 지우고 처음 화면으로 가요.</p>' : ''}</div>`);
   stagger(root().querySelectorAll('.stat'), 90, 14);
   root().querySelectorAll('[data-count]').forEach((el, i) => setTimeout(() => countUp(el, +el.dataset.count, 1400), 300 + i * 200));
-  click('#again', act.again); click('#tobase', act.base);
+  click('#again', act.again); click('#tobase', act.base); click('#nextkid', act.next);
 }
 
 export function statsModal(b) {
@@ -450,11 +456,29 @@ export function pathPick(opts, onPick) {
 }
 
 // ───────── 정화 퀴즈 (OX) ─────────
+const pickOne = list => Array.isArray(list) ? list[Math.floor(Math.random() * list.length)] : list;
+
+// 보스 정화 퀴즈: 보스마다 3문항 중 하나
 export function quiz(bossId, onDone) {
-  const q = QUIZ[bossId]; if (!q) return onDone(false);
+  const q = pickOne(QUIZ[bossId]); if (!q) return onDone(false);
   const cleaned = pic.cleansed(bossId);
-  const r = show(`<div class="screen dim"><div class="upttl ol" style="margin-top:calc(var(--u)*40)">정화 퀴즈</div>${cleaned ? `<img class="cleansed-art" src="${cleaned}" alt="정화된 ${esc(BOSSES[bossId].name)}">` : ''}
-    <div class="bigcard" style="margin-top:calc(var(--u)*40);min-height:0"><span class="k">${esc(BOSSES[bossId].name)} · ${esc(BOSSES[bossId].issue)}</span><p style="text-align:center;font-size:calc(var(--u)*24)">${esc(q.q)}</p></div>
+  oxQuiz({ title: '정화 퀴즈', tag: `${BOSSES[bossId].name} · ${BOSSES[bossId].issue}`, q, okText: '정답! 코인 +15',
+    art: cleaned ? `<img class="cleansed-art" src="${cleaned}" alt="정화된 ${esc(BOSSES[bossId].name)}">` : '' }, onDone);
+}
+
+// 수업 마무리 복습 문제: 카드 한 장에서 OX 한 문제
+export function reviewQuestion(card) {
+  if (CARD_QUIZ[card.id]) return CARD_QUIZ[card.id];
+  const boss = Object.keys(BOSSES).find(k => BOSSES[k].card === card.id);
+  return boss ? pickOne(QUIZ[boss]) : null;
+}
+export function review(i, total, card, q, onDone) {
+  oxQuiz({ title: `오늘의 복습 ${i}/${total}`, tag: `${card.e} ${card.title}`, q, okText: '정답!', top: 60 }, onDone);
+}
+
+function oxQuiz({ title, tag, q, art = '', okText, top = 40 }, onDone) {
+  const r = show(`<div class="screen dim"><div class="upttl ol" style="margin-top:calc(var(--u)*${top})">${esc(title)}</div>${art}
+    <div class="bigcard" style="margin-top:calc(var(--u)*40);min-height:0"><span class="k">${esc(tag)}</span><p style="text-align:center;font-size:calc(var(--u)*24)">${esc(q.q)}</p></div>
     <div style="display:flex;gap:calc(var(--u)*30);margin-top:calc(var(--u)*40)"><button class="btn blue" id="qo" style="font-size:calc(var(--u)*56);width:calc(var(--u)*150)">O</button><button class="btn red" id="qx" style="font-size:calc(var(--u)*56);width:calc(var(--u)*150)">X</button></div>
     <div id="qa"></div></div>`);
   stagger(r.querySelectorAll('.bigcard, #qo, #qx'), 120, 20);
@@ -463,7 +487,7 @@ export function quiz(bossId, onDone) {
     if (done) return; done = true;
     const ok = ans === q.a;
     if (ok) sfx.levelup(); else { sfx.hurt(); nope(el); }
-    r.querySelector('#qa').innerHTML = `<div class="bigcard" style="margin-top:calc(var(--u)*24);min-height:0"><b style="color:${ok ? '#1f8a5b' : '#e0344f'}">${ok ? '정답! 코인 +15' : `아쉬워요, 정답은 ${q.a ? 'O' : 'X'}`}</b><p>${esc(q.why)}</p></div><button class="btn" id="qn" style="margin-top:calc(var(--u)*20)">다음</button>`;
+    r.querySelector('#qa').innerHTML = `<div class="bigcard" style="margin-top:calc(var(--u)*24);min-height:0"><b style="color:${ok ? '#1f8a5b' : '#e0344f'}">${ok ? okText : `아쉬워요, 정답은 ${q.a ? 'O' : 'X'}`}</b><p>${esc(q.why)}</p></div><button class="btn" id="qn" style="margin-top:calc(var(--u)*20)">다음</button>`;
     unfold(r.querySelector('#qa .bigcard'));
     click('#qn', () => onDone(ok));
   };

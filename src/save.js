@@ -14,7 +14,7 @@ const fresh = () => ({
   codex: [],            // 얻어 본 가호·듀오·전설 id
   cards: [],
   tutorialDone: false,
-  settings: { sfx: true, bgm: true, vibe: true, classMin: 0 },
+  settings: { sfx: true, bgm: true, vibe: true, classMin: 0, calm: false, kiosk: false },
   teacher: false,
   best: { region: 0, kills: 0 },
   stats: { runs: 0, deaths: 0, wins: 0, zodiac: 0, daily: 0, pact: 0, legendWin: false },
@@ -40,6 +40,15 @@ export function persist() { write(KEY, save); }
 export function progress(fn) { if (!save.teacher) { fn(save); persist(); } }
 
 export function resetAll() { Object.assign(save, fresh()); persist(); clearRun(); }
+
+// 체험관(공용 기기): 설정은 그대로 두고 학생 기록만 처음 상태로. 교사 모드는 끈다.
+export function resetForNextStudent() {
+  const settings = { ...save.settings };
+  Object.assign(save, fresh(), { settings });
+  persist(); clearRun();
+}
+// 체험관 모드 기기는 게임을 새로 열 때마다 처음 상태로 시작한다
+if (save.settings.kiosk) resetForNextStudent();
 
 // 교사 모드면 모두 열린 것으로 본다
 export const view = {

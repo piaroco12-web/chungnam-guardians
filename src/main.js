@@ -3,7 +3,7 @@ import { W, H, fitStage } from './view.js';
 import { initInput, input, isActive } from './input.js';
 import { loadAssets } from './assets.js';
 import { sfx, bgm, unlockAudio } from './audio.js';
-import { save, persist, progress, saveRun, loadRun, clearRun, view } from './save.js';
+import { save, persist, progress, saveRun, loadRun, clearRun, view, resetForNextStudent } from './save.js';
 import { Battle, newRun } from './battle.js';
 import { render } from './render.js';
 import { levelChoices, applyLevelChoice, altarChoices, applyAltarChoice, godOf } from './progress.js';
@@ -12,6 +12,7 @@ import { PATHS, PACTS, STORY } from '../data/extras.js';
 import { BOONS } from '../data/boons.js';
 import * as ui from './ui.js';
 import { FlowArt } from './bgart.js';
+import { updateSide } from './side.js';
 
 const stage = document.getElementById('stage');
 const canvas = document.getElementById('game');
@@ -278,11 +279,42 @@ function finish(b, win, reason = '') {
   const stories = save.teacher ? [] : STORY.filter(st => !save.story.includes(st.id) && st.when(snap)).slice(0, 2);
   progress(s => { for (const st of stories) s.story.push(st.id); });
   bgm(reason === 'time' ? null : win ? 'victory' : 'defeat');
-  ui.result({
+  const showResult = reviewScore => ui.result({
     win: !!win, region: `${b.run.region + 1}. ${REGIONS[b.run.region].name}`, diff: d.name, kills: b.run.kills, level: b.run.level,
-    coins: earned, cards: b.run.cardsGained.length, unlocks, teacher: save.teacher,
-    reason, stories, cardList: b.run.cardsGained.map(id => CARDS.find(c => c.id === id)).filter(Boolean),
-  }, { again: () => { state.sel = {}; toSelect('pilot'); }, base: () => toBase('sortie') });
+    coins: earned, cards: b.run.cardsGained.length, unlocks, teacher: save.teacher, kiosk: !!save.settings.kiosk,
+    reason, stories, review: reviewScore, cardList: b.run.cardsGained.map(id => CARDS.find(c => c.id === id)).filter(Boolean),
+  }, { again: () => { state.sel = {}; toSelect('pilot'); }, base: () => toBase('sortie'), next: nextStudent });
+  // 수업 시간이 끝나면 그날 얻은 카드로 OX 3문제를 풀고 결과로
+  if (reason === 'time') return runReview(reviewCards(b.run.cardsGained), showResult);
+  showResult(null);
+}
+
+// ───────── 수업 마무리 복습 ─────────
+const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+function reviewCards(gained) {
+  // 이번 판 카드 → 전에 모은 카드 → 예방 수칙 카드 순으로 3장을 채운다
+  const has = c => c && ui.reviewQuestion(c);
+  const ids = [...shuffle(gained), ...shuffle(save.cards.filter(id => !gained.includes(id))), ...shuffle(CARDS.filter(c => c.kind === '예방 수칙').map(c => c.id))];
+  const out = [];
+  for (const id of ids) { const c = CARDS.find(x => x.id === id); if (has(c) && !out.includes(c)) out.push(c); if (out.length === 3) break; }
+  return out;
+}
+function runReview(cards, done) {
+  let ok = 0, i = 0;
+  const next = () => {
+    if (i >= cards.length) return done({ ok, total: cards.length });
+    const c = cards[i++];
+    ui.review(i, cards.length, c, ui.reviewQuestion(c), right => { if (right) ok++; next(); });
+  };
+  next();
+}
+
+// ───────── 체험관: 다음 학생 준비 ─────────
+function nextStudent() {
+  resetForNextStudent();
+  state.pilot = 'chungnami'; state.ship = 'byeolbit'; state.diff = 'sprout'; state.tab = 'sortie';
+  toTitle();
+  ui.toast('다음 친구가 처음부터 시작할 수 있어요');
 }
 
 // ───────── 루프 ─────────
@@ -301,6 +333,7 @@ function loop(now) {
     input.pausePressed = false;
     drawMenuBg(dt);
   }
+  updateSide(dt, state.scene === 'battle' ? b : null);
   requestAnimationFrame(loop);
 }
 

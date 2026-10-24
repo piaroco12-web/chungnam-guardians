@@ -5,6 +5,12 @@ import { isActive } from './input.js';
 import { REGIONS, ENEMIES } from '../data/content.js';
 import { ZODIAC } from '../data/zodiac.js';
 import { drawProjectile, drawBomb, drawBoomerang, drawSatellite, drawImpact, drawHit } from './combat-vfx.js';
+import { save } from './save.js';
+
+// 섬광 줄이기: 화면 번쩍임·흔들림·빠른 깜빡임을 약하게 (광과민성 배려)
+const calm = () => !!save.settings.calm;
+// 번개 모양 흔들림: 보통은 매 프레임 무작위, 섬광 줄이기면 모양을 고정해 깜빡이지 않게
+const jit = (seed, k) => calm() ? Math.sin(seed * 0.137 + k * 1.91) * 0.5 : Math.random() - 0.5;
 
 function emojiAt(g, e, x, y, size) { g.font = `${size}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Game Emoji","Game Emoji",sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(e, x, y); }
 
@@ -104,7 +110,7 @@ function orbit(g, o, t) {
 
 export function render(g, b, scale) {
   g.setTransform(scale, 0, 0, scale, 0, 0);
-  const sh = b.shake ? (Math.random() - 0.5) * b.shake : 0;
+  const sh = b.shake && !calm() ? (Math.random() - 0.5) * b.shake : 0;
   g.translate(sh, sh * 0.6);
   drawBg(g, b);
 
@@ -112,7 +118,7 @@ export function render(g, b, scale) {
   for (const h of b.hazards) {
     if (h.kind === 'vine') { g.strokeStyle = '#2f7a2f'; g.lineWidth = 16; g.beginPath(); g.moveTo(h.x, h.y); g.lineTo(h.x, h.y + (h.len || 0)); g.stroke(); g.strokeStyle = '#7ad16a'; g.lineWidth = 3; for (let y = h.y; y < h.y + (h.len || 0); y += 22) { g.beginPath(); g.moveTo(h.x - 14, y); g.lineTo(h.x, y + 8); g.lineTo(h.x + 14, y); g.stroke(); } }
     if (h.kind === 'beam') {
-      if (h.warn > 0) { g.fillStyle = `rgba(255,60,90,${0.15 + 0.15 * Math.sin(b.t * 30)})`; g.fillRect(h.x - h.w / 2, h.y, h.w, H); }
+      if (h.warn > 0) { g.fillStyle = `rgba(255,60,90,${calm() ? 0.24 : 0.15 + 0.15 * Math.sin(b.t * 30)})`; g.fillRect(h.x - h.w / 2, h.y, h.w, H); }
       else { g.fillStyle = 'rgba(255,80,110,.75)'; g.fillRect(h.x - h.w / 2, h.y, h.w, H); g.fillStyle = 'rgba(255,255,255,.8)'; g.fillRect(h.x - h.w / 6, h.y, h.w / 3, H); }
     }
     if (h.kind === 'spark') { g.fillStyle = `rgba(255,242,122,${Math.min(1, h.t)})`; g.beginPath(); g.arc(h.x, h.y, 6, 0, 7); g.fill(); }
@@ -142,9 +148,9 @@ export function render(g, b, scale) {
   for (const e of b.enemies) {
     if (e.isBoss) continue;
     g.save();
-    if (e.decoy) { g.globalAlpha = 0.55 + 0.25 * Math.sin(b.t * 12); sprite(g, art.boss(e.boss), e.x, e.y, e.r * 2.4); g.restore(); continue; }
+    if (e.decoy) { g.globalAlpha = calm() ? 0.6 : 0.55 + 0.25 * Math.sin(b.t * 12); sprite(g, art.boss(e.boss), e.x, e.y, e.r * 2.4); g.restore(); continue; }
     if (e.elite) { g.strokeStyle = '#ffd23d'; g.lineWidth = 5; g.shadowColor = '#ffd23d'; g.shadowBlur = 16; g.beginPath(); g.arc(e.x, e.y, e.r + 8, 0, 7); g.stroke(); g.shadowBlur = 0; if (e.type !== 'bug') emojiAt(g, '👑', e.x, e.y - e.r - 14, 24); }
-    if (e.flash > 0) g.filter = 'brightness(2.2)';
+    if (e.flash > 0) g.filter = calm() ? 'brightness(1.25)' : 'brightness(2.2)';
     sprite(g, art.enemy(e.type, e.elite), e.x, e.y, e.r * 2.6);
     g.restore();
     statusMarks(g, e, b.t);
@@ -155,8 +161,8 @@ export function render(g, b, scale) {
   const boss = b.boss;
   if (boss) {
     g.save();
-    if (boss.dying) { g.globalAlpha = Math.max(0.2, boss.dying / 1.6); g.filter = `brightness(${1.5 + (1.6 - boss.dying)}) saturate(.6)`; }
-    else if (boss.flash > 0) g.filter = 'brightness(1.8)';
+    if (boss.dying) { g.globalAlpha = Math.max(0.2, boss.dying / 1.6); g.filter = calm() ? 'brightness(1.15) saturate(.6)' : `brightness(${1.5 + (1.6 - boss.dying)}) saturate(.6)`; }
+    else if (boss.flash > 0) g.filter = calm() ? 'brightness(1.2)' : 'brightness(1.8)';
     const bob = Math.sin(b.t * 2) * 6;
     sprite(g, art.boss(boss.id), boss.x, boss.y + bob, boss.r * 2.6);
     g.restore();
@@ -176,7 +182,7 @@ export function render(g, b, scale) {
   for (const o of b.orbits()) orbit(g, o, b.t);
   if (b.ship.drones) { const n = b.ship.drones + (b.evo('evo_main') ? 2 : 0); for (let i = 0; i < n; i++) { const p = b.dronePos(i, n); if (!sprite(g, art.drone(), p.x, p.y, 30)) { g.fillStyle = '#3fe0c0'; g.beginPath(); g.arc(p.x, p.y, 10, 0, 7); g.fill(); g.strokeStyle = '#141414'; g.lineWidth = 3; g.stroke(); g.fillStyle = '#141414'; g.beginPath(); g.arc(p.x, p.y, 3, 0, 7); g.fill(); } } }
   if (b.ultKind === 'drones') for (let i = 0; i < 6; i++) { const a = b.t * 3 + i * Math.PI / 3; const x = b.p.x + Math.cos(a) * 80, y = b.p.y + Math.sin(a) * 50; g.fillStyle = '#3fe0c0'; g.beginPath(); g.arc(x, y, 9, 0, 7); g.fill(); }
-  if (b.ultKind === 'beam') { const w = 90 + Math.sin(b.t * 40) * 8; g.fillStyle = 'rgba(217,255,154,.55)'; g.fillRect(b.p.x - w / 2, 0, w, b.p.y - 20); g.fillStyle = 'rgba(255,255,255,.85)'; g.fillRect(b.p.x - w / 6, 0, w / 3, b.p.y - 20); }
+  if (b.ultKind === 'beam') { const w = calm() ? 90 : 90 + Math.sin(b.t * 40) * 8; g.fillStyle = 'rgba(217,255,154,.55)'; g.fillRect(b.p.x - w / 2, 0, w, b.p.y - 20); g.fillStyle = calm() ? 'rgba(255,255,255,.45)' : 'rgba(255,255,255,.85)'; g.fillRect(b.p.x - w / 6, 0, w / 3, b.p.y - 20); }
 
   // AI 12지신 동료
   if (b.run.companion) {
@@ -209,8 +215,8 @@ export function render(g, b, scale) {
     if (f.kind === 'p') { g.globalAlpha = Math.min(1, f.t * 3); g.fillStyle = f.c; g.beginPath(); g.arc(f.x, f.y, f.r, 0, 7); g.fill(); g.globalAlpha = 1; }
     else if (f.kind === 'ring') drawImpact(g, f);
     else if (f.kind === 'weaponHit') drawHit(g, f);
-    else if (f.kind === 'bolt') { g.strokeStyle = '#fff27a'; g.lineWidth = 5; g.shadowColor = '#fff27a'; g.shadowBlur = 16; g.beginPath(); let x = f.x + (Math.random() - 0.5) * 40, y = 0; g.moveTo(x, y); while (y < f.y) { y += 40; x = f.x + (Math.random() - 0.5) * 40 * (1 - y / f.y); g.lineTo(x, Math.min(y, f.y)); } g.stroke(); g.shadowBlur = 0; }
-    else if (f.kind === 'chain') { g.strokeStyle = '#fff27a'; g.lineWidth = 3; g.beginPath(); g.moveTo(f.x1, f.y1); const mx = (f.x1 + f.x2) / 2 + (Math.random() - 0.5) * 30, my = (f.y1 + f.y2) / 2 + (Math.random() - 0.5) * 30; g.lineTo(mx, my); g.lineTo(f.x2, f.y2); g.stroke(); }
+    else if (f.kind === 'bolt') { g.strokeStyle = '#fff27a'; g.lineWidth = calm() ? 4 : 5; g.shadowColor = '#fff27a'; g.shadowBlur = calm() ? 0 : 16; g.beginPath(); let x = f.x + jit(f.x, 0) * 40, y = 0; g.moveTo(x, y); while (y < f.y) { y += 40; x = f.x + jit(f.x, y) * 40 * (1 - y / f.y); g.lineTo(x, Math.min(y, f.y)); } g.stroke(); g.shadowBlur = 0; }
+    else if (f.kind === 'chain') { g.strokeStyle = '#fff27a'; g.lineWidth = 3; g.beginPath(); g.moveTo(f.x1, f.y1); const mx = (f.x1 + f.x2) / 2 + jit(f.x1, 1) * 30, my = (f.y1 + f.y2) / 2 + jit(f.y1, 2) * 30; g.lineTo(mx, my); g.lineTo(f.x2, f.y2); g.stroke(); }
   }
 
   // 시야 가림 (먹물·매연)
@@ -234,7 +240,7 @@ export function render(g, b, scale) {
   // 슬로우 테두리
   if (!isActive() && !b.over) { g.strokeStyle = 'rgba(80,170,255,.45)'; g.lineWidth = 14; g.strokeRect(0, 0, W, H); }
   if (b.p.flipT > 0) { g.strokeStyle = 'rgba(200,107,255,.6)'; g.lineWidth = 10; g.strokeRect(5, 5, W - 10, H - 10); }
-  if (b.flash > 0) { g.fillStyle = `rgba(255,255,255,${b.flash * 0.6})`; g.fillRect(0, 0, W, H); }
+  if (b.flash > 0) { g.fillStyle = `rgba(255,255,255,${b.flash * (calm() ? 0.12 : 0.6)})`; g.fillRect(0, 0, W, H); }
 
   // 배너
   if (b.banner) {

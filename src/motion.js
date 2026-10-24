@@ -1,5 +1,6 @@
 // 화면 모션: 「모션 견본집」의 견본을 라이브러리 없이 브라우저 기본 애니메이션(Web Animations)으로 옮김.
 // 번호(M02 등)는 견본집 카드 번호. '움직임 줄이기' 설정이면 모두 건너뛴다.
+import { save } from './save.js';
 const reduce = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const EXPO = 'cubic-bezier(.16,1,.3,1)', CUBIC = 'cubic-bezier(.33,1,.68,1)', QUART = 'cubic-bezier(.25,1,.5,1)';
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -30,7 +31,7 @@ export function stamp(root, html, done) {
   const a = play(s, [{ transform: 'scale(2.4) rotate(-24deg)', opacity: 0 }, { transform: 'scale(1) rotate(-8deg)', opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.55,0,1,.45)' });
   const shake = () => play(root.parentElement || root, [{ transform: 'translateY(0)' }, { transform: 'translateY(4px)' }, { transform: 'translateY(-2px)' }, { transform: 'translateY(0)' }], { duration: 260, fill: 'none' });
   const finish = () => setTimeout(() => { wrap.remove(); done && done(); }, 850);
-  if (a) a.finished.then(() => { shake(); finish(); }); else finish();
+  if (a) a.finished.then(() => { if (!save.settings.calm) shake(); finish(); }); else finish();
 }
 
 // M08 펼쳐지는 종이: 위를 기준으로 펼친 뒤 내용이 나타남
