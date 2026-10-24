@@ -12,7 +12,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.3.3';
+export const VERSION = '2.3.4';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -140,7 +140,20 @@ function codex(bb) {
 }
 
 // 카드첩 칸 제목: "끝까지 해내기 (끈기)"는 키워드를 다음 줄로 내린다
-const gridTitle = t => { const m = /^(.*?)\s*\((.+)\)$/.exec(t); return m ? `${esc(m[1])}<small>(${esc(m[2])})</small>` : esc(t); };
+// 긴 제목은 쉼표 뒤, 없으면 두 줄 길이가 가장 비슷해지는 띄어쓰기에서 줄을 바꾼다 (같으면 윗줄을 길게)
+//   "숏폼은 시간을 정해서" → 숏폼은 시간을 / 정해서,  "AI는 도우미, 생각은 내가" → AI는 도우미, / 생각은 내가
+const twoLines = t => {
+  const comma = t.indexOf(', ');
+  if (comma > 0) return `${esc(t.slice(0, comma + 1))}<br>${esc(t.slice(comma + 2))}`;
+  if (t.length <= 10 || !t.includes(' ')) return esc(t);
+  let best = null;
+  for (let i = t.indexOf(' '); i > 0; i = t.indexOf(' ', i + 1)) {
+    const a = t.slice(0, i), b = t.slice(i + 1), cost = Math.max(a.length, b.length) * 2 - (a.length >= b.length ? 1 : 0);
+    if (!best || cost < best.cost) best = { a, b, cost };
+  }
+  return `${esc(best.a)}<br>${esc(best.b)}`;
+};
+const gridTitle = t => { const m = /^(.*?)\s*\((.+)\)$/.exec(t); return m ? `${esc(m[1])}<small>(${esc(m[2])})</small>` : twoLines(t); };
 function cardsTab(bb) {
   const groups = ['지역 상식', 'SW·AI 개념', '예방 수칙', 'AI 역량'];
   const n = CARDS.filter(c => view.hasCard(c.id)).length;
