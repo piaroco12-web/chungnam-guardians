@@ -348,7 +348,19 @@ document.addEventListener('visibilitychange', () => { const b = state.battle; if
 
 // 설치형(오프라인) 지원: 지원하는 브라우저에서만 조용히 등록
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname))) {
-  navigator.serviceWorker.register('sw.js').catch(() => { /* 등록이 막힌 환경이면 그냥 온라인으로 실행 */ });
+  const hadController = !!navigator.serviceWorker.controller;
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || refreshing) return;
+    // 진행 중인 출격은 지킨다. 메뉴에서는 새 그림·코드가 함께 적용되도록 한 번 갱신한다.
+    if (state.scene === 'battle' || state.scene === 'select') {
+      ui.toast('새 버전을 받았어요. 다음 실행부터 적용됩니다.');
+      return;
+    }
+    refreshing = true;
+    location.reload();
+  });
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => { /* 온라인 실행 유지 */ });
 }
 
 ui.loading(0);

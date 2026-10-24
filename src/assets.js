@@ -1,7 +1,7 @@
 // 그림 로더: assets/img/<이름>.png 가 있으면 그 그림을, 없으면 코드로 그린 임시 그림을 쓴다.
 // 파일 이름은 docs/chatgpt-brief.md(ChatGPT 지시서)와 같다.
 import { PILOTS, SHIPS, BOSSES, ENEMIES } from '../data/content.js';
-import { GODS } from '../data/boons.js';
+import { GODS, DUOS, LEGENDS } from '../data/boons.js';
 import { ZODIAC } from '../data/zodiac.js';
 import { STORY, PACTS } from '../data/extras.js';
 
@@ -14,6 +14,7 @@ const ENEMY_ORDER = ['spam', 'notify', 'troll', 'link', 'popup', 'bug'];
 const ITEM_ORDER = ['ebullet', 'ebullet2', 'coin', 'xp', 'heart', 'orb'];
 
 const NAMES = [
+  'boon_duo_3d_sheet', 'boon_legend_3d_sheet', 'region_landmarks_sheet', 'menu_nav_3d_sheet',
   'title_keyart', 'title_logo', 'bg_base', 'ui_card_back', 'ui_ultimate_sheet', 'enemy_sheet', 'fx_items_sheet', 'unit_drone', 'frame_duo_legend',
   ...PILOTS.map(p => 'pilot_' + p.id),
   ...SHIPS.flatMap(s => ['ship_' + s.id, 'ship_' + s.id + '_hangar']),
@@ -46,6 +47,23 @@ function cell(name, index, cols, rows = 1) {
   const c = document.createElement('canvas'); c.width = cw; c.height = ch;
   c.getContext('2d').drawImage(s, (index % cols) * cw, Math.floor(index / cols) * ch, cw, ch, 0, 0, cw, ch);
   return (cache[key] = c);
+}
+
+// 입체 아이콘의 투명 여백을 정리해 작은 버튼에서도 같은 크기로 보이게 한다.
+function iconCell(name, index, cols, rows = 1, rect = null) {
+  const key = `icon:${name}:${index}`;
+  if (cache[key]) return cache[key];
+  const im = get(name); if (!im) return null;
+  const source = rect ? canvas(rect[2], rect[3], g => g.drawImage(im, ...rect, 0, 0, rect[2], rect[3])) : cell(name, index, cols, rows);
+  const { width: w, height: h } = source;
+  const pixels = source.getContext('2d').getImageData(0, 0, w, h).data;
+  let left = w, top = h, right = 0, bottom = 0;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (pixels[(y * w + x) * 4 + 3] > 24) {
+    left = Math.min(left, x); top = Math.min(top, y); right = Math.max(right, x); bottom = Math.max(bottom, y);
+  }
+  if (left > right || top > bottom) return source;
+  const sw = right - left + 1, sh = bottom - top + 1, scale = 232 / Math.max(sw, sh);
+  return cache[key] = canvas(256, 256, g => g.drawImage(source, left, top, sw, sh, (256 - sw * scale) / 2, (256 - sh * scale) / 2, sw * scale, sh * scale));
 }
 
 // ───────── 임시 그림 ─────────
@@ -175,6 +193,14 @@ export const art = {
 // 화면(DOM)용 그림 주소
 const url = c => (c.toDataURL ? c.toDataURL() : c.src);
 export const pic = {
+  duo: id => { const i = DUOS.findIndex(d => d.id === id); const c = i >= 0 && iconCell('boon_duo_3d_sheet', i, 5, 2); return c ? url(c) : null; },
+  legend: id => { const i = LEGENDS.findIndex(l => l.id === id); const c = i >= 0 && iconCell('boon_legend_3d_sheet', i, 3, 2); return c ? url(c) : null; },
+  region: id => {
+    const i = ['r_asan', 'r_gongju', 'r_buyeo', 'r_boryeong', 'r_naepo'].indexOf(id);
+    const rects = [[0, 0, 525, 550], [530, 0, 595, 550], [1125, 0, 411, 565], [0, 550, 575, 474], [578, 565, 690, 459]];
+    const c = i >= 0 && iconCell('region_landmarks_sheet', i, 3, 2, rects[i]); return c ? url(c) : null;
+  },
+  nav: id => { const i = ['sortie', 'meta', 'codex', 'cards', 'settings'].indexOf(id); const c = i >= 0 && iconCell('menu_nav_3d_sheet', i, 5); return c ? url(c) : null; },
   meta: id => { const i = ['atk', 'hp', 'magnet', 'bonus', 'reroll', 'revive'].indexOf(id); const c = i >= 0 && cell('meta_upgrade_sheet', i, 3, 2); return c ? c.toDataURL() : null; },
   skill: id => {
     if (id === 'missile') { const im = cell('missile_refined_sheet', 1, 3); if (im) return im.toDataURL(); }

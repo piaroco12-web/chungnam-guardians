@@ -12,7 +12,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.3.1';
+export const VERSION = '2.3.2';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -24,8 +24,8 @@ export function toast(msg) { const t = document.createElement('div'); t.classNam
 function boonIcon(id) {
   const b = BOONS.find(x => x.id === id);
   if (b) { const g = godOf(b.god); const slotIdx = ['bullet', 'auto', 'hit', 'slow', 'orbit'].indexOf(b.slot); const u = pic.gift(g, slotIdx); return u ? `<img src="${u}" alt="">` : g.e; }
-  const d = DUOS.find(x => x.id === id); if (d) return `<span class="duo-mark">${d.gods.map(gid => `<img src="${pic.god(godOf(gid))}" alt="">`).join('')}</span>`;
-  const l = LEGENDS.find(x => x.id === id); if (l) return `<img src="${pic.god(godOf(l.god))}" alt="">`;
+  const d = DUOS.find(x => x.id === id); if (d) return `<img class="fusion-art" src="${pic.duo(id) || pic.god(godOf(d.gods[0]))}" alt="${esc(d.name)}">`;
+  const l = LEGENDS.find(x => x.id === id); if (l) return `<img class="fusion-art legendary-art" src="${pic.legend(id) || pic.god(godOf(l.god))}" alt="${esc(l.name)}">`;
   return '?';
 }
 const weaponDef = id => WEAPONS.find(w => w.id === id);
@@ -34,6 +34,8 @@ const skillArt = d => { const im = pic.skill(d.id); return im ? `<img src="${im}
 const dots = (lv, max = 3) => `<div class="dots">${Array.from({ length: max }, (_, i) => `<i class="${i < lv ? 'on' : ''}"></i>`).join('')}</div>`;
 const coinIcon = '<span class="coin"></span>';
 function cardArt(c) {
+  const region = pic.region(c.id);
+  if (region) return `<img class="card-character card-landmark" src="${region}" alt="${esc(c.title)} 지역 상징">`;
   const z = c.zodiac && ZODIAC.find(z => z.id === c.zodiac);
   if (z) return `<img class="card-character" src="${pic.zodiac(z)}" alt="${esc(z.name)}">`;
   if (c.god) return `<img class="card-character" src="${pic.god(godOf(c.god))}" alt="${esc(godOf(c.god).name)}">`;
@@ -71,8 +73,8 @@ export function base(state, act) {
   const bg = pic.base();
   const r = show(`<div class="screen" style="background:${bg ? `url(${bg}) center/cover` : 'rgba(20,26,58,.55)'}">
     <div class="base-top"><div class="ol" style="font-size:calc(var(--u)*26)">기지${save.teacher ? ' · 교사 모드' : save.settings.kiosk ? ' · 체험관' : ''}</div><div class="coinbox ol">${coinIcon}${save.coins}</div></div>
-    <div class="base-body ${['codex', 'cards'].includes(state.tab) ? 'collection' : ''}" id="bb"></div>
-    <nav class="tabs">${tabs.map(([id, e, n]) => `<button class="tab ${state.tab === id ? 'on' : ''}" data-t="${id}"><b>${e}</b>${n}</button>`).join('')}</nav>
+    <div class="base-body ${['codex', 'cards'].includes(state.tab) ? 'collection' : ''} ${state.tab === 'cards' ? 'card-collection' : ''}" id="bb"></div>
+    <nav class="tabs" aria-label="기지 메뉴">${tabs.map(([id, e, n]) => { const im = pic.nav(id); return `<button class="tab ${state.tab === id ? 'on' : ''}" data-t="${id}" aria-label="${n}" aria-current="${state.tab === id ? 'page' : 'false'}"><b>${im ? `<img src="${im}" alt="">` : e}</b><span>${n}</span></button>`; }).join('')}</nav>
   </div>`);
   click('.tab', (e, el) => act.tab(el.dataset.t));
   const bb = r.querySelector('#bb');
@@ -133,7 +135,7 @@ function codex(bb) {
     if (!got(id)) return modal(`<b class="ol" style="font-size:calc(var(--u)*26)">아직 못 만났어요</b><p>수호신 제단에서 얻으면 공개돼요.</p>`);
     const desc = typeof d.desc === 'function' ? d.desc(1) : d.desc;
     const who = d.god ? godOf(d.god).name : d.gods.map(x => godOf(x).name).join(' + ');
-    modal(`<div style="font-size:calc(var(--u)*56)">${boonIcon(id)}</div><b class="ol" style="font-size:calc(var(--u)*30)">${esc(d.name)}</b><p class="note">${who}${d.slot ? ' · ' + SLOT_NAMES[d.slot] : ''}</p><p style="font-size:calc(var(--u)*19);font-weight:700">${desc}</p>`);
+    modal(`<div class="boon-modal-art ${id.startsWith('leg_') ? 'legend' : ''}">${boonIcon(id)}</div><b class="ol" style="font-size:calc(var(--u)*30)">${esc(d.name)}</b><p class="note">${who}${d.slot ? ' · ' + SLOT_NAMES[d.slot] : ''}</p><p style="font-size:calc(var(--u)*19);font-weight:700">${desc}</p>`);
   }, bb);
 }
 
@@ -158,7 +160,7 @@ function hintFor(c) {
   if (c.kind === 'AI 역량') return ZODIAC.find(z => z.id === c.zodiac).name + ' 동료 고르기';
   const b = Object.values(BOSSES).find(x => x.card === c.id); return b ? b.name + ' 처치' : '';
 }
-export function cardModal(c) { modal(`<div class="card-modal-art" style="font-size:calc(var(--u)*64)">${cardArt(c)}</div><span class="note">${c.kind}</span><b class="ol" style="font-size:calc(var(--u)*30)">${esc(c.title)}</b><p style="font-size:calc(var(--u)*19);font-weight:700;line-height:1.6;text-align:left">${esc(c.text)}</p>`); }
+export function cardModal(c) { modal(`<div class="monochrome-card"><div class="card-modal-art" style="font-size:calc(var(--u)*64)">${cardArt(c)}</div><span class="note">${c.kind}</span><b class="ol" style="font-size:calc(var(--u)*30)">${esc(c.title)}</b><p style="font-size:calc(var(--u)*19);font-weight:700;line-height:1.6;text-align:left">${esc(c.text)}</p></div>`); }
 
 function settings(bb, state, act) {
   const row = (id, name, desc) => `<div class="row"><div class="tx"><b>${name}</b><p>${desc}</p></div><div class="toggle ${save.settings[id] ? 'on' : ''}" data-s="${id}" role="switch" aria-checked="${save.settings[id]}" tabindex="0"></div></div>`;
@@ -352,7 +354,7 @@ export function altar(run, choices, onPick, onReroll) {
     else if (c.type === 'legend') { name = c.def.name; desc = c.def.desc; cls = 'legend'; badge = '전설'; slot = '전설'; rar = '전설'; }
     else { name = g.name + '의 선물'; desc = `코인 +${c.coins}`; rar = '선물'; }
     const icon = c.def ? boonIcon(c.def.id) : g.e;
-    const frame = pic.frame(c.type === 'legend' ? 2 : c.type === 'duo' ? 1 : 0);
+    const frame = ['legend', 'duo'].includes(c.type) ? null : pic.frame(0);
     return `<div class="choicewrap">${badge ? `<span class="badge">${badge}</span>` : ''}<button class="choice ${cls}" data-i="${i}"><div class="top"><div class="name">${esc(name)}</div><div class="art framed-art">${icon}${frame ? `<img class="badge-frame" src="${frame}" alt="">` : ''}</div></div><div class="dots" style="color:#fff;font-size:calc(var(--u)*14);font-weight:900">${rar} · ${slot}</div><div class="desc">${desc}</div><div class="elem"><i style="background:${g.color}">${g.e}</i>${g.elem}</div></button></div>`;
   };
   const r = show(`<div class="screen dim altar"><div class="upttl ol" style="margin-top:calc(var(--u)*70)">수호신 제단</div>
