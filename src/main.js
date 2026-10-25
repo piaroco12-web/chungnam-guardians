@@ -9,7 +9,7 @@ import { Battle, newRun } from './battle.js';
 import { render } from './render.js';
 import { levelChoices, applyLevelChoice, altarChoices, applyAltarChoice, godOf } from './progress.js';
 import { PILOTS, SHIPS, DIFFS, REGIONS, BOSSES, CARDS } from '../data/content.js';
-import { PATHS, PACTS, STORY } from '../data/extras.js';
+import { PATHS, PACTS, STORY, QUIZ, CARD_QUIZ, QUIZ_RUSH } from '../data/extras.js';
 import { BOONS, RARITY } from '../data/boons.js';
 import * as ui from './ui.js';
 import { LUCK, randIn } from '../data/luck.js';
@@ -57,10 +57,33 @@ function toBase(tab) {
   if (!view.pilotUnlocked(PILOTS.find(p => p.id === state.pilot))) state.pilot = 'chungnami';
   if (!view.shipUnlocked(SHIPS.find(s => s.id === state.ship))) state.ship = 'byeolbit';
   if (!view.weaponUnlocked(MAIN_WEAPONS.find(w => w.id === state.weapon) || {})) state.weapon = 'gun';
-  ui.base({ tab: state.tab, pilot: state.pilot, ship: state.ship, hasRun: !!loadRun(), daily: dailyInfo() }, {
+  ui.base({ tab: state.tab, pilot: state.pilot, ship: state.ship, hasRun: !!loadRun(), daily: dailyInfo(), quizLeft: quizLeft() }, {
     tab: t => toBase(t), refresh: () => toBase(), title: toTitle,
-    sortie: () => { state.sel = {}; toSelect('pilot'); }, cont: continueRun, daily: startDaily,
+    sortie: () => { state.sel = {}; toSelect('pilot'); }, cont: continueRun, daily: startDaily, quizRush: startQuizRush,
   });
+}
+
+// ───────── OX 퀴즈 러시 (2.11.0) ─────────
+function quizLeft() { const q = save.quizRush; return q.date === todayKey() ? Math.max(0, QUIZ_RUSH.perDay - q.count) : QUIZ_RUSH.perDay; }
+function startQuizRush() {
+  if (!save.teacher && quizLeft() <= 0) return ui.toast(`오늘은 ${QUIZ_RUSH.perDay}판을 모두 했어요. 내일 또 만나요!`);
+  // 모은 카드·정화한 보스 문제를 먼저, 그다음 나머지를 섞어서
+  const mix = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const tagOf = id => { const c = CARDS.find(x => x.id === id); return c ? `${c.e} ${c.title}` : ''; };
+  const all = [...Object.entries(CARD_QUIZ).map(([id, q]) => ({ ...q, tag: tagOf(id), mine: save.cards.includes(id) })),
+    ...Object.entries(QUIZ).flatMap(([boss, qs]) => qs.map(q => ({ ...q, tag: `${BOSSES[boss].name}`, mine: save.bosses.includes(boss) })))];
+  const pool = [...mix(all.filter(q => q.mine)), ...mix(all.filter(q => !q.mine))];
+  state.scene = 'quiz'; bgm('altar');
+  ui.quizRush(pool, ok => {
+    if (save.teacher) return;
+    progress(s => { if (s.quizRush.date !== todayKey()) s.quizRush = { date: todayKey(), count: 0 }; s.quizRush.count++; s.coins += ok * QUIZ_RUSH.coin; });
+  }, () => toBase('sortie'));
+}
+function usePurge(b) {
+  if (!save.teacher && !(save.items.purge > 0)) return;
+  if (!b.usePurge()) return;
+  if (!save.teacher) progress(s => { s.items.purge = Math.max(0, (s.items.purge || 0) - 1); });
+  b.hooks.hud();
 }
 
 function toSelect(step) {
@@ -115,10 +138,11 @@ function beginBattle(run) {
     bossDefeated: (id, isRegion) => onBossDefeated(b, id, isRegion),
     death: () => finish(b, false),
     path: () => openPath(b),
+    stageSaved: () => autoSave(b),
   });
   state.battle = b;
   if (save.settings.classMin > 0) b.classLeft = save.settings.classMin * 60;
-  ui.hud({ pause: () => openPause(b), ult: () => b.tryUlt() });
+  ui.hud({ pause: () => openPause(b), ult: () => b.tryUlt(), purge: () => usePurge(b) });
   b.hooks.hud();
   if (!save.tutorialDone) {
     ui.tutorial(true);
@@ -130,7 +154,7 @@ function beginBattle(run) {
 }
 
 function resumeBattle(b) {
-  ui.hud({ pause: () => openPause(b), ult: () => b.tryUlt() });
+  ui.hud({ pause: () => openPause(b), ult: () => b.tryUlt(), purge: () => usePurge(b) });
   b.paused = false; b.hooks.hud();
   input.dx = input.dy = 0;
 }
@@ -270,14 +294,25 @@ function openPath(b) {
 }
 
 // ───────── 판 종료 ─────────
+// 단계마다 자동 저장 (2.11.0): 껐다 켜면 지금 단계 처음부터. 오늘의 도전·교사 모드는 저장하지 않는다
+function autoSave(b) {
+  if (b.run.daily || save.teacher || b.over) return;
+  progress(() => creditMastery(b.run));
+  saveRun(b.run);
+  ui.saveTag();
+}
+
 function finish(b, win, reason = '') {
   if (b.finished) return; b.finished = true;
   b.over = true; b.paused = true;
   restoreRandom();
+  // 수업 시간이 끝나 멈춘 판은 저장을 남겨 다음 시간에 이어 한다(코인은 지금 받으므로 저장본의 코인은 0으로)
+  const keep = reason === 'time' && !b.run.daily && !save.teacher && loadRun();
   clearRun();
   const d = DIFFS.find(x => x.id === b.run.diff);
   const pactBonus = PACTS.filter(p => (b.run.pacts || []).includes(p.id)).reduce((a, p) => a + p.bonus, 0);
   const earned = Math.floor(b.run.coins * d.coin * (1 + save.meta.bonus * 0.05 + pactBonus)) + (win ? 100 : 0);
+  if (keep) { progress(() => creditMastery(b.run)); saveRun({ ...keep, coins: 0, credited: keep.kills }); }
   const unlocks = [...(b.unlocksThisRun || [])];
   const wBefore = MAIN_WEAPONS.filter(w => view.weaponUnlocked(w)).map(w => w.id);
   progress(() => creditMastery(b.run));

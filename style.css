@@ -535,3 +535,17 @@ table.lb tr.top1 td{background:#ffd23d22} table.lb tr.top2 td{background:#c9cbe0
 .choice .art .mw-emoji{font-size:calc(var(--u)*54)}
 .o .mw-emoji,.slot .mw-emoji{font-size:calc(var(--u)*26)}
 .wpick .wpair b{font-size:inherit;display:inline;font-family:var(--display);font-weight:400}
+
+/* 자동 저장 표시 (2.11.0) */
+.savetag{position:absolute;right:calc(var(--u)*130);bottom:calc(var(--u)*60);font-size:calc(var(--u)*16);opacity:0;animation:savetag 1.6s ease-out forwards;pointer-events:none}
+@keyframes savetag{15%{opacity:1}75%{opacity:1}100%{opacity:0}}
+
+/* OX 퀴즈 러시 · 정화 대폭발 버튼 (2.11.0) */
+.qr-top{display:flex;align-items:center;gap:calc(var(--u)*12);width:calc(var(--u)*470);margin-top:calc(var(--u)*16)}
+.qr-time{flex:1;height:calc(var(--u)*18);border:calc(var(--u)*3) solid var(--ink);border-radius:calc(var(--u)*10);background:#2b2f55;overflow:hidden}
+.qr-time i{display:block;height:100%;width:100%;background:linear-gradient(#ffe27a 0 50%,var(--amber) 50%)}
+.qr-top b{font-family:var(--display);font-weight:400;font-size:calc(var(--u)*20);white-space:nowrap}
+.qr-ans{min-height:calc(var(--u)*120)}
+.hud .purge{position:absolute;right:calc(var(--u)*44);bottom:calc(var(--u)*150);width:calc(var(--u)*58);height:calc(var(--u)*58);border-radius:50%;border:calc(var(--u)*3) solid var(--ink);background:radial-gradient(circle at 35% 30%,#ffffff,#ffe9b8 60%,#ffc53d);box-shadow:0 calc(var(--u)*4) 0 var(--ink),0 0 calc(var(--u)*14) rgba(255,240,200,.9);display:grid;place-items:center;padding:0;font-size:calc(var(--u)*28);cursor:pointer}
+.hud .purge img{width:110%;height:110%;object-fit:contain}
+.hud .purge.off{filter:grayscale(1) brightness(.7)}

@@ -232,3 +232,16 @@ export function drawUltimateBeam(g,b,quiet=false){
   const im=art.support('emitter');if(im){g.drawImage(im,x-32,end-22,64,64);}
   g.restore();
 }
+
+// 정화 대폭발 (2.11.0): 기체에서 하얀·금빛 고리가 화면 전체로 퍼지고 하트·별이 흩날림
+export function drawPurge(g,f,W,H){
+  const k=Math.max(0,Math.min(1,1-f.t/f.max)),R=Math.hypot(W,H)*(.1+.95*k);
+  g.save();g.translate(f.x,f.y);
+  g.globalAlpha=(1-k)*.55;g.fillStyle='#ffffff';g.beginPath();g.arc(0,0,R,0,TAU);g.fill();
+  g.globalAlpha=1-k;
+  for(const [w,c] of [[16,'#fff2b5'],[7,'#ffffff']]){g.strokeStyle=c;g.lineWidth=w;g.beginPath();g.arc(0,0,R,0,TAU);g.stroke();}
+  g.strokeStyle='#ffc53d';g.lineWidth=4;g.beginPath();g.arc(0,0,R*.82,0,TAU);g.stroke();
+  for(let i=0;i<14;i++){const a=i*TAU/14+k*1.5,x=Math.cos(a)*R*.9,y=Math.sin(a)*R*.9;
+    if(i%2){star(g,x,y,7*(1-k)+3,'#fff2b5',a);}else{g.fillStyle='#ff8acb';g.beginPath();g.moveTo(x,y+5);g.bezierCurveTo(x-9,y-3,x-4,y-10,x,y-4);g.bezierCurveTo(x+4,y-10,x+9,y-3,x,y+5);g.fill();}}
+  g.restore();
+}

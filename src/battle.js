@@ -7,6 +7,8 @@ import { LUCK, EVENTS } from '../data/luck.js';
 import { luckOf } from './progress.js';
 import { BOONS, RARITY } from '../data/boons.js';
 import { mainOf, pairUps, SHIP_WEAPON, WEAPON_RULES } from '../data/weapons.js';
+import { BOSS_LINES, WORD_SHOTS } from '../data/boss_lines.js';
+import { PURGE } from '../data/extras.js';
 import { art } from './assets.js';
 import { sfx } from './audio.js';
 import { save, view } from './save.js';
@@ -183,6 +185,7 @@ export class Battle {
     this.boss = { id, name: b.name, issue: b.issue, x: W / 2, y: -120, ty: isMid ? 270 : 290, r: b.r, hp, maxHp: hp, t: 0,
       patterns, pi: 0, pt: 0, acc: 0, acc2: 0, mid: isMid, flash: 0, chill: 0, chillT: 0, frozen: 0, burn: 0, burnDps: 0, hitCd: {}, dying: 0, isBoss: true };
     this.enemies.push(this.boss);
+    this.bossSay(this.boss);
   }
 
   // 돌발 상황 시작: 정예는 바로 대기열에, 보급은 바로 떨어뜨린다. 유성우는 update에서 계속
@@ -217,6 +220,7 @@ export class Battle {
     this.run.stage++;
     if (kind === 'wave') { sfx.clear(); }
     if (this.run.stage >= STAGES.length) return; // 지역 보스는 onBossDefeated에서 처리
+    if (!this.over && this.hooks.stageSaved) this.hooks.stageSaved();   // 단계마다 자동 저장 (2.11.0)
     // 웨이브 1 뒤(다음도 웨이브)와 웨이브 3 뒤(다음은 지역 보스)에는 갈림길
     const next = STAGES[this.run.stage];
     if (kind === 'wave' && (next === 'wave' || next === 'boss') && this.hooks.path) { this.real.push({ t: 1.2, fn: () => this.hooks.path() }); return; }
@@ -694,6 +698,7 @@ export class Battle {
 
   bossDown(b) {
     b.dying = 1.6; b.hp = 0;
+    const sorry = BOSS_LINES[b.id]?.sorry; if (sorry) b.say = { text: sorry, t: 2.6, max: 2.6, sorry: true };   // 정화 반성 대사
     this.eb = []; this.hazards = this.hazards.filter(h => h.mine); this.overlays = [];
     this.enemies.filter(e => !e.isBoss).forEach(e => { this.spark(e.x, e.y, '#fff', 8); });
     this.enemies = [b];
@@ -786,7 +791,12 @@ export class Battle {
 
   // ───────── 적 탄 ─────────
   ebSpeed() { let m = this.diff.bspd; if (!isActive() && this.slowBoon === 'gg_slow') m *= 1 - 0.3 * this.rr('gg_slow'); return m; }
-  shot(x, y, a, sp, o = {}) { const s = sp * this.diff.bspd * (this.pact('fastShots') ? 1.25 : 1); this.eb.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: 0, src: this.shooter || null, ...o, r: o.r || 8, c: o.c || '#ff3d5a' }); }
+  shot(x, y, a, sp, o = {}) {
+    const bs = this.boss;   // 보스가 막 패턴을 바꿨으면 몇 발에 단어를 얹고 조금 크게
+    if (bs && !bs.dying && bs.wordLeft > 0 && (this.shooter === bs.id || o.src === bs.id) && (bs.wordGap = (bs.wordGap || 0) + 1) % 3 === 1) {
+      const w = BOSS_LINES[bs.id]?.words; if (w) { o = { ...o, word: w[Math.floor(Math.random() * w.length)], r: Math.max(o.r || 8, 13) }; bs.wordLeft--; }
+    }
+    const s = sp * this.diff.bspd * (this.pact('fastShots') ? 1.25 : 1); this.eb.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: 0, src: this.shooter || null, ...o, r: o.r || 8, c: o.c || '#ff3d5a' }); }
   aim(x, y, sp, o) { this.shot(x, y, Math.atan2(this.p.y - y, this.p.x - x), sp, o); }
   fan(x, y, n, spread, sp, c) { const base = Math.atan2(this.p.y - y, this.p.x - x); for (let i = 0; i < n; i++) this.shot(x, y, base + (i - (n - 1) / 2) * spread / Math.max(1, n - 1) * 2, sp, { c }); }
   ring(x, y, n, sp, c, off = 0) { for (let i = 0; i < n; i++) this.shot(x, y, off + i / n * Math.PI * 2, sp, { c }); }
@@ -889,6 +899,24 @@ export class Battle {
     if (c === 'dog' && tick('z', 10)) { if (this.p.shields < this.maxShields + 1) this.p.shields++; this.heal(3); sfx.shield(); }
   }
 
+  // ───────── 정화 대폭발 (2.11.0) ─────────
+  // 적 탄 전부 지움 + 일반 적 정화 + 보스 최대 체력의 10%. 한 판에 1번, 오늘의 도전에서는 못 쓴다
+  usePurge() {
+    if (this.over || this.run.purgeUsed || this.run.daily) return false;
+    this.run.purgeUsed = true;
+    this.eb = []; this.hazards = this.hazards.filter(h => h.mine);
+    for (const e of [...this.enemies]) {
+      if (e.decoy) { e.life = 0; continue; }
+      if (e.isBoss) { if (!e.dying) { e.hp -= e.maxHp * PURGE.bossPct; e.flash = 0.3; if (e.hp <= 0) this.kill(e, {}); } continue; }
+      this.kill(e, {});
+    }
+    this.p.inv = Math.max(this.p.inv, PURGE.inv);
+    this.flash = 1; this.shake = 6; sfx.ult();
+    this.fx.push({ kind: 'purge', x: this.p.x, y: this.p.y, t: 1, max: 1 });
+    this.showBanner('정화 대폭발!', '화면의 디지털 오염을 모두 정화했어요', 1.4);
+    return true;
+  }
+
   // ───────── 필살기 ─────────
   tryUlt() {
     if (this.run.gauge < 100 || this.over || this.ultT > 0) return;
@@ -918,6 +946,17 @@ export class Battle {
     if (this.ultT <= 0) this.ultKind = null;
   }
 
+  // ───────── 보스 대사 ─────────
+  // 패턴이 바뀔 때 말풍선, 이어지는 탄 몇 발에 짧은 단어 (data/boss_lines.js)
+  bossSay(b) {
+    const L = BOSS_LINES[b.id]; if (!L) return;
+    const pool = L.lines[b.patterns[b.pi]] || Object.values(L.lines).flat();
+    let text = pool[Math.floor(Math.random() * pool.length)];
+    if (text === b.lastSay && pool.length > 1) text = pool.find(x => x !== text);
+    b.lastSay = text; b.say = { text, t: 1.8, max: 1.8 };
+    b.wordLeft = WORD_SHOTS; b.wordGap = 0;
+  }
+
   // ───────── 보스 ─────────
   // 다음 패턴: 무작위(같은 패턴 연속 없음). 끄면 정해진 순서
   nextPattern(b) {
@@ -929,6 +968,7 @@ export class Battle {
 
   updateBoss(b, dt) {
     b.flash -= dt;
+    if (b.say) { b.say.t -= dt; if (b.say.t <= 0) b.say = null; }
     if (b.dying) {
       b.dying -= dt / Math.max(0.3, this.ts); // 정화 연출은 슬로우와 상관없이 실제 시간으로
       if (Math.random() < 0.3) this.texts.push({ x: b.x + rnd(-60, 60), y: b.y + rnd(-40, 40), s: '♥', t: 0.8, c: '#ff8acb' });
@@ -956,7 +996,7 @@ export class Battle {
     if (pat !== 'swipe') b.x = W / 2 + Math.sin(b.t * 0.6) * 120;
     b.pt += bdt;
     this.shooter = b.id; BOSS_PATTERNS[pat](this, b, bdt); this.shooter = null;
-    if (b.pt > 5.5) { b.pt = 0; b.acc = 0; b.acc2 = 0; b.pi = this.nextPattern(b); b.sub = null; this.enemies.filter(e => e.decoy).forEach(e => { e.life = 0; }); }
+    if (b.pt > 5.5) { b.pt = 0; b.acc = 0; b.acc2 = 0; b.pi = this.nextPattern(b); b.sub = null; this.bossSay(b); this.enemies.filter(e => e.decoy).forEach(e => { e.life = 0; }); }
     if (dist2(b, this.p) < (b.r * 0.8 + this.p.r) ** 2) this.hurt(20);
   }
 

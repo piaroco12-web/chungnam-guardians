@@ -316,6 +316,8 @@ export const pic = {
   // 메인 무기·진화·새 서브 무기 그림 (docs/WEAPON_IMAGES_FOR_GPT.md). 시트가 아직 없으면 null → 이모지로 대신
   mainWeapon: id => { const i = MAIN_WEAPONS.findIndex(w => w.id === id); const c = i >= 0 && iconCell('weapon_main_sheet', i, 5, 1, MAIN_RECTS[i]); return c ? c.toDataURL() : null; },
   mainEvo: (id, k) => { const i = MAIN_WEAPONS.findIndex(w => w.id === id), j = ['a', 'b', 'u'].indexOf(k); const c = i >= 0 && j >= 0 && iconCell('weapon_evo_sheet', j * 5 + i, 5, 3, EVO_RECTS[j * 5 + i]); return c ? c.toDataURL() : null; },
+  // 추가 기능 아이콘 (docs/NEXT_FEATURES_IMAGES_FOR_GPT.md): 0 정화 대폭발 · 1 쓸 수 없음 · 2 퀴즈 러시 · 3 자동 저장. 시트가 없으면 null
+  feature: i => { const c = cell('feature_icons_sheet', i, 4); return c ? c.toDataURL() : null; },
   pilot: p => url(get('pilot_' + p.id) || once('pi' + p.id, () => pilotArt(p))),
   hangar: (s, colorId) => url(tinted(get('ship_' + s.id + '_hangar'), colorId) || once('hg' + s.id, () => hangarArt(s))),
   god: gd => url(get(gd.img) || once('god' + gd.id, () => godArt(gd))),

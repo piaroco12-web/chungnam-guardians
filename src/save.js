@@ -27,6 +27,8 @@ const fresh = () => ({
   grandShips: [],      // 예전 규칙으로 이미 연 기체 — 계속 열림
   combos: [],          // 조합으로 정화한 기록 'pilot|ship|boss' (번개호 해금)
   mastery: {},         // 메인 무기 숙련도: 무기 id → 그 무기로 정화한 수 (무기 사슬 해금)
+  items: { purge: 0 }, // 정화 대폭발 (상점 300코인, 최대 1개)
+  quizRush: { date: '', count: 0 },   // OX 퀴즈 러시: 하루 3판
   shipColor: 'base',   // 고른 기체 색 (범주 완성으로 열림)
   student: null,       // 오늘의 도전 기록을 보낼 반·번호 { cls: '5-2', num: 13 } — 다음 학생 준비 때 지워진다
   // unlockRule 은 일부러 넣지 않는다: 예전 기록에 없을 때 아래 옮기기가 돌아야 해서
@@ -54,6 +56,8 @@ if (!(save.unlockRule >= 2)) {
 if (!Array.isArray(save.grandShips)) save.grandShips = [];
 if (!Array.isArray(save.combos)) save.combos = [];
 if (!save.mastery || typeof save.mastery !== 'object') save.mastery = {};
+save.items = Object.assign({ purge: 0 }, save.items);
+if (!save.quizRush || typeof save.quizRush !== 'object') save.quizRush = { date: '', count: 0 };
 if (save.unlockRule !== 3) {
   const oldBeongae = REGIONS.map(r => r.boss);
   if (oldBeongae.every(id => save.bosses.includes(id)) && !save.grandShips.includes('beongae')) save.grandShips.push('beongae');

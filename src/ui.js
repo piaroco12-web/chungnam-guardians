@@ -3,7 +3,7 @@ import { PILOTS, SHIPS, DIFFS, REGIONS, CARDS, META_UPGRADES, BOSSES } from '../
 import { GODS, BOONS, DUOS, LEGENDS, RARITY, SLOT_NAMES } from '../data/boons.js';
 import { WEAPONS, UPGRADES, EVOLUTIONS, boonDef, godOf, MAX_SLOTS } from './progress.js';
 import { ZODIAC } from '../data/zodiac.js';
-import { PATHS, QUIZ, CARD_QUIZ, PACTS, STORY } from '../data/extras.js';
+import { PATHS, QUIZ, CARD_QUIZ, PACTS, STORY, QUIZ_RUSH, PURGE } from '../data/extras.js';
 import { LUCK } from '../data/luck.js';
 import { SETS, SHIP_UNLOCK, BASE_COLOR } from '../data/unlocks.js';
 import { lbEnabled, loadBoard } from './leaderboard.js';
@@ -16,7 +16,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.10.5';
+export const VERSION = '2.11.0';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -26,6 +26,8 @@ const confirmChoice = (el, kind, fn) => {
   if (el.closest('.screen')?.dataset.choicePending === 'true') return;
   sfx.choose(kind); chooseCard(el, fn);
 };
+// 자동 저장 표시: 오른쪽 아래에 잠깐
+export function saveTag() { const t = document.createElement('div'); t.className = 'savetag ol'; t.textContent = '💾 저장됨'; root().appendChild(t); setTimeout(() => t.remove(), 1600); }
 export function toast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; root().appendChild(t); setTimeout(() => t.remove(), 2300); }
 
 // 아이콘: 가호 시트 그림이 있으면 그 칸, 없으면 수호신 기호
@@ -110,22 +112,35 @@ function sortie(bb, state, act) {
     ${state.daily ? `<div class="row daily" style="width:100%"><div class="ic">📅</div><div class="tx"><b>오늘의 도전 · ${esc(state.daily.label)}</b>
       <p>${esc(state.daily.regionName)}에서 출발 · ${esc(state.daily.pilotName)} + ${esc(state.daily.shipName)} + ${esc(state.daily.weaponName)} · 도전 난이도<br>오늘 내 최고: ${state.daily.best ? `${esc(REGIONS[state.daily.best.region - 1]?.name || state.daily.best.region + '지역')}까지 · 처치 ${state.daily.best.kills}` : '아직 없음'}</p></div>
       <button class="btn blue sm" id="daily">도전</button></div>` : ''}
+    <div class="row daily" style="width:100%"><div class="ic">🪙</div><div class="tx"><b>OX 퀴즈 러시</b>
+      <p>${QUIZ_RUSH.seconds}초 동안 맞힐 때마다 코인 +${QUIZ_RUSH.coin} · ${save.teacher ? '교사 모드: 횟수 제한 없음' : `오늘 남은 판 ${state.quizLeft}/${QUIZ_RUSH.perDay}`}</p></div>
+      <button class="btn blue sm ${state.quizLeft > 0 || save.teacher ? '' : 'gray'}" id="qrush">시작</button></div>
     <button class="btn gray sm" id="home">타이틀로</button>
   </div>`;
-  click('#go', act.sortie, bb); click('#cont', act.cont, bb); click('#home', act.title, bb); click('#daily', act.daily, bb);
+  click('#go', act.sortie, bb); click('#cont', act.cont, bb); click('#home', act.title, bb); click('#daily', act.daily, bb); click('#qrush', act.quizRush, bb);
 }
 
 function metaTab(bb, state, act) {
   bb.classList.add('meta-panel');
   const priceCoin = art.item('coin');
   const coinArt = priceCoin ? `<span class="meta-price-coin"><img src="${priceCoin.toDataURL()}" alt="코인"></span>` : coinIcon;
-  bb.innerHTML = `<h2 class="ol">영구 강화</h2><div class="rows meta-rows">${META_UPGRADES.map(m => {
+  const have = save.items.purge || 0, full = have >= PURGE.max;
+  const purgeRow = `<div class="row meta-row meta-purge"><div class="ic">${pic.feature?.(0) ? `<img src="${pic.feature(0)}" alt="">` : '🌟'}</div><div class="tx"><b>정화 대폭발</b><p>적 탄을 모두 지우고 일반 적을 정화, 보스 체력 ${Math.round(PURGE.bossPct * 100)}%. 한 판에 1번, 오늘의 도전에서는 못 써요.</p>
+      <div class="meta-progress"><span class="meta-level">가진 개수 ${have}/${PURGE.max}</span></div></div>
+      <button class="btn sm meta-cost ${save.coins < PURGE.cost && !full ? 'gray' : ''}" id="buypurge" aria-label="정화 대폭발 ${full ? '가득' : `${PURGE.cost}코인으로 사기`}" ${full ? 'disabled' : ''}>${full ? '보유' : coinArt + '<span>' + PURGE.cost + '</span>'}</button></div>`;
+  bb.innerHTML = `<h2 class="ol">영구 강화</h2><div class="rows meta-rows">${purgeRow}${META_UPGRADES.map(m => {
     const lv = save.meta[m.id], max = lv >= m.max, cost = m.cost(lv);
     const im = pic.meta(m.id);
     return `<div class="row meta-row meta-${m.id}"><div class="ic">${im ? `<img src="${im}" alt="">` : m.icon}</div><div class="tx"><b>${m.name}</b><p>${m.desc(Math.max(lv, 1))}${lv ? '' : ' (다음 단계)'}</p>
       <div class="meta-progress"><div class="pips">${Array.from({ length: m.max }, (_, i) => `<i class="${i < lv ? 'on' : ''}"></i>`).join('')}</div><span class="meta-level">${lv}/${m.max}</span></div></div>
       <button class="btn sm meta-cost ${save.coins < cost && !max ? 'gray' : ''}" aria-label="${m.name} ${max ? '최대 단계' : `${cost}코인으로 강화`}" data-m="${m.id}" ${max ? 'disabled' : ''}>${max ? 'MAX' : coinArt + '<span>' + cost + '</span>'}</button></div>`;
   }).join('')}</div>${save.teacher ? '<p class="note" style="margin-top:calc(var(--u)*12)">교사 모드에서는 강화가 저장되지 않아요.</p>' : ''}`;
+  click('#buypurge', (e, el) => {
+    if ((save.items.purge || 0) >= PURGE.max) return;
+    if (save.teacher) return toast('교사 모드에서는 전투마다 1개가 저절로 있어요');
+    if (save.coins < PURGE.cost) { nope(el.closest('.row')); return toast(`코인이 ${PURGE.cost - save.coins}개 모자라요`); }
+    save.coins -= PURGE.cost; save.items.purge = (save.items.purge || 0) + 1; persist(); sfx.levelup(); act.refresh();
+  }, bb);
   click('[data-m]', (e, el) => {
     const m = META_UPGRADES.find(x => x.id === el.dataset.m), lv = save.meta[m.id], cost = m.cost(lv);
     if (lv >= m.max) return;
@@ -322,16 +337,18 @@ export function hud(act) {
     <div class="stagechip hpanel"><span class="ol" id="hw"></span>${pips}</div>
     <div class="pilotbox"><div class="xpring" id="hx"><div class="face"><img id="hface" alt=""></div></div><span class="lvbadge ol" id="hl">Lv.1</span></div>
     <div class="pills"><div class="pill hpanel"><span class="coin"></span><b class="ol" id="hc">0</b></div><div class="pill hpanel"><img class="medal" id="hmedal" alt=""><b class="ol">정화 <span id="hk">0</span></b></div></div>
+    <button class="purge act" id="purge" aria-label="정화 대폭발" hidden>${pic.feature?.(0) ? `<img src="${pic.feature(0)}" alt="">` : '🌟'}</button>
     <button class="ult act" id="ult" aria-label="필살기"><span class="fill" id="uf"></span><span class="lab ol" id="ul">필살기</span></button>
     <div class="slowtag ol" id="hs" hidden>슬로우 모션</div>
     <div class="ol htimer" id="ht" hidden></div>
     <div class="tut ol" id="tut" hidden><div class="arrows">⬅️➡️</div>화면을 드래그해서 전투기를 조종하세요.<br><span style="font-size:calc(var(--u)*22)">손을 떼면 시간이 느려져요!</span></div>
   </div>`);
   hudEls = { w: r.querySelector('#hw'), l: r.querySelector('#hl'), x: r.querySelector('#hx'), c: r.querySelector('#hc'), k: r.querySelector('#hk'), u: r.querySelector('#ult'), uf: r.querySelector('#uf'), ul: r.querySelector('#ul'), s: r.querySelector('#hs'), tut: r.querySelector('#tut'), t: r.querySelector('#ht'),
-    nodes: [...r.querySelectorAll('.mnode')], pips: [...r.querySelectorAll('.pip')], line: r.querySelector('#hml'), face: r.querySelector('#hface'), key: '' };
+    pg: r.querySelector('#purge'), nodes: [...r.querySelectorAll('.mnode')], pips: [...r.querySelectorAll('.pip')], line: r.querySelector('#hml'), face: r.querySelector('#hface'), key: '' };
   const medal = pic.purified(); if (medal) r.querySelector('#hmedal').src = medal; else r.querySelector('#hmedal').remove();
   r.querySelector('#pz').addEventListener('click', () => { sfx.click(); act.pause(); });
   r.querySelector('#ult').addEventListener('pointerdown', e => { e.preventDefault(); act.ult(); });
+  r.querySelector('#purge').addEventListener('pointerdown', e => { e.preventDefault(); if (hudEls.pg.classList.contains('off')) return toast('오늘의 도전에서는 정화 대폭발을 쓸 수 없어요'); act.purge && act.purge(); });
 }
 export function updateHud(b, slow) {
   if (!hudEls) return;
@@ -360,6 +377,8 @@ export function updateHud(b, slow) {
   hudEls.u.classList.toggle('ready', run.gauge >= 100);
   hudEls.ul.innerHTML = run.gauge >= 100 ? b.ship.ult.name.replace(' ', '<br>') : Math.floor(run.gauge) + '%';
   hudEls.s.hidden = !slow;
+  const purgeHave = !run.purgeUsed && (save.teacher || (save.items.purge || 0) > 0);
+  hudEls.pg.hidden = !purgeHave; hudEls.pg.classList.toggle('off', !!run.daily);
   if (b.classLeft != null) { const m = Math.max(0, Math.ceil(b.classLeft)); hudEls.t.hidden = false; hudEls.t.textContent = `⏰ ${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`; }
   else if (b.run.daily) { hudEls.t.hidden = false; hudEls.t.textContent = '📅 도전'; }
 }
@@ -393,7 +412,7 @@ export function pause(run, act) {
       <button class="btn red icon" id="ph" aria-label="기지로">🏠</button></div>
   </div>`);
   click('#pc', act.resume);
-  click('#ph', () => modal('<b class="ol" style="font-size:calc(var(--u)*26)">기지로 나갈까요?</b><p>마지막으로 수호신 제단을 지난 곳부터 이어할 수 있어요.</p>', [['나가기', 'red', act.home], ['취소', 'gray']]));
+  click('#ph', () => modal('<b class="ol" style="font-size:calc(var(--u)*26)">기지로 나갈까요?</b><p>지금 단계 처음부터 이어할 수 있어요.</p>', [['나가기', 'red', act.home], ['취소', 'gray']]));
   click('#ps', act.stats);
   click('#pg', () => {
     const label = k => `${{ sfx: '효과음', bgm: '배경음', calm: '섬광 줄이기' }[k]} ${save.settings[k] ? '켜짐' : '꺼짐'}`;
@@ -635,6 +654,39 @@ export function quiz(bossId, onDone) {
   const cleaned = pic.cleansed(bossId);
   oxQuiz({ title: '정화 퀴즈', tag: `${BOSSES[bossId].name} · ${BOSSES[bossId].issue}`, q, okText: '정답! 코인 +15',
     art: cleaned ? `<img class="cleansed-art" src="${cleaned}" alt="정화된 ${esc(BOSSES[bossId].name)}">` : '' }, onDone);
+}
+
+// OX 퀴즈 러시 (2.11.0): 제한 시간 동안 OX 문제를 연달아. 끝나면 onEnd(정답 수)
+export function quizRush(pool, onEnd, onExit) {
+  const total = QUIZ_RUSH.seconds * 1000, t0 = performance.now();
+  let i = 0, ok = 0, tried = 0, locked = false, over = false;
+  const r = show(`<div class="screen dim qrush"><div class="upttl ol" style="margin-top:calc(var(--u)*40)">OX 퀴즈 러시</div>
+    <div class="qr-top"><div class="qr-time"><i id="qrt"></i></div><b class="ol" id="qrs">정답 0 · 🪙 0</b></div>
+    <div class="bigcard qr-card" style="margin-top:calc(var(--u)*24);min-height:0"><span class="k" id="qrk"></span><p id="qrq" style="text-align:center;font-size:calc(var(--u)*24)"></p></div>
+    <div style="display:flex;gap:calc(var(--u)*30);margin-top:calc(var(--u)*30)"><button class="btn blue" id="qo" style="font-size:calc(var(--u)*56);width:calc(var(--u)*150)">O</button><button class="btn red" id="qx" style="font-size:calc(var(--u)*56);width:calc(var(--u)*150)">X</button></div>
+    <div id="qa" class="qr-ans"></div></div>`);
+  const $ = s => r.querySelector(s);
+  const next = () => { const q = pool[i % pool.length]; $('#qrk').textContent = q.tag || ''; $('#qrq').textContent = q.q; $('#qa').innerHTML = ''; locked = false; };
+  const end = () => {
+    if (over) return; over = true;
+    const coin = ok * QUIZ_RUSH.coin;
+    onEnd(ok);
+    show(`<div class="screen dim"><div class="upttl ol" style="margin-top:calc(var(--u)*120)">시간 끝!</div>
+      <div class="bigcard" style="margin-top:calc(var(--u)*40);min-height:0"><span class="k">OX 퀴즈 러시</span><b style="font-size:calc(var(--u)*34)">${tried}문제 중 ${ok}문제 정답</b><p style="text-align:center">${save.teacher ? '교사 모드라 코인은 저장되지 않아요' : `코인 +${coin}`}</p></div>
+      <button class="btn" id="qrd" style="margin-top:calc(var(--u)*30)">기지로</button></div>`);
+    click('#qrd', onExit);
+  };
+  const tick = () => { if (over) return; const left = Math.max(0, total - (performance.now() - t0)); const bar = $('#qrt'); if (bar) bar.style.width = (left / total * 100) + '%'; if (left <= 0) return end(); requestAnimationFrame(tick); };
+  const answer = (ans, el) => {
+    if (locked || over) return; locked = true; tried++;
+    const q = pool[i % pool.length], good = ans === q.a;
+    if (good) { ok++; sfx.coin(); } else { sfx.hurt(); nope(el); }
+    $('#qrs').textContent = `정답 ${ok} · 🪙 ${ok * QUIZ_RUSH.coin}`;
+    $('#qa').innerHTML = `<div class="bigcard" style="margin-top:calc(var(--u)*16);min-height:0"><b style="color:${good ? '#1f8a5b' : '#e0344f'}">${good ? `정답! +${QUIZ_RUSH.coin}` : `정답은 ${q.a ? 'O' : 'X'}`}</b>${good ? '' : `<p>${esc(q.why)}</p>`}</div>`;
+    i++; setTimeout(() => { if (!over) next(); }, (good ? QUIZ_RUSH.rightPause : QUIZ_RUSH.wrongPause) * 1000);
+  };
+  click('#qo', (e, el) => answer(true, el)); click('#qx', (e, el) => answer(false, el));
+  next(); requestAnimationFrame(tick);
 }
 
 // 수업 마무리 복습 문제: 카드 한 장에서 OX 한 문제

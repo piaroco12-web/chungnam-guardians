@@ -4,7 +4,7 @@ import { art } from './assets.js';
 import { isActive } from './input.js';
 import { REGIONS, ENEMIES } from '../data/content.js';
 import { ZODIAC } from '../data/zodiac.js';
-import { drawProjectile, drawBomb, drawBoomerang, drawSatellite, drawImpact, drawHit, drawPWave, drawMine, drawTurret, drawMuzzle, drawSupportDrone, drawUltimateBeam } from './combat-vfx.js';
+import { drawProjectile, drawBomb, drawBoomerang, drawSatellite, drawImpact, drawHit, drawPWave, drawMine, drawTurret, drawMuzzle, drawSupportDrone, drawUltimateBeam, drawPurge } from './combat-vfx.js';
 import { save, view } from './save.js';
 import { drawEnemyBullet } from './bullet-art.js';
 import { drawBeam, drawVine, drawFakeGift, drawOverlay, drawArm, drawEdgeMark } from './boss-fx.js';
@@ -87,7 +87,35 @@ function sprite(g, im, x, y, size, rot = 0) {
   g.restore(); return true;
 }
 
-function enemyBullet(g, b) { drawEnemyBullet(g, b); }
+function enemyBullet(g, b) {
+  drawEnemyBullet(g, b);
+  if (b.word) {   // 보스 탄 위 단어 (data/boss_lines.js)
+    g.save(); g.font = '15px "Black Han Sans", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.lineWidth = 4; g.strokeStyle = '#17123a'; g.lineJoin = 'round'; g.strokeText(b.word, b.x, b.y - b.r - 9); g.fillStyle = '#fff'; g.fillText(b.word, b.x, b.y - b.r - 9); g.restore();
+  }
+}
+
+// 보스 말풍선: 보스 옆(화면 가운데 쪽)에. 정화 반성 대사는 분홍 테두리
+function bossBubble(g, boss) {
+  const s = boss.say; if (!s) return;
+  const a = Math.min(1, s.t * 4, (s.max - s.t) * 6 + 0.2);
+  g.save(); g.globalAlpha = Math.max(0, Math.min(1, a));
+  g.font = '18px "Black Han Sans", sans-serif';
+  const lines = wrapText(g, s.text, 200), lh = 22, w = Math.max(...lines.map(l => g.measureText(l).width)) + 26, h = lines.length * lh + 16;
+  const right = boss.x < W / 2, bx = right ? Math.min(W - w - 8, boss.x + boss.r * 0.7) : Math.max(8, boss.x - boss.r * 0.7 - w), by = Math.max(186, boss.y - boss.r * 0.4 - h);
+  g.fillStyle = s.sorry ? '#fff0f6' : '#ffffff'; g.strokeStyle = s.sorry ? '#ff8acb' : '#17123a'; g.lineWidth = 3.5;
+  g.beginPath(); g.roundRect(bx, by, w, h, 14);
+  const tx = right ? bx + 18 : bx + w - 18; g.moveTo(tx - 8, by + h); g.lineTo(right ? boss.x + boss.r * 0.35 : boss.x - boss.r * 0.35, by + h + 16); g.lineTo(tx + 8, by + h);
+  g.fill(); g.stroke();
+  g.fillStyle = '#17123a'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  lines.forEach((l, i) => g.fillText(l, bx + w / 2, by + 8 + lh / 2 + i * lh));
+  g.restore();
+}
+function wrapText(g, text, maxW) {
+  const words = text.split(' '), out = []; let cur = '';
+  for (const w of words) { const t = cur ? cur + ' ' + w : w; if (g.measureText(t).width > maxW && cur) { out.push(cur); cur = w; } else cur = t; }
+  if (cur) out.push(cur); return out;
+}
 
 function statusMarks(g, e, t) {
   if (e.frozen > 0) { g.fillStyle = 'rgba(190,240,255,.55)'; g.beginPath(); g.arc(e.x, e.y, e.r + 4, 0, 7); g.fill(); }
@@ -267,6 +295,7 @@ export function render(g, b, scale) {
   for (const f of b.fx) {
     if (f.kind === 'p') { g.globalAlpha = Math.min(1, f.t * 3); g.fillStyle = f.c; g.beginPath(); g.arc(f.x, f.y, f.r, 0, 7); g.fill(); g.globalAlpha = 1; }
     else if (f.kind === 'ring') drawImpact(g, f);
+    else if (f.kind === 'purge') drawPurge(g, f, W, H);
     else if (f.kind === 'weaponHit') drawHit(g, f);
     else if (f.kind === 'skill') drawSkillFx(g, f);
     else if (f.kind === 'bolt') { g.strokeStyle = '#fff27a'; g.lineWidth = calm() ? 4 : 5; g.shadowColor = '#fff27a'; g.shadowBlur = calm() ? 0 : 16; g.beginPath(); let x = f.x + jit(f.x, 0) * 40, y = 0; g.moveTo(x, y); while (y < f.y) { y += 40; x = f.x + jit(f.x, y) * 40 * (1 - y / f.y); g.lineTo(x, Math.min(y, f.y)); } g.stroke(); g.shadowBlur = 0; }
@@ -276,6 +305,9 @@ export function render(g, b, scale) {
   // 시야 가림 (먹물·매연)
   for (const o of b.overlays) drawOverlay(g, o, b.t);
   for (const h of b.hazards) if (h.kind === 'mark') drawEdgeMark(g, h, b.t, calm());
+
+  // 보스 말풍선 (탄 위에 보이게)
+  if (b.boss) bossBubble(g, b.boss);
 
   // 글자
   g.textAlign = 'center'; g.textBaseline = 'middle';

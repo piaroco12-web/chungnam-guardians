@@ -118,3 +118,7 @@ export const STORY = [
   { id: 's14', who: '태안', e: '☀️', when: s => s.cards >= 20, text: '카드첩이 꽤 두꺼워졌네. 여기 모인 건 게임 점수가 아니라 너희가 배운 것들이야.' },
   { id: 's15', who: '금강', e: '❄️', when: s => s.legendWin, text: '전설을 넘어선 수호대에게만 들려줄게. 극한 난이도의 보스는 기술을 하나 더 숨기고 있어.' },
 ];
+
+// 추가 기능 (2.11.0, docs/NEXT_FEATURES_PLAN.md)
+export const QUIZ_RUSH = { seconds: 60, coin: 10, perDay: 3, wrongPause: 1.4, rightPause: 0.45 };
+export const PURGE = { cost: 300, max: 1, bossPct: 0.1, inv: 1 };
