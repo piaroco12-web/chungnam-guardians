@@ -358,7 +358,7 @@ export class Battle {
       }
       case 'wave': {   // 파동포: 앞쪽으로 퍼지는 고리. 적 탄을 지우고 밀어냄. A 크게, B 탄 지우면 회복
         const big = e.a;
-        this.objs.push({ kind: 'pwave', x: p.x, y: p.y - 24, r: 24, speed: speed, reach: f.reach * (big ? 1.15 : 1) * this.st.area, arc: f.arc + (big ? 0.7 : 0) + (chn ? 0.35 : 0),
+        this.objs.push({ kind: 'pwave', x: p.x, y: p.y - 24, r: 24, speed: speed, reach: f.reach * (big ? 1.15 : 1) * this.st.area, arc: f.arc + (big ? 0.35 : 0) + (chn ? 0.18 : 0),
           band: f.band * (big ? 1.5 : 1) * size, dmg: dmg * (e.u ? 1.4 : big ? 1.2 : 1), heal: e.b, hit: new Set(), ...look });
         break;
       }
