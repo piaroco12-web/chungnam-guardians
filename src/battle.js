@@ -2,7 +2,8 @@
 // 시간은 dt(실제) × ts(슬로우 배율)로 흐른다. 플레이어 이동만 실제 시간.
 import { W, H } from './view.js';
 import { input, isActive, keyAxis, consumeDrag } from './input.js';
-import { PILOTS, SHIPS, DIFFS, REGIONS, ENEMIES, BOSSES, HP_MULT, FINAL_BOSS, THREAT, REGION_AGGRO } from '../data/content.js';
+import { regionAt } from '../data/regions.js';
+import { PILOTS, SHIPS, DIFFS, ENEMIES, BOSSES, HP_MULT, FINAL_BOSS, THREAT, REGION_AGGRO } from '../data/content.js';
 import { LUCK, EVENTS } from '../data/luck.js';
 import { luckOf } from './progress.js';
 import { BOONS, RARITY } from '../data/boons.js';
@@ -19,11 +20,12 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const dist2 = (a, b) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2;
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const BOON = Object.fromEntries(BOONS.map(b => [b.id, b]));
-const NO_ELITE = new Set(['notify', 'likebee', 'phishfish']);   // 정예로 나오지 않는 적
+const NO_ELITE = new Set(['notify', 'likebee', 'phishfish', 'filterfly', 'bluebat']);   // 정예로 나오지 않는 적
 
-export function newRun({ pilot, ship, diff, region = 0, pacts = [], daily = null, mainWeapon = null }) {
+export function newRun({ pilot, ship, diff, region = 0, pacts = [], daily = null, mainWeapon = null, route = [], mids = [] }) {
   return {
     pilot, ship, diff, mainWeapon: mainWeapon || SHIP_WEAPON[ship]?.legacy || 'gun', region, stage: 0, startRegion: region,
+    route, mids,                      // 권역마다 고른 시군 id·중간 보스 (data/regions.js)
     hp: null, level: 1, xp: 0, coins: 0, kills: 0,
     weapons: { main: 1 }, upgrades: {}, evolved: [],
     boons: {}, duos: [], legend: null, gauge: 0,
@@ -87,7 +89,7 @@ export class Battle {
   }
 
   // ───────── 스테이지 진행 ─────────
-  get region() { return REGIONS[this.run.region]; }
+  get region() { return regionAt(this.run, this.run.region); }
   scaleHp() { return this.diff.hp * (1 + this.run.region * 0.38) * (1 + this.run.stage * 0.08) * (this.pact('tough') ? 1.4 : 1); }
 
   startStage() {

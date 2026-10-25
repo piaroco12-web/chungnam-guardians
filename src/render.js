@@ -2,7 +2,7 @@
 import { W, H } from './view.js';
 import { art } from './assets.js';
 import { isActive } from './input.js';
-import { REGIONS, ENEMIES } from '../data/content.js';
+import { ENEMIES } from '../data/content.js';
 import { ZODIAC } from '../data/zodiac.js';
 import { drawProjectile, drawBomb, drawBoomerang, drawSatellite, drawImpact, drawHit, drawPWave, drawMine, drawTurret, drawMuzzle, drawSupportDrone, drawUltimateBeam, drawPurge } from './combat-vfx.js';
 import { save, view } from './save.js';
@@ -56,7 +56,7 @@ function proceduralBg(reg) {
 
 const scrollTiles = {};
 function drawBg(g, b) {
-  const reg = REGIONS[b.run.region], img = art.bg(reg.bg);
+  const reg = b.region, img = art.bg(reg.bg);
   if (!img) {
     const off = b.scroll % H, tile = proceduralBg(reg);
     g.drawImage(tile, 0, off - H, W, H); g.drawImage(tile, 0, off, W, H);
@@ -211,7 +211,7 @@ export function render(g, b, scale) {
     if (e.elite) { g.strokeStyle = '#ffd23d'; g.lineWidth = 5; g.shadowColor = '#ffd23d'; g.shadowBlur = 16; g.beginPath(); g.arc(e.x, e.y, e.r + 8, 0, 7); g.stroke(); g.shadowBlur = 0; if (e.type !== 'bug') emojiAt(g, '👑', e.x, e.y - e.r - 14, 24); }
     if (e.flash > 0) g.filter = calm() ? 'brightness(1.25)' : 'brightness(2.2)';
     if (e.vx < 0) { g.translate(e.x * 2, 0); g.scale(-1, 1); }   // 왼쪽으로 헤엄치는 물고기는 뒤집어 그린다
-    sprite(g, art.enemy(e.type, e.elite, b.run.region), e.x, e.y, e.r * 2.6);
+    sprite(g, art.enemy(e.type, e.elite, b.region), e.x, e.y, e.r * 2.6);
     g.restore();
     statusMarks(g, e, b.t);
     if (e.hp < e.maxHp && ENEMIES[e.type]) { g.fillStyle = '#141414'; g.fillRect(e.x - 20, e.y - e.r - 12, 40, 6); g.fillStyle = '#ff3d5a'; g.fillRect(e.x - 19, e.y - e.r - 11, 38 * Math.max(0, e.hp / e.maxHp), 4); }

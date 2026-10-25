@@ -12,5 +12,21 @@ export const BOSS_LINES = {
   octopus: { lines: { tentacle: ['링크 사슬 받아라!'], ambush: ['뒤를 조심해야지~'], hookback: ['당첨 선물이야, 눌러 봐!'], fakeitem: ['공짜 선물!'], ink: ['먹물로 가려 버리자!'] }, words: ['당첨', '클릭'], sorry: '개인정보는 소중히 지켜야 해.' },
   smog: { lines: { fog: ['콜록, 더 태워 볼까?'], bottles: ['한 번 쓰고 버려!'] }, words: ['일회용'], sorry: '아껴 쓰고 다시 쓸게.' },
   aicore: { lines: { biasLaser: ['내 판단이 정답이다!'], dataStorm: ['데이터는 내 편만!'], chaos: ['모든 패턴 실행!'] }, words: ['편향', '정답'], sorry: '다양한 데이터로 다시 배울게.' },
+  // 15개 시군 확장 (2.13.0)
+  walnut: { lines: { lockfruit: ['비밀번호 열어 볼까?'], aimed: ['1234, 다 보여!'], wall: ['계정 문을 다 잠가 주지!'] }, words: ['1234', '생일'], sorry: '길고 나만 아는 비밀번호가 제일 단단하구나.' },
+  filter: { lines: { decoy: ['어느 쪽이 진짜 얼굴게?'], fan: ['더 예쁘게, 더 날씬하게!'], flip: ['거울을 뒤집어 줄게!'] }, words: ['보정', '필터'], sorry: '있는 그대로도 충분히 멋져.' },
+  hatepepper: { lines: { fan: ['매운 말 소나기다!'], zigzag: ['쟤네는 다르잖아!'], aimed: ['놀리면 재밌지?'] }, words: ['매운말', '놀림'], sorry: '다른 건 틀린 게 아니었어.' },
+  piratemole: { lines: { copyLine: ['복사해서 공짜로!'], summonClone: ['해적판 더 만들어!'], bottles: ['몰래 받아 가~'] }, words: ['공짜', '불법'], sorry: '만든 사람의 땀을 존중할게.' },
+  fakecommander: { lines: { decoy: ['누가 진짜 사령관게?'], wall: ['명령이다, 돈을 보내라!'], aimed: ['나 네 친구 맞아!'] }, words: ['사칭', '송금'], sorry: '남인 척하면 안 되는 거였어.' },
+  owlginseng: { lines: { spiral: ['밤새도록 빙글빙글~'], pull: ['한 편만 더 보고 자~'], fan: ['잠은 내일 자도 돼!'] }, words: ['새벽', '한 편만'], sorry: '푹 자야 내일도 힘이 나는구나.' },
+  snapgull: { lines: { swipe: ['찰칵찰칵 휙휙!'], fan: ['다 찍어서 올려야지!'], aimed: ['허락? 필요 없어!'] }, words: ['찰칵', '몰카'], sorry: '찍기 전에 먼저 물어볼게.' },
+  bubblejelly: { lines: { bottles: ['좋아하는 것만 쏙쏙!'], spiral: ['거품 속은 편안하지~'], dataStorm: ['추천, 추천, 또 추천!'] }, words: ['추천', '거품'], sorry: '다른 생각도 들어 볼게.' },
+  ewastecrab: { lines: { coinshot: ['헌 폰 받아라!'], bottles: ['배터리는 그냥 버려!'], wall: ['쓰레기 벽이다!'] }, words: ['폐배터리', '버려'], sorry: '수거함에 넣으면 다시 쓸 수 있구나.' },
+  smishbot: { lines: { fakeitem: ['택배 왔어요~ 눌러 보세요!'], aimed: ['배송 조회 링크 클릭!'] }, words: ['택배', '링크'], sorry: '문자 속 링크는 조심해야 해.' },
+  deepvoice: { lines: { fan: ['엄마 목소리 그대로~'], aimed: ['급해, 돈 좀 보내 줘!'] }, words: ['급해', '송금'], sorry: '다시 걸어 확인하면 속지 않지.' },
+  gachaking: { lines: { roulette: ['한 번만 더 뽑아!'], coinshot: ['전설 등급이 코앞이야!'] }, words: ['뽑기', '전설'], sorry: '확률은 정말 낮았어.' },
+  locghost: { lines: { rain: ['네 위치가 다 보여!'], aimed: ['거기 있지? 찾았다!'] }, words: ['위치', '여기'], sorry: '위치는 가족에게만 알려야 해.' },
+  starfake: { lines: { spiral: ['별 다섯 개 받아라!'], fan: ['최고예요! 최고예요!'] }, words: ['★★★★★', '광고'], sorry: '거짓 별점은 모두를 속이는 거였어.' },
+  badapple: { lines: { ink: ['흑역사 낙서 쾅!'], lockfruit: ['지워도 안 지워지지롱!'] }, words: ['캡처', '박제'], sorry: '올리기 전에 한 번 더 생각할게.' },
 };
 export const WORD_SHOTS = 3;   // 패턴마다 단어를 얹을 탄 수

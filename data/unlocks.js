@@ -3,21 +3,22 @@
 //  · 캐릭터: 센터이 = SW·AI 개념 카드 모두, 에듀이 = 지역 상식 카드 모두 (예전 규칙으로 이미 연 학생은 그대로)
 //  · 카드 범주를 모두 모으면: 작은 영구 능력치 + 칭호 + 기체 색
 
-import { REGIONS } from './content.js';
+//  · 2.13.0 (15개 시군): 드론호 = 중간 보스 11종 중 5종, 에듀이 = 지역 상식 10장 (예전 규칙으로 연 학생은 그대로)
+import { ZONES } from './regions.js';
 
 export const SHIP_UNLOCK = {
   byeolbit: null,
-  drone: { bosses: REGIONS.map(r => r.mid), text: '중간 보스 5종을 모두 정화하면' },
-  beongae: { combo: { pilot: 'edui', ship: 'drone', boss: REGIONS[4].boss }, text: '에듀이 + 드론호로 내포를 클리어하면' },
+  drone: { bosses: [...new Set([...ZONES.flatMap(z => z.mids), 'badapple'])], n: 5, text: '중간 보스 5종을 정화하면' },
+  beongae: { combo: { pilot: 'edui', ship: 'drone', boss: 'aicore' }, text: '에듀이 + 드론호로 내포 도청권을 클리어하면' },
 };
 
 export const PILOT_UNLOCK = {
   chungnami: null,
   centeri: { kind: 'SW·AI 개념', text: 'SW·AI 개념 카드를 모두 모으면' },
-  edui: { kind: '지역 상식', text: '지역 상식 카드를 모두 모으면' },
+  edui: { kind: '지역 상식', n: 10, text: '지역 상식 카드를 10장 모으면' },
 };
 
-// 범주 완성 보너스. all = 카드 33장 전부
+// 범주 완성 보너스. all = 카드 64장 전부
 // stat: hp(최대 체력 +n), atk(공격력 +n 비율), guard(받는 피해 -n 비율), xp(경험치 +n 비율), ult(필살기 충전 +n 비율)
 export const SETS = [
   { id: 'region', kind: '지역 상식', title: '충남 탐험가', stat: 'hp', val: 8, label: '최대 체력 +8',

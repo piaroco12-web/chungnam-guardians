@@ -1,6 +1,7 @@
 // 밸런스 점검용 자동 조종 봇. 브라우저에서 import해서 돌린다 (tools/balance.py가 사용).
 // 봇은 다가오는 적 탄을 피하고, 레벨업·제단·12지신은 무작위로 고른다.
 import { Battle, newRun } from '../src/battle.js';
+import { ZONES, DEFAULT_ROUTE, pickMid } from '../data/regions.js';
 import { input } from '../src/input.js';
 import { levelChoices, applyLevelChoice, altarChoices, applyAltarChoice } from '../src/progress.js';
 import { ZODIAC } from '../data/zodiac.js';
@@ -34,8 +35,10 @@ function botMove(b, skill) {
   p.x = best.x; p.y = best.y;
 }
 
-export function simulate({ pilot = 'chungnami', ship = 'byeolbit', weapon = null, diff = 'sprout', skill = 1, maxMinutes = 25, seedMeta = 0 } = {}) {
-  const run = newRun({ pilot, ship, diff, mainWeapon: weapon });
+// route: 'random'(권역마다 시군 무작위, 2.13.0) 또는 'old'(예전 5지역 길)
+export function simulate({ pilot = 'chungnami', ship = 'byeolbit', weapon = null, diff = 'sprout', skill = 1, maxMinutes = 25, seedMeta = 0, route = 'random' } = {}) {
+  const rt = route === 'old' ? DEFAULT_ROUTE : ZONES.map(z => z.sigun[Math.floor(Math.random() * z.sigun.length)]);
+  const run = newRun({ pilot, ship, diff, mainWeapon: weapon, route: [...rt], mids: rt.map((id, i) => pickMid(id, i)) });
   let state = 'play', result = null;
   const log = [];
   const b = new Battle(run, {
@@ -67,6 +70,6 @@ export function simulate({ pilot = 'chungnami', ship = 'byeolbit', weapon = null
     if (b.over && state === 'play') { state = 'dead'; }
   }
   input.dragging = false;
-  result = { state, region: run.region + 1, stage: run.stage, minutes: +(i / 3600).toFixed(1), lvl: run.level, kills: run.kills, log };
+  result = { state, region: run.region + 1, stage: run.stage, at: run.route[run.region], boss: b.boss?.id, minutes: +(i / 3600).toFixed(1), lvl: run.level, kills: run.kills, log };
   return result;
 }

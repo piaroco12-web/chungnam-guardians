@@ -1,7 +1,7 @@
 // 충남 수호대 — 진입점. 화면 흐름과 전투 루프를 묶는다.
 import { W, H, fitStage } from './view.js';
 import { initInput, input, isActive } from './input.js';
-import { loadAssets } from './assets.js';
+import { loadAssets, loadRegionArt, loadExpansionArt } from './assets.js';
 import { sfx, bgm, unlockAudio } from './audio.js';
 import { save, persist, progress, saveRun, loadRun, clearRun, view, resetForNextStudent, unlockSnap, unlockNews, recordCombo, creditMastery, earnCoins, usePurgeItem, metaNow } from './save.js';
 import { MAIN_WEAPONS } from '../data/weapons.js';
@@ -9,7 +9,8 @@ import { sync } from './account.js';
 import { Battle, newRun } from './battle.js';
 import { render } from './render.js';
 import { levelChoices, applyLevelChoice, altarChoices, applyAltarChoice, godOf } from './progress.js';
-import { PILOTS, SHIPS, DIFFS, REGIONS, BOSSES, CARDS } from '../data/content.js';
+import { PILOTS, SHIPS, DIFFS, BOSSES, CARDS } from '../data/content.js';
+import { ZONES, DEFAULT_ROUTE, regionAt, pickMid, sigunOf } from '../data/regions.js';
 import { PATHS, PACTS, STORY, QUIZ, CARD_QUIZ, QUIZ_RUSH } from '../data/extras.js';
 import { BOONS, RARITY } from '../data/boons.js';
 import * as ui from './ui.js';
@@ -39,9 +40,10 @@ function dailyInfo() {
   const r = seeded(seed);
   const pilot = PILOTS[Math.floor(r() * PILOTS.length)], ship = SHIPS[Math.floor(r() * SHIPS.length)];
   const d = new Date();
-  const region = Math.floor(r() * REGIONS.length);   // 그날의 출발 지역도 날짜로 정한다 (모두 같은 지역)
+  const region = Math.floor(r() * ZONES.length);   // 그날의 출발 권역도 날짜로 정한다 (모두 같은 권역)
   const weapon = MAIN_WEAPONS[Math.floor(r() * MAIN_WEAPONS.length)];   // 메인 무기도 날짜로 (해금과 상관없이 그날은 누구나)
-  return { key, seed, pilot: pilot.id, ship: ship.id, weapon: weapon.id, weaponName: weapon.name, region, regionName: REGIONS[region].name, pilotName: pilot.name, shipName: ship.name, label: `${d.getMonth() + 1}월 ${d.getDate()}일`, best: save.daily[key] || null };
+  const route = ZONES.map(z => z.sigun[Math.floor(r() * z.sigun.length)]), mids = route.map((id, i) => pickMid(id, i, r));   // 권역마다 갈 시군도 날짜로 (해금과 상관없이)
+  return { key, seed, pilot: pilot.id, ship: ship.id, weapon: weapon.id, weaponName: weapon.name, region, route, mids, regionName: sigunOf(route[region]).name, pilotName: pilot.name, shipName: ship.name, label: `${d.getMonth() + 1}월 ${d.getDate()}일`, best: save.daily[key] || null };
 }
 function restoreRandom() { Math.random = realRandom; }
 
@@ -52,8 +54,10 @@ function toTitle() {
   ui.title({ hasRun: !!loadRun(), onStart: () => { unlockAudio(); toBase(); }, onContinue: () => { unlockAudio(); continueRun(); } });
 }
 
+let artLoading = false;
 function toBase(tab) {
   restoreRandom();
+  if (!artLoading) { artLoading = true; loadExpansionArt(); }   // 새 보스·배경을 뒤에서 미리 (도감·카드첩·전투용)
   state.scene = 'base'; state.battle = null; if (tab) state.tab = tab; bgm('base');
   // 계정이 있으면 서버 기록과 합친다(1분에 한 번). 새로 받은 게 있으면 기지 화면을 다시 그린다
   if (save.account) sync().then(changed => { if (changed && state.scene === 'base') toBase(); });
@@ -62,7 +66,7 @@ function toBase(tab) {
   if (!view.weaponUnlocked(MAIN_WEAPONS.find(w => w.id === state.weapon) || {})) state.weapon = 'gun';
   ui.base({ tab: state.tab, pilot: state.pilot, ship: state.ship, hasRun: !!loadRun(), daily: dailyInfo(), quizLeft: quizLeft() }, {
     tab: t => toBase(t), refresh: () => toBase(), title: toTitle,
-    sortie: () => { state.sel = {}; toSelect('pilot'); }, cont: continueRun, daily: startDaily, quizRush: startQuizRush,
+    sortie: () => { state.sel = {}; needHome() ? ui.homePick(setHome, () => toBase()) : toSelect('pilot'); }, cont: continueRun, daily: startDaily, quizRush: startQuizRush,
   });
 }
 
@@ -111,7 +115,22 @@ function toSelect(step) {
 function startRun(region) {
   clearRun();
   const run = newRun({ pilot: state.pilot, ship: state.ship, mainWeapon: state.weapon, diff: state.diff, region, pacts: [...(state.sel.pacts || [])] });
-  beginBattle(run);
+  chooseSigun(run, region, () => beginBattle(run));
+}
+// ───────── 15개 시군 (2.13.0) ─────────
+// 우리 고장: 처음 출격할 때 한 번 고른다. 고른 곳은 바로 열리고 그 고장 카드를 준다
+const needHome = () => !save.home && !save.teacher;
+function setHome(id) {
+  progress(s => { s.home = id; if (!s.cards.includes('r_' + id)) s.cards.push('r_' + id); });
+  ui.toast(`우리 고장 ${sigunOf(id).name}! 지역 상식 카드를 받았어요`);
+  toSelect('pilot');
+}
+// i번째 권역에서 갈 시군을 고르고(오늘의 도전은 이미 정해짐) 그 지역 그림을 불러온 뒤 done
+function chooseSigun(run, i, done) {
+  run.route ||= DEFAULT_ROUTE.slice(0, run.region + 1); run.mids ||= [];   // 예전 이어하기 저장본: 지금 권역까지는 예전 길
+  const go = () => { const rg = regionAt(run, i); loadRegionArt(rg.id, rg.mid).then(done, done); };
+  if (run.route[i]) return go();
+  ui.sigunPick(i, id => { run.route[i] = id; run.mids[i] = pickMid(id, i); go(); });
 }
 let askedStudent = false;
 function startDaily() {
@@ -123,12 +142,13 @@ function startDaily() {
   clearRun();
   const d = dailyInfo();
   Math.random = seeded(d.seed);   // 오늘 하루는 모두 같은 하늘
-  beginBattle(newRun({ pilot: d.pilot, ship: d.ship, mainWeapon: d.weapon, diff: 'chall', daily: d.key, region: d.region }));
+  const run = newRun({ pilot: d.pilot, ship: d.ship, mainWeapon: d.weapon, diff: 'chall', daily: d.key, region: d.region, route: d.route, mids: d.mids });
+  chooseSigun(run, d.region, () => beginBattle(run));
 }
 function continueRun() {
   const run = loadRun(); if (!run) return toBase();
   state.pilot = run.pilot; state.ship = run.ship; state.diff = run.diff; if (run.mainWeapon) state.weapon = run.mainWeapon;
-  beginBattle(run);
+  chooseSigun(run, run.region, () => beginBattle(run));
 }
 
 function beginBattle(run) {
@@ -175,6 +195,7 @@ function openLevelUp(b) {
   const choices = levelChoices(b.run);
   ui.levelUp(b.run, choices, b.ship.id, c => {
     const res = applyLevelChoice(b.run, c);
+    if (c.type === 'mwevo' && c.ult) { const cards = []; giveCard(b, 'c_func', cards); if (cards.length) ui.toast('SW·AI 개념 카드 「함수」를 얻었어요!'); }   // 궁극 진화 처음 → 함수 카드
     b.recalc();
     if (b.run._healUp) { b.heal(b.run._healUp); delete b.run._healUp; }
     if (b.run._healPct) { b.heal(b.maxHp * b.run._healPct); delete b.run._healPct; }
@@ -234,14 +255,15 @@ function afterQuiz(b, id, isRegion) {
       showCards(more, () => { b.stageCleared(); resumeBattle(b); });
     }));
   }
-  // 지역 클리어
-  const ri = b.run.region, rg = REGIONS[ri];
+  // 권역 클리어: 그 시군 지역 상식 카드 + 권역을 처음 깨면 SW·AI 개념 카드
+  const ri = b.run.region, rg = b.region;
   const firstClear = !save.cleared.includes(ri);
   giveCard(b, 'r_' + rg.id, cards);
+  giveCard(b, ZONES[ri].card, cards);
   if (firstClear) progress(s => { s.cleared.push(ri); });
   progress(s => { if (ri > s.best.region) s.best.region = ri; });
   showCards(cards, () => {
-    if (ri >= REGIONS.length - 1) return finish(b, true);
+    if (ri >= ZONES.length - 1) return finish(b, true);
     openAltar(b);
   });
 }
@@ -259,13 +281,13 @@ function openAltar(b) {
     // 수호신 가호를 처음 받으면 SW·AI 개념 카드
     const cards = [];
     if (c.type === 'boon' && !before.has(c.god.id)) giveCard(b, CARDS.find(x => x.god === c.god.id)?.id, cards);
-    showCards(cards, () => {
+    showCards(cards, () => chooseSigun(b.run, b.run.region + 1, () => {
       b.nextRegion();
       progress(() => creditMastery(b.run));
       if (!b.run.daily) saveRun(b.run);
       resumeBattle(b); bgm('battle');
       if (c.mystery) ui.toast(`흔들리는 제단: ${c.def.name} (${RARITY[c.rarity].name})`);
-    });
+    }));
   }, () => { if (b.run.rerolls > 0) { b.run.rerolls--; choices = altarChoices(b.run); draw(); } });
   draw();
 }
@@ -347,13 +369,13 @@ function finish(b, win, reason = '') {
     const STAGE = ['웨이브 1', '웨이브 2', '중간 보스', '웨이브 3', '지역 보스'];
     lb = sendRecord({
       date: b.run.daily, key: save.account.key, school: save.account.school, cls: save.account.cls, num: save.account.num, nick: save.account.nick,
-      start: b.run.startRegion, startName: REGIONS[b.run.startRegion]?.name, region: b.run.region, regionName: REGIONS[b.run.region].name,
+      start: b.run.startRegion, startName: regionAt(b.run, b.run.startRegion).name, region: b.run.region, regionName: b.region.name,
       stage: win ? 5 : b.run.stage, stageName: win ? '완주' : STAGE[b.run.stage] || '', kills: b.run.kills, level: b.run.level, win: !!win,
       pilot: PILOTS.find(p => p.id === b.run.pilot)?.name, ship: SHIPS.find(s => s.id === b.run.ship)?.name, weapon: MAIN_WEAPONS.find(w => w.id === b.run.mainWeapon)?.name, version: ui.VERSION,
     });
   }
   const showResult = reviewScore => ui.result({
-    win: !!win, region: `${b.run.region + 1}. ${REGIONS[b.run.region].name}`, diff: d.name, kills: b.run.kills, level: b.run.level,
+    win: !!win, region: `${b.run.region + 1}. ${b.region.name}`, diff: d.name, kills: b.run.kills, level: b.run.level,
     coins: earned, cards: b.run.cardsGained.length, unlocks, teacher: save.teacher, kiosk: !!save.settings.kiosk,
     reason, stories, review: reviewScore, luck: luckOf(b.run), threat: b.run.threatMax || 1, lb, student: save.account, cardList: b.run.cardsGained.map(id => CARDS.find(c => c.id === id)).filter(Boolean),
   }, { again: () => { state.sel = {}; toSelect('pilot'); }, base: () => toBase('sortie'), next: nextStudent });

@@ -46,6 +46,7 @@ export function mergeInto(dst, src) {
     if (Array.isArray(v)) { const a = Array.isArray(cur) ? cur : []; const add = v.filter(x => !a.includes(x)); if (add.length) { dst[k] = [...a, ...add]; changed = true; } }
     else if (typeof v === 'number') dst[k] = num(cur, v);
     else if (typeof v === 'boolean') { if (v && !cur) { dst[k] = true; changed = true; } }
+    else if (k === 'home' && typeof v === 'string') { if (!cur) { dst.home = v; changed = true; } }   // 우리 고장은 한 번 정하면 그대로
     else if (k === 'wallet' && v) { dst.wallet ||= {}; for (const [dev, w] of Object.entries(v)) { const c = (dst.wallet[dev] ||= { ci: 0, co: 0, pi: 0, po: 0 }); for (const f of ['ci', 'co', 'pi', 'po']) if ((w[f] || 0) > (c[f] || 0)) { c[f] = w[f]; changed = true; } } }
     else if (k === 'daily' && v) { dst.daily ||= {}; for (const [d, r] of Object.entries(v)) { const c = dst.daily[d]; if (!c || r.region > c.region || (r.region === c.region && r.kills > c.kills)) { dst.daily[d] = r; changed = true; } } }
     else if (k === 'quizRush' && v) { const c = dst.quizRush || {}; if (v.date > (c.date || '') || (v.date === c.date && v.count > (c.count || 0))) { dst.quizRush = { ...v }; changed = true; } }

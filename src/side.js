@@ -1,6 +1,7 @@
 // 넓은 화면(PC·전자칠판)에서 게임 양옆 빈 공간에 띄우는 정보 패널.
 // 전투 판은 그대로 두고 패널만 보여 준다. 세로 기기에서는 view.js가 패널을 숨긴다.
-import { REGIONS, BOSSES, CARDS, PILOTS, SHIPS, DIFFS } from '../data/content.js';
+import { BOSSES, CARDS, PILOTS, SHIPS, DIFFS } from '../data/content.js';
+import { ZONES, regionAt, sigunOf } from '../data/regions.js';
 import { RARITY } from '../data/boons.js';
 import { ZODIAC } from '../data/zodiac.js';
 import { STORY } from '../data/extras.js';
@@ -11,20 +12,20 @@ import { pic } from './assets.js';
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // 2.12.5: 게임 안 A안 '충남 지도 길'과 같은 두 톤 입체 패널 + 리본 제목 + 3D 아이콘
 const box = (title, body, icon = '') => `<section class="sbox"><h3>${icon ? `<img src="${icon}" alt="">` : ''}<span class="ol">${title}</span></h3>${body}</section>`;
-const LM_IDS = ['r_asan', 'r_gongju', 'r_buyeo', 'r_boryeong', 'r_naepo'];
 const memo = {};
 const keep = (k, f) => (memo[k] ??= f() || undefined) || '';   // 그림이 아직 안 불러졌으면 다음에 다시 시도
-const landmark = i => keep('lm' + i, () => pic.region(LM_IDS[i]));
+const landmark = id => keep('lm' + id, () => pic.region(id));
 const navIcon = id => keep('nav' + id, () => pic.nav(id));
 const STAR = '<svg viewBox="0 0 18 18" aria-hidden="true"><path d="M9 1.5l2.3 4.7 5.2.8-3.8 3.7.9 5.2L9 13.4l-4.6 2.5.9-5.2L1.5 7l5.2-.8z"/></svg>';
-// 세로 지도 길: 깬 곳 ✓(민트), 지금 ▶(금색 빛), 마지막 내포는 별(빨강). sub(i)는 이름 아래 작은 글씨
-function trail(state, sub) {
-  const n = REGIONS.length, done = REGIONS.filter((_, i) => state(i) === 'done').length;
-  return `<ol class="strail" style="--prog:${Math.min(1, done / (n - 1))}">${REGIONS.map((rg, i) => {
-    const st = state(i), last = i === n - 1, img = landmark(i);
-    return `<li class="${st}"><i class="${last ? 'fin' : ''}">${st === 'done' ? '' : last ? STAR : i + 1}</i>${img ? `<img class="lm" src="${img}" alt="">` : ''}<span><b class="ol">${esc(rg.name)}</b><small>${sub(i)}</small></span></li>`;
+// 세로 지도 길(권역 5곳): 깬 곳 ✓(민트), 지금(금색 빛), 마지막 내포는 별(빨강). info(i) = { name, sub, lm(시군 id) }
+function trail(state, info) {
+  const n = ZONES.length, done = ZONES.filter((_, i) => state(i) === 'done').length;
+  return `<ol class="strail" style="--prog:${Math.min(1, done / (n - 1))}">${ZONES.map((z, i) => {
+    const st = state(i), last = i === n - 1, f = info(i), img = landmark(f.lm);
+    return `<li class="${st}"><i class="${last ? 'fin' : ''}">${st === 'done' ? '' : last ? STAR : i + 1}</i>${img ? `<img class="lm" src="${img}" alt="">` : ''}<span><b class="ol">${esc(f.name)}</b><small>${f.sub}</small></span></li>`;
   }).join('')}</ol>`;
 }
+const zoneLm = z => (z.sigun.includes(save.home) ? save.home : z.open[0]);
 const keys = (...k) => k.map(x => `<kbd>${x}</kbd>`).join('');
 const last = { L: '', R: '' };
 let acc = 0;
@@ -36,20 +37,25 @@ const CONTROLS = `<ul class="skeys">
   <li><b>일시정지</b><span>${keys('Esc')}</span></li></ul>`;
 
 // 지역 진행(전투 중): 지난 지역 ✓, 지금 지역은 단계 글씨
-function route(cur, stageText) {
-  return trail(i => (i < cur ? 'done' : i === cur ? 'now' : ''), i => (i === cur && stageText ? stageText : esc(BOSSES[REGIONS[i].boss].name)));
+function route(run, stageText) {
+  const cur = run.region;
+  return trail(i => (i < cur ? 'done' : i === cur ? 'now' : ''), i => {
+    if (i > cur || !run.route?.[i]) return { name: ZONES[i].name, sub: ZONES[i].sigun.map(id => sigunOf(id).name).join(' · '), lm: zoneLm(ZONES[i]) };
+    const rg = regionAt(run, i);
+    return { name: (save.home === rg.id ? '🏠 ' : '') + rg.name, sub: i === cur && stageText ? stageText : esc(BOSSES[rg.boss].name), lm: rg.id };
+  });
 }
 
 function battleLeft(b) {
   const run = b.run;
-  const stageText = { wave: `웨이브 ${b.waveNo || 1}/3`, mid: `중간 보스 · ${BOSSES[REGIONS[run.region].mid].name}`, boss: `지역 보스 · ${BOSSES[REGIONS[run.region].boss].name}` }[b.stageKind] || '';
+  const stageText = { wave: `웨이브 ${b.waveNo || 1}/3`, mid: `중간 보스 · ${BOSSES[b.region.mid].name}`, boss: `지역 보스 · ${BOSSES[b.region.boss].name}` }[b.stageKind] || '';
   const boons = [
     ...Object.entries(run.boons).map(([id, r]) => { const d = boonDef(id); return `<li><i>${godOf(d.god).e}</i>${esc(d.name)} <small>${RARITY[r].name}</small></li>`; }),
     ...run.duos.map(id => { const d = boonDef(id); return `<li><i>${d.gods.map(g => godOf(g).e).join('')}</i>${esc(d.name)} <small>듀오</small></li>`; }),
     ...(run.legend ? [(d => `<li><i>👑</i>${esc(d.name)} <small>전설</small></li>`)(boonDef(run.legend))] : []),
   ];
   const z = run.companion && ZODIAC.find(x => x.id === run.companion);
-  return box('충남 지도 길', route(run.region, stageText), navIcon('sortie'))
+  return box('충남 지도 길', route(run, stageText), navIcon('sortie'))
     + box(`수호신 가호 <em>${boons.length}</em>`, boons.length ? `<ul class="slist icons">${boons.join('')}</ul>` : '<p class="sempty">지역 보스를 정화하면 수호신 제단에서 가호를 받아요.</p>', navIcon('meta'))
     + box('12지신 동료', z ? `<p class="scomp"><i>${z.e}</i><b>${esc(z.name)} · ${esc(z.word)}</b><small>${esc(z.desc)}</small></p>` : '<p class="sempty">중간 보스를 정화하면 동료를 골라요.</p>');
 }
@@ -69,8 +75,8 @@ function battleRight(b) {
 function menuLeft() {
   const best = save.cleared.length, logo = pic.logo();
   return (logo ? `<img class="slogo-img" src="${logo}" alt="충남 수호대 코딩 블라스터">` : `<div class="slogo">충남 수호대<small>코딩 블라스터</small></div>`)
-    + box('충남 지도 길', trail(i => (save.cleared.includes(i) ? 'done' : ''), i => `${esc(BOSSES[REGIONS[i].mid].name)} · ${esc(BOSSES[REGIONS[i].boss].name)}`), navIcon('sortie'))
-    + `<p class="sfoot"><span class="ol">깬 지역 ${best}/${REGIONS.length}</span></p>`;
+    + box('충남 지도 길', trail(i => (save.cleared.includes(i) ? 'done' : ''), i => ({ name: ZONES[i].name, sub: ZONES[i].sigun.map(id => (save.home === id ? '🏠' : '') + sigunOf(id).name).join(' · '), lm: zoneLm(ZONES[i]) })), navIcon('sortie'))
+    + `<p class="sfoot"><span class="ol">깬 권역 ${best}/${ZONES.length}${save.home ? ` · 우리 고장 ${esc(sigunOf(save.home).name)}` : ''}</span></p>`;
 }
 
 const stat = (icon, name, have, all, unit) => `<li>${icon ? `<img src="${icon}" alt="">` : ''}<span><b>${name}</b><em class="ol">${have}<small>/${all}${unit}</small></em><u><i style="width:${all ? Math.round(have / all * 100) : 0}%"></i></u></span></li>`;

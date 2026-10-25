@@ -596,3 +596,11 @@ table.lb tr.top1 td{background:#ffd23d22} table.lb tr.top2 td{background:#c9cbe0
 .acct-form input{width:100%;box-sizing:border-box}
 .acct-row{display:grid;grid-template-columns:1fr 1fr;gap:calc(var(--u)*8)}
 .acct-msg{min-height:calc(var(--u)*20);color:#ffb0b8;font-size:calc(var(--u)*15);text-align:center;margin:0}
+
+/* ───────── 우리 고장 고르기 지도 (2.13.0) ───────── */
+.cnmap{position:relative;width:calc(100% - var(--u)*40);margin:calc(var(--u)*12) auto calc(var(--u)*24);border:calc(var(--u)*4) solid var(--ink);border-radius:calc(var(--u)*22);overflow:hidden;box-shadow:0 calc(var(--u)*6) 0 var(--ink);background:#1f3b6a;aspect-ratio:1080/1600}
+.cnmap>img{display:block;width:100%;height:100%;object-fit:cover}
+.cnpin{position:absolute;transform:translate(-50%,-50%);font-family:var(--display);font-size:calc(var(--u)*18);color:var(--ink);padding:calc(var(--u)*3) calc(var(--u)*10);border:calc(var(--u)*3) solid var(--ink);border-radius:calc(var(--u)*12);
+  background:linear-gradient(#fff3bd 0 52%,var(--amber) 52%);box-shadow:0 calc(var(--u)*4) 0 var(--ink);cursor:pointer;white-space:nowrap}
+.cnpin:active{transform:translate(-50%,-40%);box-shadow:0 calc(var(--u)*1) 0 var(--ink)}
+.cnpin:focus-visible{outline:calc(var(--u)*4) solid var(--mint);outline-offset:calc(var(--u)*2)}

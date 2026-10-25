@@ -1,7 +1,8 @@
 // 그림 로더: assets/img/<이름>.webp (없으면 .png) 가 있으면 그 그림을, 없으면 코드로 그린 임시 그림을 쓴다.
 // 새 PNG를 넣었다면 python tools/to_webp.py 로 WebP로 바꾸고 오프라인 목록도 맞춘다.
 // 파일 이름은 docs/chatgpt-brief.md(ChatGPT 지시서)와 같다.
-import { REGION_ART, EXPANSION_ENEMIES, CONCEPT_ART, EXPANSION_ASSETS } from '../data/expansion-art.js';
+import { REGION_ART, EXPANSION_ENEMIES, CONCEPT_ART, EXPANSION_ASSETS, EXPANSION_BOSSES } from '../data/expansion-art.js';
+import { SIGUN } from '../data/regions.js';
 import { PILOTS, SHIPS, BOSSES, ENEMIES, REGIONS } from '../data/content.js';
 import { regionEnemyArt, hueShifted } from './enemy-art.js';
 import { GODS, DUOS, LEGENDS } from '../data/boons.js';
@@ -19,7 +20,7 @@ const ENEMY_ORDER = ['spam', 'notify', 'troll', 'link', 'popup', 'bug'];
 const ITEM_ORDER = ['ebullet', 'ebullet2', 'coin', 'xp', 'heart', 'orb'];
 
 const NAMES = [
-  'region_landmarks_15_sheet',
+  'region_landmarks_15_sheet', 'map_chungnam_15',
   'feature_icons_sheet', 'purge_burst', 'quiz_rush_host',
   'support_units_sheet', 'wave_projectile_sheet',
   'weapon_main_sheet', 'weapon_evo_sheet', 'weapon_sub_sheet', 'enemy_region_sheet',
@@ -29,7 +30,7 @@ const NAMES = [
   ...PILOTS.map(p => 'pilot_' + p.id),
   ...SHIPS.flatMap(s => ['ship_' + s.id, 'ship_' + s.id + '_hangar']),
   ...GODS.flatMap(g => [g.img, g.sheet]),
-  ...Object.keys(BOSSES).flatMap(id => [bossFile(id), bossFile(id) + '_cleansed']),
+  ...Object.keys(BOSSES).filter(id => !EXPANSION_BOSSES.some(([x]) => x === id)).flatMap(id => [bossFile(id), bossFile(id) + '_cleansed']),   // 새 보스는 loadRegionArt·loadExpansionArt로
   ...ZODIAC.map(z => 'zodiac_' + z.id),
   'pact_sheet', 'upgrade_icons_sheet', 'upgrade_full_sheet', 'meta_upgrade_sheet', 'missile_refined_sheet', 'enemy_bug_round_sheet', ...STORY.map(st => 'story_' + st.id),
   'bg_asan', 'bg_gongju', 'bg_buyeo', 'bg_boryeong', 'bg_naepo',
@@ -60,6 +61,7 @@ export function loadAssets(onProgress) {
 }
 // 확장 그림은 필요한 지역만 불러와 기존 시작 화면에서 44장을 모두 펼치지 않는다.
 export function loadRegionArt(id, mid = null) {
+  if (id === 'naepo') id = 'hongseong';   // 홍성은 예전 내포 id를 쓴다 (data/regions.js)
   const r = REGION_ART.find(r => r.id === id); if (!r) return Promise.resolve([]);
   const boss = r.boss === 'aicore' ? 'ai_core' : r.boss;
   const names = [r.bg, 'boss_' + boss, 'boss_' + boss + '_cleansed', 'enemy_region15_sheet'];
@@ -209,10 +211,11 @@ function hangarArt(s) {
 }
 
 const once = (k, f) => cache[k] || (cache[k] = f());
-export function enemyHue(t, region) {
-  const home = REGIONS.findIndex(r => r.enemies.includes(t)), here = REGIONS[region];
-  if (home < 0 || !here || home === region) return 0;
-  return (((here.hue || 0) - (REGIONS[home].hue || 0)) % 360 + 360) % 360;
+// here = 지금 지역(시군) 객체. 몬스터가 처음 나오는 지역(예전 5지역 먼저)이 원래 색
+export function enemyHue(t, here) {
+  const home = [...REGIONS, ...SIGUN].find(r => r.enemies.includes(t));
+  if (!home || !here || home.id === here.id) return 0;
+  return (((here.hue || 0) - (home.hue || 0)) % 360 + 360) % 360;
 }
 function roundedBug(elite) {
   const im = get('enemy_bug_round_sheet');
