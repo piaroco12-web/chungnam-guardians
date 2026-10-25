@@ -1,0 +1,67 @@
+{
+  "version": "2.5.4",
+  "layouts": [
+    [
+      540,
+      0
+    ],
+    [
+      540,
+      9
+    ],
+    [
+      390,
+      0
+    ],
+    [
+      390,
+      1
+    ],
+    [
+      390,
+      2
+    ],
+    [
+      390,
+      3
+    ],
+    [
+      390,
+      4
+    ],
+    [
+      390,
+      5
+    ],
+    [
+      390,
+      6
+    ],
+    [
+      390,
+      7
+    ],
+    [
+      390,
+      8
+    ],
+    [
+      390,
+      9
+    ],
+    [
+      320,
+      0
+    ],
+    [
+      320,
+      9
+    ]
+  ],
+  "portraits": 10,
+  "callback": "exactly once",
+  "staleCallback": "discarded",
+  "reducedMotion": "static",
+  "calmMode": "static",
+  "pageErrors": []
+}
