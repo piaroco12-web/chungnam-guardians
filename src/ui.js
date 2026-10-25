@@ -17,7 +17,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.12.5';
+export const VERSION = '2.12.6';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -61,6 +61,8 @@ const choiceArt = (id, fallback) => { const im = pic.path(id); return im ? `<img
 const dots = (lv, max = 3) => `<div class="dots">${Array.from({ length: max }, (_, i) => `<i class="${i < lv ? 'on' : ''}"></i>`).join('')}</div>`;
 const coinIcon = '<span class="coin"></span>';
 function cardArt(c) {
+  const concept = pic.concept(c.id);
+  if (concept) return `<img class="card-character" src="${concept}" alt="${esc(c.title)}">`;
   const region = pic.region(c.id);
   if (region) return `<img class="card-character card-landmark" src="${region}" alt="${esc(c.title)} 지역 상징">`;
   const z = c.zodiac && ZODIAC.find(z => z.id === c.zodiac);
@@ -235,6 +237,7 @@ function settings(bb, state, act) {
     ${lbEnabled() && save.teacher ? `<div class="row"><div class="tx"><b>오늘의 도전 순위표</b><p>학생들이 보낸 기록을 날짜별로 봐요.${save.settings.lbKey ? '' : ' 먼저 읽기 열쇠를 넣어 주세요.'}</p></div><div style="display:flex;gap:calc(var(--u)*6)"><button class="btn gray sm" id="lbkey">열쇠</button><button class="btn blue sm" id="lbopen">보기</button></div></div>` : ''}
     <div class="row"><div class="tx"><b>최신 버전 받기</b><p>지금 버전 ${VERSION}. 화면이 예전 그대로면 눌러 주세요. 기록은 지워지지 않아요.</p></div><button class="btn blue sm" id="upd">받기</button></div>
     <div class="row"><div class="tx"><b>조작 방법</b><p>화면을 드래그해서 이동, 손을 떼면 슬로우 모션. PC는 방향키·WASD로 이동, Space 필살기, Esc 일시정지.</p></div></div>
+    <div class="row"><div class="tx"><b>충남 15시군 그림관</b><p>새 지역·보스·정화 모습 미리 보기</p></div><a class="btn blue sm" href="art-preview.html" target="_blank" rel="noopener">보기</a></div>
     <div class="row"><div class="tx"><b>만든 사람들</b><p>음악·효과음·그림 출처와 라이선스</p></div><button class="btn blue sm" id="credits">보기</button></div>
     <div class="row"><div class="tx"><b>기록 초기화</b><p>코인·강화·카드·도감을 모두 지워요.</p></div><button class="btn red sm" id="reset">초기화</button></div>
     ${save.teacher ? `${row('kiosk', '체험관 모드', '공용 기기용. 게임을 새로 열 때마다 학생 기록이 처음 상태로 돌아가고, 결과 화면에 \'다음 친구에게 넘기기\' 버튼이 생겨요.')}

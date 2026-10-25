@@ -1,6 +1,7 @@
 // 그림 로더: assets/img/<이름>.webp (없으면 .png) 가 있으면 그 그림을, 없으면 코드로 그린 임시 그림을 쓴다.
 // 새 PNG를 넣었다면 python tools/to_webp.py 로 WebP로 바꾸고 오프라인 목록도 맞춘다.
 // 파일 이름은 docs/chatgpt-brief.md(ChatGPT 지시서)와 같다.
+import { REGION_ART, EXPANSION_ENEMIES, CONCEPT_ART, EXPANSION_ASSETS } from '../data/expansion-art.js';
 import { PILOTS, SHIPS, BOSSES, ENEMIES, REGIONS } from '../data/content.js';
 import { regionEnemyArt, hueShifted } from './enemy-art.js';
 import { GODS, DUOS, LEGENDS } from '../data/boons.js';
@@ -18,6 +19,7 @@ const ENEMY_ORDER = ['spam', 'notify', 'troll', 'link', 'popup', 'bug'];
 const ITEM_ORDER = ['ebullet', 'ebullet2', 'coin', 'xp', 'heart', 'orb'];
 
 const NAMES = [
+  'region_landmarks_15_sheet',
   'feature_icons_sheet', 'purge_burst', 'quiz_rush_host',
   'support_units_sheet', 'wave_projectile_sheet',
   'weapon_main_sheet', 'weapon_evo_sheet', 'weapon_sub_sheet', 'enemy_region_sheet',
@@ -33,19 +35,38 @@ const NAMES = [
   'bg_asan', 'bg_gongju', 'bg_buyeo', 'bg_boryeong', 'bg_naepo',
 ];
 
+const loadingImages = new Map();
+async function loadImage(n) {
+  if (img[n]) return img[n];
+  if (loadingImages.has(n)) return loadingImages.get(n);
+  const job = (async () => {
+    for (const ext of ['webp', 'png']) {
+      const im = await new Promise(resolve => {
+        const i = new Image(); i.onload = () => resolve(i); i.onerror = () => resolve(null);
+        i.src = new URL(`../assets/img/${n}.${ext}`, import.meta.url).href;
+      });
+      if (im) return (img[n] = im);
+    }
+    return null;
+  })();
+  loadingImages.set(n, job);
+  try { return await job; } finally { loadingImages.delete(n); }
+}
 export function loadAssets(onProgress) {
   let done = 0;
-  const load = (n, ext) => new Promise(res => {
-    const i = new Image();
-    i.onload = () => res(i); i.onerror = () => res(null);
-    i.src = new URL(`../assets/img/${n}.${ext}`, import.meta.url).href;
-  });
   return Promise.all(NAMES.map(async n => {
-    const i = (await load(n, 'webp')) || (await load(n, 'png'));   // WebP가 기본, 아직 안 바꾼 PNG도 읽는다
-    if (i) img[n] = i;
-    onProgress && onProgress(++done / NAMES.length);
+    const im = await loadImage(n); onProgress?.(++done / NAMES.length); return im;
   }));
 }
+// 확장 그림은 필요한 지역만 불러와 기존 시작 화면에서 44장을 모두 펼치지 않는다.
+export function loadRegionArt(id, mid = null) {
+  const r = REGION_ART.find(r => r.id === id); if (!r) return Promise.resolve([]);
+  const boss = r.boss === 'aicore' ? 'ai_core' : r.boss;
+  const names = [r.bg, 'boss_' + boss, 'boss_' + boss + '_cleansed', 'enemy_region15_sheet'];
+  if (mid || r.mid) names.push('boss_' + (mid || r.mid), 'boss_' + (mid || r.mid) + '_cleansed');
+  return Promise.all(names.map(loadImage));
+}
+export const loadExpansionArt = () => Promise.all(EXPANSION_ASSETS.map(loadImage));
 
 export const has = n => !!img[n];
 export const get = n => img[n] || null;
@@ -274,6 +295,8 @@ export const art = {
   ship: (id, pilotId, colorId) => (pilotId && occupiedShip(id, pilotId, colorId)) || tinted(get('ship_' + id), colorId) || once('ship' + id, () => shipTop(SHIPS.find(s => s.id === id))),
   // 지역 번호를 주면 그 지역 색(이로치)으로: 몬스터가 처음 나오는 지역이 원래 색
   enemy: (t, elite = false, region = null) => {
+    const expanded = EXPANSION_ENEMIES.indexOf(t);
+    if (expanded >= 0 && has('enemy_region15_sheet')) return iconCell('enemy_region15_sheet', expanded, 5, 2);
     const regional = ['likebee','copyslime','rumormoth','phishfish','smogdrone','biaseye'].indexOf(t);
     const base = (regional >= 0 && iconCell('enemy_region_sheet', regional, 3, 2, regional === 1 ? [530, 0, 488, 512] : null)) || (t === 'bug' && roundedBug(elite)) || (ENEMY_ORDER.includes(t) && cell('enemy_sheet', ENEMY_ORDER.indexOf(t), 3, 2)) || regionEnemyArt(t) || once('en' + t, () => enemyArt(t));
     const deg = region == null ? 0 : enemyHue(t, region);
@@ -301,6 +324,8 @@ const SUB_RECTS = [[15,60,495,590],[510,70,530,550],[1040,30,530,670],[1610,60,5
 // 화면(DOM)용 그림 주소
 const url = c => (c.toDataURL ? c.toDataURL() : c.src);
 export const pic = {
+  concept: id => { const i = CONCEPT_ART.findIndex(([key]) => key === String(id).replace(/^c_/, '')); const c = i >= 0 && iconCell('concept_cards_sheet', i, 3, 2); return c ? url(c) : null; },
+  expansionMap: () => get('map_chungnam_15')?.src || null,
   feature: id => { const c = art.feature(id); return c ? url(c) : null; },
   quizHost: () => (get('quiz_rush_host') || get('pilot_centeri'))?.src || null,
   purified: () => get('ui_purified_medal')?.src || null,
@@ -310,6 +335,9 @@ export const pic = {
   duo: id => { const i = DUOS.findIndex(d => d.id === id); const c = i >= 0 && iconCell('boon_duo_3d_sheet', i, 5, 2); return c ? url(c) : null; },
   legend: id => { const i = LEGENDS.findIndex(l => l.id === id); const c = i >= 0 && iconCell('boon_legend_3d_sheet', i, 3, 2); return c ? url(c) : null; },
   region: id => {
+    const key = String(id).replace(/^r_/, '');
+    const expanded = REGION_ART.findIndex(r => r.id === (key === 'naepo' ? 'hongseong' : key));
+    if (expanded >= 0 && has('region_landmarks_15_sheet')) return url(iconCell('region_landmarks_15_sheet', expanded, 5, 3));
     const i = ['r_asan', 'r_gongju', 'r_buyeo', 'r_boryeong', 'r_naepo'].indexOf(id);
     const rects = [[0, 0, 525, 550], [530, 0, 595, 550], [1125, 0, 411, 565], [0, 550, 575, 474], [578, 565, 690, 459]];
     const c = i >= 0 && iconCell('region_landmarks_sheet', i, 3, 2, rects[i]); return c ? url(c) : null;
