@@ -3,7 +3,7 @@ import { W, H, fitStage } from './view.js';
 import { initInput, input, isActive } from './input.js';
 import { loadAssets } from './assets.js';
 import { sfx, bgm, unlockAudio } from './audio.js';
-import { save, persist, progress, saveRun, loadRun, clearRun, view, resetForNextStudent, unlockSnap, unlockNews } from './save.js';
+import { save, persist, progress, saveRun, loadRun, clearRun, view, resetForNextStudent, unlockSnap, unlockNews, recordCombo } from './save.js';
 import { Battle, newRun } from './battle.js';
 import { render } from './render.js';
 import { levelChoices, applyLevelChoice, altarChoices, applyAltarChoice, godOf } from './progress.js';
@@ -190,7 +190,7 @@ function afterStamp(b, id, isRegion) {
 function afterQuiz(b, id, isRegion) {
   const cards = [];
   b.run.bossesBeaten.push(id);
-  progress(s => { if (!s.bosses.includes(id)) s.bosses.push(id); });
+  progress(s => { if (!s.bosses.includes(id)) s.bosses.push(id); recordCombo(b.run, id); });
   giveCard(b, BOSSES[id].card, cards);
   if (!isRegion) {
     // 중간 보스 뒤: AI 12지신 동료 고르기
