@@ -15,7 +15,7 @@ const ENEMY_ORDER = ['spam', 'notify', 'troll', 'link', 'popup', 'bug'];
 const ITEM_ORDER = ['ebullet', 'ebullet2', 'coin', 'xp', 'heart', 'orb'];
 
 const NAMES = [
-  'pilot_cockpit_sheet', 'choice_routes_sheet',
+  'pilot_cockpit_sheet', 'choice_routes_sheet', 'ui_sealed_boon', 'ui_unopened_card',
   'boon_duo_3d_sheet', 'boon_legend_3d_sheet', 'boon_fx_sheet', 'region_landmarks_sheet', 'menu_nav_3d_sheet',
   'title_keyart', 'title_logo', 'bg_base', 'ui_card_back', 'ui_ultimate_sheet', 'enemy_sheet', 'fx_items_sheet', 'unit_drone', 'frame_duo_legend',
   ...PILOTS.map(p => 'pilot_' + p.id),
@@ -227,6 +227,8 @@ export const art = {
 // 화면(DOM)용 그림 주소
 const url = c => (c.toDataURL ? c.toDataURL() : c.src);
 export const pic = {
+  sealed: () => get('ui_sealed_boon')?.src || null,
+  unopened: () => get('ui_unopened_card')?.src || null,
   path: id => { const i = ['coin', 'heal', 'xp', 'boon', 'elite', 'repair'].indexOf(id); const c = i >= 0 && iconCell('choice_routes_sheet', i, 3, 2); return c ? url(c) : null; },
   duo: id => { const i = DUOS.findIndex(d => d.id === id); const c = i >= 0 && iconCell('boon_duo_3d_sheet', i, 5, 2); return c ? url(c) : null; },
   legend: id => { const i = LEGENDS.findIndex(l => l.id === id); const c = i >= 0 && iconCell('boon_legend_3d_sheet', i, 3, 2); return c ? url(c) : null; },

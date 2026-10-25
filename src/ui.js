@@ -13,7 +13,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.5.2';
+export const VERSION = '2.5.3';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -129,7 +129,8 @@ function metaTab(bb, state, act) {
 
 function codex(bb) {
   const got = id => view.inCodex(id);
-  const cell = (id, cls = '') => `<div class="cell ${got(id) ? 'got ' + cls : ''}" data-b="${id}">${got(id) ? boonIcon(id) : '?'}</div>`;
+  const sealed = () => pic.sealed() ? `<img class="sealed-emblem" src="${pic.sealed()}" alt="미확인 가호">` : '<span class="sealed-fallback">?</span>';
+  const cell = (id, cls = '') => `<div class="cell ${got(id) ? 'got ' + cls : 'unseen ' + cls}" data-b="${id}">${got(id) ? boonIcon(id) : sealed()}</div>`;
   const n = [...BOONS, ...DUOS, ...LEGENDS].filter(b => got(b.id)).length;
   bb.innerHTML = `<h2 class="ol">가호 도감 ${n}/${totalCodex()}</h2>
     <p class="note">제단에서 가호 등급이 나올 확률: ${RARITY.map(r => `${r.name} ${r.w}%`).join(' · ')}</p>
@@ -165,7 +166,7 @@ function cardsTab(bb) {
   const n = CARDS.filter(c => view.hasCard(c.id)).length;
   bb.innerHTML = `<h2 class="ol">카드첩 ${n}/${totalCards()}</h2>${groups.map(gname => `<div class="sec-label">${gname}</div><div class="grid cards">${CARDS.filter(c => c.kind === gname).map(c => view.hasCard(c.id)
     ? `<div class="ccard got ${kindClass(c)}" data-c="${c.id}"><span class="e">${cardArt(c)}</span><b>${gridTitle(c.title)}</b></div>`
-    : `<div class="ccard"><span class="e">❔</span><span class="k">${hintFor(c)}</span></div>`).join('')}</div>`).join('')}`;
+    : `<div class="ccard unopened" aria-label="미확인 카드 · ${esc(hintFor(c))}"><img class="unopened-art" src="${pic.unopened() || pic.cardBack()}" alt=""><span class="unopened-hint">${hintFor(c)}</span></div>`).join('')}</div>`).join('')}`;
   const opened = STORY.filter(st => save.teacher || save.story.includes(st.id));
   bb.insertAdjacentHTML('beforeend', `<div class="sec-label">이야기 조각 ${opened.length}/${STORY.length}</div><div class="rows">${STORY.map(st => (save.teacher || save.story.includes(st.id))
     ? `<div class="row story" data-st="${st.id}"><div class="ic" style="width:calc(var(--u)*72);height:calc(var(--u)*72);overflow:hidden">${pic.story(st.id) ? `<img src="${pic.story(st.id)}" alt="" style="width:100%;height:100%;object-fit:cover">` : st.e}</div><div class="tx"><b>${esc(st.who)}</b><p style="color:#fff">${esc(st.text)}</p></div></div>`
