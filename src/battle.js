@@ -330,7 +330,7 @@ export class Battle {
     const size = this.st.size * (this.slowBoon === 'sh_slow' && !isActive() ? 1 + 0.5 * this.rr('sh_slow') : 1);
     const dmg = this.baseDmg();
     const pierce = f.pierce + (this.has('sh_bullet') ? (this.rr('sh_bullet') >= 2 ? 2 : 1) : 0);
-    const look = { elem: this.bulletElem, main: true, visualLevel: this.wl('main'), evolved: !!(e.a || e.b) };
+    const look = { elem: this.bulletElem, main: true, visualWeapon: w.id, visualBranch: e.u ? 'u' : e.a ? 'a' : e.b ? 'b' : '', visualLevel: this.wl('main'), evolved: !!(e.a || e.b) };
     const push = (ox, a, sp, o = {}) => this.pb.push({ x: p.x + ox, y: p.y - 30, vx: Math.sin(a) * sp, vy: -Math.cos(a) * sp, dmg, r: 6 * size, pierce, kind: f.kind, ...look, hit: new Set(), ...o });
     const lanes = (n, gap) => Array.from({ length: n }, (_, i) => (i - (n - 1) / 2) * gap);
     p.shotN++;

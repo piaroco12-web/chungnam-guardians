@@ -16,7 +16,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.10.0';
+export const VERSION = '2.10.1';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -39,6 +39,7 @@ function boonIcon(id) {
 const weaponDef = id => WEAPONS.find(w => w.id === id);
 const upDef = id => UPGRADES.find(u => u.id === id);
 const skillArt = d => { const im = pic.skill(d.id); return im ? `<img src="${im}" alt="">` : d.icon; };
+const subEvoArt = ev => { const im = ['evo_mine','evo_turret'].includes(ev.id) && pic.skill(ev.id); return im ? `<img src="${im}" alt="">` : skillArt(weaponDef(ev.from)); };
 const mwArt = w => { const im = pic.mainWeapon(w.id); return im ? `<img src="${im}" alt="">` : `<span class="mw-emoji">${w.icon}</span>`; };
 const mwEvoArt = (w, k) => { const im = pic.mainEvo(w.id, k); return im ? `<img src="${im}" alt="">` : `<span class="evolved-skill">${mwArt(w)}</span>`; };
 // 지금 판의 메인 무기 진화 단계: 'u' 궁극 · 'a'/'b' 진화 · null
@@ -371,7 +372,7 @@ function slotCells(items, n = 5, cls = '') {
 export function ownedLists(run) {
   const weapons = Object.entries(run.weapons).map(([id, lv]) => id === 'main'
     ? { icon: mwStage(run) ? mwEvoArt(mainOf(run), mwStage(run)) : mwArt(mainOf(run)), lv, max: 5 }
-    : { icon: run.evolved.includes(EVOLUTIONS.find(e => e.from === id)?.id) ? `<span class="evolved-skill">${skillArt(weaponDef(id))}</span>` : skillArt(weaponDef(id)), lv, max: 5 }).filter(x => x.icon);
+    : { icon: run.evolved.includes(EVOLUTIONS.find(e => e.from === id)?.id) ? `<span class="evolved-skill">${subEvoArt(EVOLUTIONS.find(e => e.from === id))}</span>` : skillArt(weaponDef(id)), lv, max: 5 }).filter(x => x.icon);
   const ups = Object.entries(run.upgrades).map(([id, lv]) => ({ icon: skillArt(upDef(id)), lv, max: 5 }));
   const boons = [...Object.entries(run.boons).map(([id, r]) => ({ icon: boonIcon(id), lv: r + 1, max: 3 })), ...run.duos.map(id => ({ icon: boonIcon(id), lv: 3, max: 3 })), ...(run.legend ? [{ icon: boonIcon(run.legend), lv: 3, max: 3 }] : [])];
   return { weapons, ups, boons };
@@ -418,7 +419,7 @@ export function levelUp(run, choices, ship, onPick) {
     else if (c.type === 'weapon') { name = c.def.name; icon = skillArt(c.def); lv = Math.min(3, Math.ceil((c.lv + 1) * 3 / 5)); desc = c.lv ? `<span class="up">Lv.${c.lv} → ${c.lv + 1}</span><br>${c.def.desc(c.lv + 1)}` : c.def.desc(1); badge = c.lv ? '' : '신규'; }
     else if (c.type === 'upgrade') { name = c.def.name; icon = skillArt(c.def); lv = Math.min(3, Math.ceil((c.lv + 1) * 3 / 5)); desc = c.def.desc(c.lv + 1); badge = c.lv ? '' : '신규'; elem = '강화'; ei = '📘';
       if (c.pair) { const w = mainOf(run), p = w.pairs.find(x => x.up === c.id); badge = '짝'; elem = `${w.name} 짝`; ei = '🔗'; desc += `<br><span class="up">효과 +25% · ${esc(p.evo.name)} 진화 재료</span>`; } }
-    else if (c.type === 'evo') { const ev = c.ev; name = typeof ev.name === 'string' ? ev.name : ev.name[ship]; desc = typeof ev.desc === 'string' ? ev.desc : ev.desc[ship]; icon = `<span class="evolved-skill">${skillArt(weaponDef(ev.from))}</span>`; badge = '진화'; lv = 3; cls = 'legend'; elem = '진화'; ei = '🌟'; }
+    else if (c.type === 'evo') { const ev = c.ev; name = typeof ev.name === 'string' ? ev.name : ev.name[ship]; desc = typeof ev.desc === 'string' ? ev.desc : ev.desc[ship]; icon = `<span class="evolved-skill">${subEvoArt(ev)}</span>`; badge = '진화'; lv = 3; cls = 'legend'; elem = '진화'; ei = '🌟'; }
     else if (c.type === 'coin') { name = '코인 꾸러미'; icon = choiceArt('coin', '💰'); desc = '코인 +20'; elem = '보너스'; }
     else { name = '응급 수리'; icon = choiceArt('repair', '🔧'); desc = '체력 30% 회복'; elem = '보너스'; }
     if (c.gamble) {   // 도전 강화: 확률을 그대로 보여 준다

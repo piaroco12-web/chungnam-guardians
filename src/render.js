@@ -4,7 +4,7 @@ import { art } from './assets.js';
 import { isActive } from './input.js';
 import { REGIONS, ENEMIES } from '../data/content.js';
 import { ZODIAC } from '../data/zodiac.js';
-import { drawProjectile, drawBomb, drawBoomerang, drawSatellite, drawImpact, drawHit, drawPWave, drawMine, drawTurret } from './combat-vfx.js';
+import { drawProjectile, drawBomb, drawBoomerang, drawSatellite, drawImpact, drawHit, drawPWave, drawMine, drawTurret, drawMuzzle } from './combat-vfx.js';
 import { save, view } from './save.js';
 import { drawEnemyBullet } from './bullet-art.js';
 import { drawBeam, drawVine, drawFakeGift, drawOverlay, drawArm, drawEdgeMark } from './boss-fx.js';
@@ -245,6 +245,7 @@ export function render(g, b, scale) {
 
   // 플레이어
   const p = b.p;
+  drawMuzzle(g,b,calm());
   if (!(p.inv > 0 && Math.floor(b.t * 20) % 2) || b.over) {
     sprite(g, art.ship(b.ship.id, b.pilot.id, view.shipColor().id), p.x, p.y, 92);
   }

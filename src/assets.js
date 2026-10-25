@@ -18,6 +18,7 @@ const ENEMY_ORDER = ['spam', 'notify', 'troll', 'link', 'popup', 'bug'];
 const ITEM_ORDER = ['ebullet', 'ebullet2', 'coin', 'xp', 'heart', 'orb'];
 
 const NAMES = [
+  'weapon_main_sheet', 'weapon_evo_sheet', 'weapon_sub_sheet', 'enemy_region_sheet',
   'pilot_cockpit_sheet', 'choice_routes_sheet', 'ui_sealed_boon', 'ui_unopened_card', 'ui_purified_medal',
   'boon_duo_3d_sheet', 'boon_legend_3d_sheet', 'boon_fx_sheet', 'region_landmarks_sheet', 'menu_nav_3d_sheet',
   'title_keyart', 'title_logo', 'bg_base', 'ui_card_back', 'ui_ultimate_sheet', 'enemy_sheet', 'fx_items_sheet', 'unit_drone', 'frame_duo_legend',
@@ -249,7 +250,8 @@ export const art = {
   ship: (id, pilotId, colorId) => (pilotId && occupiedShip(id, pilotId, colorId)) || tinted(get('ship_' + id), colorId) || once('ship' + id, () => shipTop(SHIPS.find(s => s.id === id))),
   // 지역 번호를 주면 그 지역 색(이로치)으로: 몬스터가 처음 나오는 지역이 원래 색
   enemy: (t, elite = false, region = null) => {
-    const base = (t === 'bug' && roundedBug(elite)) || (ENEMY_ORDER.includes(t) && cell('enemy_sheet', ENEMY_ORDER.indexOf(t), 3, 2)) || regionEnemyArt(t) || once('en' + t, () => enemyArt(t));
+    const regional = ['likebee','copyslime','rumormoth','phishfish','smogdrone','biaseye'].indexOf(t);
+    const base = (regional >= 0 && iconCell('enemy_region_sheet', regional, 3, 2, regional === 1 ? [530, 0, 488, 512] : null)) || (t === 'bug' && roundedBug(elite)) || (ENEMY_ORDER.includes(t) && cell('enemy_sheet', ENEMY_ORDER.indexOf(t), 3, 2)) || regionEnemyArt(t) || once('en' + t, () => enemyArt(t));
     const deg = region == null ? 0 : enemyHue(t, region);
     return deg ? hueShifted(base, deg, 'en:' + t + ':' + !!elite) : base;
   },
@@ -262,6 +264,15 @@ export const art = {
   skill: i => cell('boon_fx_sheet', i, 6, 2),
   bg: name => get(name),
 };
+
+// 생성 시트의 실제 그림 경계: 옆 칸의 광선·반짝임 조각이 섞이지 않게 독립 크롭.
+const MAIN_RECTS = [[10,160,425,375],[440,160,440,375],[875,190,460,320],[1340,170,390,355],[1735,150,437,400]];
+const EVO_RECTS = [
+  [0,0,340,324],[340,0,314,324],[654,0,324,324],[978,0,310,324],[1288,0,331,324],
+  [0,328,337,299],[337,328,317,299],[656,328,322,299],[980,328,308,299],[1288,328,331,299],
+  [0,648,324,324],[337,648,317,324],[654,648,324,324],[975,648,310,324],[1295,648,324,324],
+];
+const SUB_RECTS = [[15,60,495,590],[510,70,530,550],[1040,30,530,670],[1610,60,562,560]];
 
 // 화면(DOM)용 그림 주소
 const url = c => (c.toDataURL ? c.toDataURL() : c.src);
@@ -281,7 +292,7 @@ export const pic = {
   meta: id => { const i = ['atk', 'hp', 'magnet', 'bonus', 'reroll', 'revive'].indexOf(id); const c = i >= 0 && cell('meta_upgrade_sheet', i, 3, 2); return c ? c.toDataURL() : null; },
   skill: id => {
     const ns = ['mine', 'turret', 'evo_mine', 'evo_turret'].indexOf(id);   // 새 서브 무기 (시트가 생기면)
-    if (ns >= 0) { const c = cell('weapon_sub_sheet', ns, 4); return c ? c.toDataURL() : null; }
+    if (ns >= 0) { const c = iconCell('weapon_sub_sheet', ns, 4, 1, SUB_RECTS[ns]); return c ? c.toDataURL() : null; }
     const index = ['main', 'missile', 'shotgun', 'satellite', 'bomb', 'rate', 'speed', 'cd', 'size', 'dur'].indexOf(id);
     const m = ['atk', 'hp', 'magnet', 'bonus', 'reroll', 'revive'].indexOf(id);
     const i = ['boomerang', 'area', 'crit'].indexOf(id);
@@ -289,8 +300,8 @@ export const pic = {
     return c ? c.toDataURL() : null;
   },
   // 메인 무기·진화·새 서브 무기 그림 (docs/WEAPON_IMAGES_FOR_GPT.md). 시트가 아직 없으면 null → 이모지로 대신
-  mainWeapon: id => { const i = MAIN_WEAPONS.findIndex(w => w.id === id); const c = i >= 0 && cell('weapon_main_sheet', i, 5); return c ? c.toDataURL() : null; },
-  mainEvo: (id, k) => { const i = MAIN_WEAPONS.findIndex(w => w.id === id), j = ['a', 'b', 'u'].indexOf(k); const c = i >= 0 && j >= 0 && cell('weapon_evo_sheet', j * 5 + i, 5, 3); return c ? c.toDataURL() : null; },
+  mainWeapon: id => { const i = MAIN_WEAPONS.findIndex(w => w.id === id); const c = i >= 0 && iconCell('weapon_main_sheet', i, 5, 1, MAIN_RECTS[i]); return c ? c.toDataURL() : null; },
+  mainEvo: (id, k) => { const i = MAIN_WEAPONS.findIndex(w => w.id === id), j = ['a', 'b', 'u'].indexOf(k); const c = i >= 0 && j >= 0 && iconCell('weapon_evo_sheet', j * 5 + i, 5, 3, EVO_RECTS[j * 5 + i]); return c ? c.toDataURL() : null; },
   pilot: p => url(get('pilot_' + p.id) || once('pi' + p.id, () => pilotArt(p))),
   hangar: (s, colorId) => url(tinted(get('ship_' + s.id + '_hangar'), colorId) || once('hg' + s.id, () => hangarArt(s))),
   god: gd => url(get(gd.img) || once('god' + gd.id, () => godArt(gd))),

@@ -1,6 +1,7 @@
 // 시각 전용: 피해량·충돌 반경·발사 수는 전투 로직이 결정한다.
 import { art } from './assets.js';
 const TAU = Math.PI * 2;
+const reducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)');
 const ink = '#142847';
 const rank = p => p.evolved ? 6 : Math.max(1, Math.min(5, p.visualLevel || 1));
 function ellipse(g,x,y,rx,ry,c){g.fillStyle=c;g.beginPath();g.ellipse(x,y,rx,ry,0,0,TAU);g.fill();}
@@ -25,17 +26,22 @@ function element(g,id,s,t){
 }
 
 export function drawProjectile(g,p,t=0){
-  const lv=rank(p), r=p.r||6, evolved=lv===6;
+  const lv=rank(p), r=p.r||6, evolved=lv===6, branch=p.visualBranch||'', ultimate=branch==='u';
   g.save();g.translate(p.x,p.y);g.rotate(Math.atan2(p.vx||0,-(p.vy||-1)));
   const s=Math.min(12,r)*(.82+lv*.045), length=16+lv*6;
   let hue=({laser:'#6ceeff',beam:'#ffb5f8',drone:'#4ff6cc',homing:'#4ff6cc',missile:'#ff995b',pellet:'#ce8dff',turret:'#ff6ad5'})[p.kind]||'#ffce55';
-  if(evolved&&p.kind==='bullet')hue='#70e8ff';
+  if(evolved&&p.kind==='bullet')hue=branch==='b'?'#ffac83':ultimate?'#a7b7ff':'#70e8ff';
+  if(p.kind==='turret')hue=evolved?'#bba2ff':'#ff8fe6';
+  if(p.kind==='laser'&&branch==='a')hue='#eea2ff';
+  if(p.kind==='laser'&&ultimate)hue='#b5f5de';
   if(!evolved&&p.kind==='bullet'&&lv===4)hue='#70d8ff';
   if(p.kind==='missile')hue=evolved?'#c6a0ff':'#61e4ff';
   g.shadowColor=hue;g.shadowBlur=5+lv*1.5;
   trail(g,hue,s*(.6+lv*.12),length,t,lv>=3?lv-2:0);
-  if(p.kind==='laser'||p.kind==='beam'){
-    const h=24+lv*6;
+  if(p.kind==='laser'||p.kind==='beam'||p.kind==='turret'){
+    const h=(branch==='b'?34:24)+lv*6;
+    if(ultimate){for(let i=0;i<3;i++){const color=['#ffb5ed','#a9eaff','#b8ffd4'][i];line(g,[[(i-1)*(s+2),-h],[(i-1)*(s+2),h*.6]],color,Math.max(2,s*.55));}}
+    if(branch==='b'){for(const side of [-1,1]){line(g,[[side*s*1.6,-h],[side*s*1.6,h*.6]],'#a2edff',2);for(let i=0;i<3;i++)line(g,[[side*s*1.6,-h+i*16],[side*(s*1.6+3),-h+i*16+5]],'#eefaff',1);}}
     g.fillStyle=gradient(g,-s,-h,s,h,'#ffffff',hue);
     g.beginPath();g.roundRect(-s*.7,-h,s*1.4,h*1.7,s*.6);g.fill();
     line(g,[[0,-h],[0,h*.6]],'#ffffff',Math.max(1,s*.3));
@@ -61,20 +67,27 @@ export function drawProjectile(g,p,t=0){
     if(lv>=3)ellipse(g,-s*.2,-h*.2,1.5,2.5,'#73eaff');
     }
   }else if(p.kind==='drone'||p.kind==='homing'){
-    shape(g,[[0,-s*1.8],[s,s*.2],[0,s*1.3],[-s,s*.2]],gradient(g,-s,0,s,0,'#eaffff','#30d7c0'));
-    ellipse(g,0,0,s*.32,s*.7,'#ffffff');
-    if(lv===2){g.strokeStyle='#fff2b3';g.lineWidth=1.5;g.beginPath();g.ellipse(0,0,s*1.25,s*.5,0,0,TAU);g.stroke();}
-    if(lv>=3)for(const side of [-1,1])shape(g,[[side*s*1.1,-s*.6],[side*s*1.9,s*.4],[side*s*1.2,s*.7]],'#75ffd7');
-    if(lv>=4)for(const side of [-1,1])line(g,[[side*s*2,-s],[side*s*2.5,0],[side*s*2,s]],lv===5?'#f5ff9f':'#b4ffee',1.5);
-    if(evolved){g.strokeStyle='#a4ffef';g.lineWidth=1;g.beginPath();g.arc(0,0,s*2.3,t*5,t*5+Math.PI*1.4);g.stroke();}
+    if(p.kind==='homing'){
+      const h=12+lv;shape(g,[[-s*.55,h*.1],[-s*1.45,h*.9],[-s*.55,h*.7],[0,h*.95],[s*.55,h*.7],[s*1.45,h*.9],[s*.55,h*.1]],ultimate?'#b19aff':'#2ce0b2');
+      g.fillStyle=gradient(g,-s,-h,s,h,'#f0fffb',ultimate?'#8f75d9':'#43cfae');g.beginPath();g.roundRect(-s*.64,-h,s*1.28,h*1.85,s*.6);g.fill();g.strokeStyle=ink;g.lineWidth=1.2;g.stroke();
+      shape(g,[[-s*.6,-h*.5],[0,-h*1.6],[s*.6,-h*.5]],ultimate?'#ffe3a4':'#6effdc');ellipse(g,-s*.12,-h*.12,s*.22,s*.35,'#ffffff');
+      if(branch==='b')for(let i=0;i<3;i++)ellipse(g,0,h*1.4+i*8,1.2,2,'#b9ffe9');
+      if(ultimate)star(g,0,-h*1.5,s*.85,'#fff1b5',Math.PI/4);
+    }else{shape(g,[[0,-s*1.8],[s,s*.2],[0,s*1.3],[-s,s*.2]],gradient(g,-s,0,s,0,'#eaffff','#30d7c0'));ellipse(g,0,0,s*.32,s*.7,'#ffffff');}
+    if(lv>=3)for(const side of [-1,1])line(g,[[side*s*1.8,4],[side*s*2.2,12]],'#b4ffee',1.2);
   }else if(p.kind==='pellet'){
     const d=s*(1+lv*.035);shape(g,[[0,-d*1.4],[d*.85,-d*.3],[d*.6,d],[0,d*1.4],[-d*.6,d],[-d*.85,-d*.3]],gradient(g,-d,0,d,0,'#f5d9ff',evolved?'#ffb949':'#9957ed'));
     line(g,[[0,-d],[0,d*.6]],'#fff4ff',1.5);
+    if(branch==='a'||ultimate)for(let i=0;i<3;i++)star(g,Math.cos(i*2.1+t)*d*1.8,Math.sin(i*2.1+t)*d*1.8,2.4,['#ffda83','#ff9ecf','#b6ffff'][i],t);
+    if(branch==='b')line(g,[[-d,-d*.9],[0,-d*1.6],[d,-d*.9]],'#ffbf78',2);
     if(lv>=4)star(g,d*1.4,-d,3,'#ffcf78',t);
   }else{
     g.fillStyle=gradient(g,-s,0,s,0,'#fff4b4',hue);g.strokeStyle='#ab651c';g.lineWidth=1;
     g.beginPath();g.roundRect(-s*.65,-11-lv,s*1.3,21+lv*2,s*.65);g.fill();g.stroke();
     line(g,[[-s*.2,-10-lv],[-s*.2,4]],'#ffffff',Math.max(1,s*.25));
+    if(p.main&&branch==='a')star(g,0,-13-lv,s*1.5,'#fff4bd',Math.PI/4);
+    if(p.main&&branch==='b'){line(g,[[0,-22],[0,-14]],'#ffab94',1.8);line(g,[[-4,-18],[4,-18]],'#ffab94',1.8);}
+    if(p.main&&ultimate){star(g,0,-14-lv,s*1.8,'#fff4bd',t);g.strokeStyle='#b7a5ff';g.lineWidth=1.4;g.beginPath();g.ellipse(0,2,s*2.1,6,t,0,TAU);g.stroke();}
     if(lv>=2)line(g,[[-s*.75,5],[s*.75,5]],evolved?'#d69bff':'#6decff',2.5);
     if(lv>=3)for(const side of [-1,1])shape(g,[[side*s*.7,3],[side*s*1.35,11],[side*s*.7,9]],'#ffe39a',null);
     if(lv===4)for(const side of [-1,1])line(g,[[side*s*1.8,7],[side*s*1.8,-12]],'#8febff',1.5);
@@ -123,7 +136,7 @@ export function drawImpact(g,f){
 }
 export function drawHit(g,f){
   const k=Math.max(0,Math.min(1,1-f.t/f.max)),kind=f.visualKind||'bullet',lv=f.visualLevel||1;
-  const color=({laser:'#76edff',beam:'#ffb5f7',missile:'#ff9c43',pellet:'#c88cff',drone:'#67f3c6',homing:'#67f3c6',boomerang:'#71dfff'})[kind]||'#ffdf83';
+  const color=({laser:'#76edff',beam:'#ffb5f7',missile:'#ff9c43',pellet:'#c88cff',drone:'#67f3c6',homing:'#67f3c6',turret:'#ed9fff',boomerang:'#71dfff'})[kind]||'#ffdf83';
   const r=(7+lv*2)*(0.4+k*1.8);g.save();g.translate(f.x,f.y);g.globalAlpha=1-k;g.shadowColor=color;g.shadowBlur=6;
   if(kind==='laser'||kind==='beam'){
     star(g,0,0,r*1.5,'#f0ffff',Math.PI/4);line(g,[[-r*1.8,0],[r*1.8,0]],color,2);
@@ -150,22 +163,40 @@ export function drawPWave(g,o,t){
   g.fillStyle=gr;g.beginPath();g.arc(0,0,o.r+band,-half,half);g.arc(0,0,Math.max(1,o.r-band),half,-half,true);g.closePath();g.fill();
   g.shadowBlur=0;g.strokeStyle=ink;g.lineWidth=2;g.globalAlpha=.5*fade;g.beginPath();g.arc(0,0,o.r+band*.55,-half,half);g.stroke();
   g.globalAlpha=fade;const n=big?9:6;for(let i=0;i<n;i++){const a=-half+(i+.5)*o.arc/n;star(g,Math.cos(a)*o.r,Math.sin(a)*o.r,3+Math.sin(t*20+i)*1.2,'#ffffff',t*4+i);}
+  if(o.visualBranch==='u'){g.strokeStyle='#d7ffff';g.lineWidth=3;g.globalAlpha=fade*.65;g.beginPath();for(let i=0;i<=24;i++){const a=-half+i*o.arc/24,r=o.r+Math.sin(i*1.7+t*6)*Math.min(8,band*.35);const x=Math.cos(a)*r,y=Math.sin(a)*r;i?g.lineTo(x,y):g.moveTo(x,y);}g.stroke();}
+  if(o.heal)for(let i=0;i<3;i++){const a=-half+(i+1)*o.arc/4,x=Math.cos(a)*o.r,y=Math.sin(a)*o.r;g.save();g.translate(x,y);g.rotate(Math.PI/2);line(g,[[-4,0],[4,0]],'#bcffcf',2.5);line(g,[[0,-4],[0,4]],'#bcffcf',2.5);g.restore();}
   g.restore();
 }
 export function drawMine(g,o,t){
-  const r=o.r,armed=o.arm<=0,blink=armed&&Math.sin(t*10+o.x)>0;
+  const r=o.r,armed=o.arm<=0,blink=false;
   g.save();g.translate(o.x,o.y);
   g.fillStyle='rgba(6,8,34,.3)';g.beginPath();g.ellipse(2,r*.6,r,r*.35,0,0,TAU);g.fill();
   for(let i=0;i<6;i++){const a=i*TAU/6+.3;g.strokeStyle=ink;g.lineWidth=4;g.beginPath();g.moveTo(Math.cos(a)*r*.7,Math.sin(a)*r*.7);g.lineTo(Math.cos(a)*r*1.25,Math.sin(a)*r*1.25);g.stroke();g.strokeStyle=o.evolved?'#c99cff':'#7ad1ff';g.lineWidth=2;g.stroke();}
   g.fillStyle=gradient(g,-r,-r,r,r,'#9fb4dd','#2a3a6a');g.beginPath();g.arc(0,0,r,0,TAU);g.fill();g.strokeStyle=ink;g.lineWidth=2.5;g.stroke();
+  g.strokeStyle=o.evolved?'#c8a8ff':'#87dcff';g.lineWidth=2;g.beginPath();g.arc(0,0,r*.75,0,TAU);g.stroke();
   ellipse(g,-r*.3,-r*.35,r*.28,r*.16,'rgba(255,255,255,.6)');
   g.fillStyle=blink?'#ff4d5e':armed?'#7a2030':'#ffd23d';g.beginPath();g.arc(0,0,r*.32,0,TAU);g.fill();g.strokeStyle=ink;g.lineWidth=1.5;g.stroke();
   g.restore();
 }
 export function drawTurret(g,x,y,evolved,t){
   g.save();g.translate(x,y);
+  for(const side of [-1,1]){g.fillStyle='#46688a';g.strokeStyle=ink;g.lineWidth=1.5;g.beginPath();g.roundRect(side>0?5:-11,0,6,9,2);g.fill();g.stroke();}
   g.fillStyle=gradient(g,-9,-9,9,9,'#f2f6ff','#8a95b8');g.beginPath();g.arc(0,0,9,0,TAU);g.fill();g.strokeStyle=ink;g.lineWidth=2.5;g.stroke();
   g.fillStyle=evolved?'#c99cff':'#ff6ad5';g.beginPath();g.roundRect(-2.5,-15,5,10,2);g.fill();g.strokeStyle=ink;g.lineWidth=1.5;g.stroke();
-  g.fillStyle='#fff';g.beginPath();g.arc(-2.5,-2.5,2.4,0,TAU);g.fill();
+  g.strokeStyle=evolved?'#cbadff':'#ffb5ee';g.lineWidth=1.5;g.beginPath();g.arc(0,0,6,0,TAU);g.stroke();
+  ellipse(g,0,-13,2,2,'#fff4fc');g.fillStyle='#fff';g.beginPath();g.arc(-2.5,-2.5,2.4,0,TAU);g.fill();
+  g.restore();
+}
+
+// 총구 연출은 실제 발사 직후만, 게임 판정과 난수를 사용하지 않는다.
+export function drawMuzzle(g,b,quiet=false){
+  if(quiet||reducedMotion?.matches||b.fireT>.065||b.p.shotN<1)return;
+  const id=b.mw.id,e=b.mwEvo(),r=e.u?15:11,c=b.mw.color;
+  g.save();g.translate(b.p.x,b.p.y-44);g.globalAlpha=Math.max(0,1-b.fireT/.07)*.65;
+  g.shadowColor=c;g.shadowBlur=8;
+  if(id==='wave'){g.strokeStyle=c;g.lineWidth=3;g.beginPath();g.arc(0,0,r*1.6,Math.PI,TAU);g.stroke();}
+  else if(id==='laser'){ellipse(g,0,-3,r*.6,r,'#efffff');g.strokeStyle=e.u?'#f0c6ff':c;g.lineWidth=2;g.beginPath();g.ellipse(0,0,r,3,0,0,TAU);g.stroke();}
+  else if(id==='homing')for(const side of [-1,1])star(g,side*9,0,r*.5,'#b5ffe5',Math.PI/4);
+  else star(g,0,0,r,c,id==='spread'?Math.PI/4:0);
   g.restore();
 }
