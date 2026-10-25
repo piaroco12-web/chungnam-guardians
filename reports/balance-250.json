@@ -1,0 +1,2447 @@
+{
+  "createdAt": "2026-10-25T01:53:24.981Z",
+  "runner": "node",
+  "simulator": "tools/sim.js",
+  "browserVerified": false,
+  "pilot": "chungnami",
+  "metaUpgrades": 0,
+  "gamesPerCombination": 3,
+  "maxMinutes": 25,
+  "randomSeed": null,
+  "results": [
+    {
+      "diff": "sprout",
+      "ship": "byeolbit",
+      "games": [
+        {
+          "state": "win",
+          "region": 5,
+          "stage": 4,
+          "minutes": 9.9,
+          "lvl": 17,
+          "kills": 775,
+          "log": [
+            {
+              "t": 51,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 95,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 100,
+              "lvl": 5
+            },
+            {
+              "t": 155,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 100,
+              "lvl": 7
+            },
+            {
+              "t": 212,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 100,
+              "lvl": 8
+            },
+            {
+              "t": 272,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 100,
+              "lvl": 10
+            },
+            {
+              "t": 325,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 100,
+              "lvl": 12
+            },
+            {
+              "t": 395,
+              "region": 3,
+              "boss": "slot",
+              "hp": 100,
+              "lvl": 14
+            },
+            {
+              "t": 446,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 100,
+              "lvl": 15
+            },
+            {
+              "t": 523,
+              "region": 4,
+              "boss": "smog",
+              "hp": 100,
+              "lvl": 16
+            },
+            {
+              "t": 594,
+              "region": 4,
+              "boss": "aicore",
+              "hp": 60,
+              "lvl": 17
+            }
+          ]
+        },
+        {
+          "state": "win",
+          "region": 5,
+          "stage": 4,
+          "minutes": 12.4,
+          "lvl": 17,
+          "kills": 786,
+          "log": [
+            {
+              "t": 51,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 97,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 95,
+              "lvl": 5
+            },
+            {
+              "t": 177,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 115,
+              "lvl": 7
+            },
+            {
+              "t": 250,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 115,
+              "lvl": 9
+            },
+            {
+              "t": 328,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 115,
+              "lvl": 11
+            },
+            {
+              "t": 394,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 115,
+              "lvl": 12
+            },
+            {
+              "t": 499,
+              "region": 3,
+              "boss": "slot",
+              "hp": 145,
+              "lvl": 14
+            },
+            {
+              "t": 571,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 145,
+              "lvl": 14
+            },
+            {
+              "t": 667,
+              "region": 4,
+              "boss": "smog",
+              "hp": 145,
+              "lvl": 16
+            },
+            {
+              "t": 745,
+              "region": 4,
+              "boss": "aicore",
+              "hp": 121,
+              "lvl": 17
+            }
+          ]
+        },
+        {
+          "state": "win",
+          "region": 5,
+          "stage": 4,
+          "minutes": 12.3,
+          "lvl": 18,
+          "kills": 762,
+          "log": [
+            {
+              "t": 55,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 98,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 95,
+              "lvl": 6
+            },
+            {
+              "t": 174,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 110,
+              "lvl": 8
+            },
+            {
+              "t": 247,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 104,
+              "lvl": 10
+            },
+            {
+              "t": 321,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 119,
+              "lvl": 11
+            },
+            {
+              "t": 383,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 104,
+              "lvl": 13
+            },
+            {
+              "t": 480,
+              "region": 3,
+              "boss": "slot",
+              "hp": 97,
+              "lvl": 14
+            },
+            {
+              "t": 560,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 130,
+              "lvl": 15
+            },
+            {
+              "t": 652,
+              "region": 4,
+              "boss": "smog",
+              "hp": 130,
+              "lvl": 17
+            },
+            {
+              "t": 736,
+              "region": 4,
+              "boss": "aicore",
+              "hp": 80,
+              "lvl": 18
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "diff": "sprout",
+      "ship": "drone",
+      "games": [
+        {
+          "state": "win",
+          "region": 5,
+          "stage": 4,
+          "minutes": 8.9,
+          "lvl": 17,
+          "kills": 814,
+          "log": [
+            {
+              "t": 49,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 86,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 100,
+              "lvl": 6
+            },
+            {
+              "t": 140,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 115,
+              "lvl": 8
+            },
+            {
+              "t": 180,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 115,
+              "lvl": 9
+            },
+            {
+              "t": 237,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 130,
+              "lvl": 11
+            },
+            {
+              "t": 284,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 130,
+              "lvl": 13
+            },
+            {
+              "t": 348,
+              "region": 3,
+              "boss": "slot",
+              "hp": 130,
+              "lvl": 14
+            },
+            {
+              "t": 403,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 130,
+              "lvl": 15
+            },
+            {
+              "t": 475,
+              "region": 4,
+              "boss": "smog",
+              "hp": 130,
+              "lvl": 17
+            },
+            {
+              "t": 537,
+              "region": 4,
+              "boss": "aicore",
+              "hp": 102,
+              "lvl": 17
+            }
+          ]
+        },
+        {
+          "state": "win",
+          "region": 5,
+          "stage": 4,
+          "minutes": 10.7,
+          "lvl": 17,
+          "kills": 789,
+          "log": [
+            {
+              "t": 50,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 86,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 100,
+              "lvl": 6
+            },
+            {
+              "t": 142,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 100,
+              "lvl": 7
+            },
+            {
+              "t": 185,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 100,
+              "lvl": 9
+            },
+            {
+              "t": 280,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 100,
+              "lvl": 11
+            },
+            {
+              "t": 335,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 100,
+              "lvl": 12
+            },
+            {
+              "t": 407,
+              "region": 3,
+              "boss": "slot",
+              "hp": 100,
+              "lvl": 14
+            },
+            {
+              "t": 466,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 100,
+              "lvl": 15
+            },
+            {
+              "t": 556,
+              "region": 4,
+              "boss": "smog",
+              "hp": 100,
+              "lvl": 16
+            },
+            {
+              "t": 641,
+              "region": 4,
+              "boss": "aicore",
+              "hp": 19,
+              "lvl": 17
+            }
+          ]
+        },
+        {
+          "state": "win",
+          "region": 5,
+          "stage": 4,
+          "minutes": 10.1,
+          "lvl": 17,
+          "kills": 792,
+          "log": [
+            {
+              "t": 49,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 85,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 100,
+              "lvl": 5
+            },
+            {
+              "t": 139,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 115,
+              "lvl": 8
+            },
+            {
+              "t": 180,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 115,
+              "lvl": 9
+            },
+            {
+              "t": 249,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 98,
+              "lvl": 11
+            },
+            {
+              "t": 313,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 99,
+              "lvl": 12
+            },
+            {
+              "t": 384,
+              "region": 3,
+              "boss": "slot",
+              "hp": 115,
+              "lvl": 14
+            },
+            {
+              "t": 443,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 115,
+              "lvl": 15
+            },
+            {
+              "t": 530,
+              "region": 4,
+              "boss": "smog",
+              "hp": 130,
+              "lvl": 16
+            },
+            {
+              "t": 603,
+              "region": 4,
+              "boss": "aicore",
+              "hp": 86,
+              "lvl": 17
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "diff": "sprout",
+      "ship": "beongae",
+      "games": [
+        {
+          "state": "win",
+          "region": 5,
+          "stage": 4,
+          "minutes": 10.7,
+          "lvl": 19,
+          "kills": 804,
+          "log": [
+            {
+              "t": 53,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 94,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 100,
+              "lvl": 5
+            },
+            {
+              "t": 151,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 100,
+              "lvl": 8
+            },
+            {
+              "t": 208,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 100,
+              "lvl": 9
+            },
+            {
+              "t": 279,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 94,
+              "lvl": 11
+            },
+            {
+              "t": 344,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 100,
+              "lvl": 13
+            },
+            {
+              "t": 431,
+              "region": 3,
+              "boss": "slot",
+              "hp": 93,
+              "lvl": 14
+            },
+            {
+              "t": 489,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 100,
+              "lvl": 15
+            },
+            {
+              "t": 573,
+              "region": 4,
+              "boss": "smog",
+              "hp": 100,
+              "lvl": 18
+            },
+            {
+              "t": 641,
+              "region": 4,
+              "boss": "aicore",
+              "hp": 90,
+              "lvl": 19
+            }
+          ]
+        },
+        {
+          "state": "win",
+          "region": 5,
+          "stage": 4,
+          "minutes": 11.1,
+          "lvl": 18,
+          "kills": 813,
+          "log": [
+            {
+              "t": 54,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 96,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 100,
+              "lvl": 5
+            },
+            {
+              "t": 162,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 115,
+              "lvl": 7
+            },
+            {
+              "t": 234,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 115,
+              "lvl": 9
+            },
+            {
+              "t": 306,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 106,
+              "lvl": 11
+            },
+            {
+              "t": 367,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 106,
+              "lvl": 12
+            },
+            {
+              "t": 441,
+              "region": 3,
+              "boss": "slot",
+              "hp": 106,
+              "lvl": 14
+            },
+            {
+              "t": 501,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 106,
+              "lvl": 15
+            },
+            {
+              "t": 582,
+              "region": 4,
+              "boss": "smog",
+              "hp": 106,
+              "lvl": 17
+            },
+            {
+              "t": 664,
+              "region": 4,
+              "boss": "aicore",
+              "hp": 86,
+              "lvl": 18
+            }
+          ]
+        },
+        {
+          "state": "win",
+          "region": 5,
+          "stage": 4,
+          "minutes": 11.4,
+          "lvl": 17,
+          "kills": 798,
+          "log": [
+            {
+              "t": 47,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 88,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 100,
+              "lvl": 5
+            },
+            {
+              "t": 154,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 100,
+              "lvl": 7
+            },
+            {
+              "t": 212,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 100,
+              "lvl": 8
+            },
+            {
+              "t": 283,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 100,
+              "lvl": 10
+            },
+            {
+              "t": 347,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 100,
+              "lvl": 12
+            },
+            {
+              "t": 437,
+              "region": 3,
+              "boss": "slot",
+              "hp": 93,
+              "lvl": 13
+            },
+            {
+              "t": 506,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 93,
+              "lvl": 14
+            },
+            {
+              "t": 593,
+              "region": 4,
+              "boss": "smog",
+              "hp": 100,
+              "lvl": 16
+            },
+            {
+              "t": 687,
+              "region": 4,
+              "boss": "aicore",
+              "hp": 9,
+              "lvl": 17
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "diff": "chall",
+      "ship": "byeolbit",
+      "games": [
+        {
+          "state": "dead",
+          "region": 5,
+          "stage": 4,
+          "minutes": 11.9,
+          "lvl": 17,
+          "kills": 797,
+          "log": [
+            {
+              "t": 58,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 111,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 89,
+              "lvl": 5
+            },
+            {
+              "t": 177,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 89,
+              "lvl": 7
+            },
+            {
+              "t": 231,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 89,
+              "lvl": 9
+            },
+            {
+              "t": 311,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 70,
+              "lvl": 11
+            },
+            {
+              "t": 380,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 70,
+              "lvl": 12
+            },
+            {
+              "t": 466,
+              "region": 3,
+              "boss": "slot",
+              "hp": 70,
+              "lvl": 14
+            },
+            {
+              "t": 540,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 70,
+              "lvl": 15
+            },
+            {
+              "t": 639,
+              "region": 4,
+              "boss": "smog",
+              "hp": 110,
+              "lvl": 16
+            }
+          ]
+        },
+        {
+          "state": "dead",
+          "region": 5,
+          "stage": 4,
+          "minutes": 12.9,
+          "lvl": 16,
+          "kills": 775,
+          "log": [
+            {
+              "t": 55,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 3
+            },
+            {
+              "t": 108,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 93,
+              "lvl": 5
+            },
+            {
+              "t": 196,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 93,
+              "lvl": 7
+            },
+            {
+              "t": 270,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 103,
+              "lvl": 8
+            },
+            {
+              "t": 359,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 34,
+              "lvl": 10
+            },
+            {
+              "t": 445,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 98,
+              "lvl": 11
+            },
+            {
+              "t": 539,
+              "region": 3,
+              "boss": "slot",
+              "hp": 84,
+              "lvl": 13
+            },
+            {
+              "t": 625,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 70,
+              "lvl": 14
+            },
+            {
+              "t": 728,
+              "region": 4,
+              "boss": "smog",
+              "hp": 55,
+              "lvl": 15
+            }
+          ]
+        },
+        {
+          "state": "win",
+          "region": 5,
+          "stage": 4,
+          "minutes": 9.9,
+          "lvl": 18,
+          "kills": 807,
+          "log": [
+            {
+              "t": 59,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 104,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 78,
+              "lvl": 5
+            },
+            {
+              "t": 178,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 78,
+              "lvl": 7
+            },
+            {
+              "t": 238,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 78,
+              "lvl": 9
+            },
+            {
+              "t": 304,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 78,
+              "lvl": 11
+            },
+            {
+              "t": 350,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 78,
+              "lvl": 12
+            },
+            {
+              "t": 414,
+              "region": 3,
+              "boss": "slot",
+              "hp": 78,
+              "lvl": 14
+            },
+            {
+              "t": 465,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 78,
+              "lvl": 15
+            },
+            {
+              "t": 535,
+              "region": 4,
+              "boss": "smog",
+              "hp": 100,
+              "lvl": 17
+            },
+            {
+              "t": 593,
+              "region": 4,
+              "boss": "aicore",
+              "hp": 80,
+              "lvl": 18
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "diff": "chall",
+      "ship": "drone",
+      "games": [
+        {
+          "state": "dead",
+          "region": 5,
+          "stage": 4,
+          "minutes": 11.4,
+          "lvl": 18,
+          "kills": 804,
+          "log": [
+            {
+              "t": 55,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 106,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 100,
+              "lvl": 6
+            },
+            {
+              "t": 162,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 100,
+              "lvl": 8
+            },
+            {
+              "t": 213,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 100,
+              "lvl": 9
+            },
+            {
+              "t": 280,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 87,
+              "lvl": 11
+            },
+            {
+              "t": 372,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 46,
+              "lvl": 12
+            },
+            {
+              "t": 462,
+              "region": 3,
+              "boss": "slot",
+              "hp": 40,
+              "lvl": 14
+            },
+            {
+              "t": 533,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 48,
+              "lvl": 15
+            },
+            {
+              "t": 621,
+              "region": 4,
+              "boss": "smog",
+              "hp": 58,
+              "lvl": 17
+            }
+          ]
+        },
+        {
+          "state": "dead",
+          "region": 5,
+          "stage": 4,
+          "minutes": 12.5,
+          "lvl": 17,
+          "kills": 791,
+          "log": [
+            {
+              "t": 59,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 115,
+              "lvl": 4
+            },
+            {
+              "t": 98,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 115,
+              "lvl": 5
+            },
+            {
+              "t": 163,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 115,
+              "lvl": 7
+            },
+            {
+              "t": 223,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 115,
+              "lvl": 8
+            },
+            {
+              "t": 327,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 42,
+              "lvl": 10
+            },
+            {
+              "t": 404,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 82,
+              "lvl": 12
+            },
+            {
+              "t": 498,
+              "region": 3,
+              "boss": "slot",
+              "hp": 82,
+              "lvl": 13
+            },
+            {
+              "t": 574,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 82,
+              "lvl": 14
+            },
+            {
+              "t": 675,
+              "region": 4,
+              "boss": "smog",
+              "hp": 115,
+              "lvl": 16
+            }
+          ]
+        },
+        {
+          "state": "dead",
+          "region": 5,
+          "stage": 4,
+          "minutes": 11.5,
+          "lvl": 16,
+          "kills": 811,
+          "log": [
+            {
+              "t": 63,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 103,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 100,
+              "lvl": 5
+            },
+            {
+              "t": 158,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 100,
+              "lvl": 8
+            },
+            {
+              "t": 206,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 100,
+              "lvl": 9
+            },
+            {
+              "t": 289,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 52,
+              "lvl": 11
+            },
+            {
+              "t": 354,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 52,
+              "lvl": 12
+            },
+            {
+              "t": 443,
+              "region": 3,
+              "boss": "slot",
+              "hp": 52,
+              "lvl": 13
+            },
+            {
+              "t": 523,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 52,
+              "lvl": 14
+            },
+            {
+              "t": 631,
+              "region": 4,
+              "boss": "smog",
+              "hp": 37,
+              "lvl": 16
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "diff": "chall",
+      "ship": "beongae",
+      "games": [
+        {
+          "state": "dead",
+          "region": 5,
+          "stage": 4,
+          "minutes": 12.4,
+          "lvl": 17,
+          "kills": 781,
+          "log": [
+            {
+              "t": 55,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 89,
+              "lvl": 4
+            },
+            {
+              "t": 110,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 78,
+              "lvl": 6
+            },
+            {
+              "t": 179,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 78,
+              "lvl": 7
+            },
+            {
+              "t": 257,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 88,
+              "lvl": 9
+            },
+            {
+              "t": 339,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 75,
+              "lvl": 11
+            },
+            {
+              "t": 414,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 75,
+              "lvl": 12
+            },
+            {
+              "t": 503,
+              "region": 3,
+              "boss": "slot",
+              "hp": 61,
+              "lvl": 13
+            },
+            {
+              "t": 582,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 61,
+              "lvl": 14
+            },
+            {
+              "t": 671,
+              "region": 4,
+              "boss": "smog",
+              "hp": 61,
+              "lvl": 17
+            }
+          ]
+        },
+        {
+          "state": "win",
+          "region": 5,
+          "stage": 4,
+          "minutes": 12.5,
+          "lvl": 17,
+          "kills": 806,
+          "log": [
+            {
+              "t": 59,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 107,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 100,
+              "lvl": 5
+            },
+            {
+              "t": 189,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 100,
+              "lvl": 8
+            },
+            {
+              "t": 262,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 88,
+              "lvl": 9
+            },
+            {
+              "t": 349,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 51,
+              "lvl": 10
+            },
+            {
+              "t": 420,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 69,
+              "lvl": 12
+            },
+            {
+              "t": 504,
+              "region": 3,
+              "boss": "slot",
+              "hp": 115,
+              "lvl": 14
+            },
+            {
+              "t": 582,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 115,
+              "lvl": 14
+            },
+            {
+              "t": 670,
+              "region": 4,
+              "boss": "smog",
+              "hp": 115,
+              "lvl": 16
+            },
+            {
+              "t": 749,
+              "region": 4,
+              "boss": "aicore",
+              "hp": 56,
+              "lvl": 17
+            }
+          ]
+        },
+        {
+          "state": "win",
+          "region": 5,
+          "stage": 4,
+          "minutes": 10.3,
+          "lvl": 17,
+          "kills": 791,
+          "log": [
+            {
+              "t": 57,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 3
+            },
+            {
+              "t": 108,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 89,
+              "lvl": 6
+            },
+            {
+              "t": 169,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 89,
+              "lvl": 7
+            },
+            {
+              "t": 225,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 100,
+              "lvl": 9
+            },
+            {
+              "t": 293,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 80,
+              "lvl": 11
+            },
+            {
+              "t": 356,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 115,
+              "lvl": 12
+            },
+            {
+              "t": 429,
+              "region": 3,
+              "boss": "slot",
+              "hp": 115,
+              "lvl": 13
+            },
+            {
+              "t": 486,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 115,
+              "lvl": 14
+            },
+            {
+              "t": 561,
+              "region": 4,
+              "boss": "smog",
+              "hp": 130,
+              "lvl": 16
+            },
+            {
+              "t": 617,
+              "region": 4,
+              "boss": "aicore",
+              "hp": 70,
+              "lvl": 17
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "diff": "legend",
+      "ship": "byeolbit",
+      "games": [
+        {
+          "state": "dead",
+          "region": 5,
+          "stage": 4,
+          "minutes": 15.5,
+          "lvl": 17,
+          "kills": 874,
+          "log": [
+            {
+              "t": 74,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 115,
+              "lvl": 4
+            },
+            {
+              "t": 144,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 91,
+              "lvl": 6
+            },
+            {
+              "t": 253,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 75,
+              "lvl": 8
+            },
+            {
+              "t": 335,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 115,
+              "lvl": 9
+            },
+            {
+              "t": 434,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 96,
+              "lvl": 11
+            },
+            {
+              "t": 522,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 96,
+              "lvl": 12
+            },
+            {
+              "t": 656,
+              "region": 3,
+              "boss": "slot",
+              "hp": 99,
+              "lvl": 14
+            },
+            {
+              "t": 751,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 115,
+              "lvl": 14
+            },
+            {
+              "t": 860,
+              "region": 4,
+              "boss": "smog",
+              "hp": 115,
+              "lvl": 16
+            }
+          ]
+        },
+        {
+          "state": "dead",
+          "region": 3,
+          "stage": 2,
+          "minutes": 8.4,
+          "lvl": 11,
+          "kills": 390,
+          "log": [
+            {
+              "t": 83,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 115,
+              "lvl": 5
+            },
+            {
+              "t": 172,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 115,
+              "lvl": 7
+            },
+            {
+              "t": 286,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 102,
+              "lvl": 8
+            },
+            {
+              "t": 422,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 89,
+              "lvl": 10
+            }
+          ]
+        },
+        {
+          "state": "dead",
+          "region": 5,
+          "stage": 4,
+          "minutes": 15.1,
+          "lvl": 18,
+          "kills": 929,
+          "log": [
+            {
+              "t": 80,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 139,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 115,
+              "lvl": 6
+            },
+            {
+              "t": 228,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 130,
+              "lvl": 8
+            },
+            {
+              "t": 319,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 117,
+              "lvl": 10
+            },
+            {
+              "t": 405,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 92,
+              "lvl": 12
+            },
+            {
+              "t": 472,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 145,
+              "lvl": 13
+            },
+            {
+              "t": 594,
+              "region": 3,
+              "boss": "slot",
+              "hp": 114,
+              "lvl": 15
+            },
+            {
+              "t": 697,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 98,
+              "lvl": 16
+            },
+            {
+              "t": 820,
+              "region": 4,
+              "boss": "smog",
+              "hp": 98,
+              "lvl": 17
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "diff": "legend",
+      "ship": "drone",
+      "games": [
+        {
+          "state": "dead",
+          "region": 3,
+          "stage": 2,
+          "minutes": 7.4,
+          "lvl": 12,
+          "kills": 421,
+          "log": [
+            {
+              "t": 81,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 115,
+              "lvl": 5
+            },
+            {
+              "t": 167,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 115,
+              "lvl": 6
+            },
+            {
+              "t": 256,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 115,
+              "lvl": 8
+            },
+            {
+              "t": 363,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 75,
+              "lvl": 9
+            }
+          ]
+        },
+        {
+          "state": "dead",
+          "region": 5,
+          "stage": 4,
+          "minutes": 15.7,
+          "lvl": 19,
+          "kills": 880,
+          "log": [
+            {
+              "t": 75,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 5
+            },
+            {
+              "t": 150,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 64,
+              "lvl": 7
+            },
+            {
+              "t": 245,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 38,
+              "lvl": 9
+            },
+            {
+              "t": 330,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 73,
+              "lvl": 10
+            },
+            {
+              "t": 434,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 81,
+              "lvl": 12
+            },
+            {
+              "t": 526,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 66,
+              "lvl": 13
+            },
+            {
+              "t": 647,
+              "region": 3,
+              "boss": "slot",
+              "hp": 51,
+              "lvl": 15
+            },
+            {
+              "t": 751,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 51,
+              "lvl": 16
+            },
+            {
+              "t": 874,
+              "region": 4,
+              "boss": "smog",
+              "hp": 34,
+              "lvl": 18
+            }
+          ]
+        },
+        {
+          "state": "dead",
+          "region": 3,
+          "stage": 2,
+          "minutes": 6.8,
+          "lvl": 10,
+          "kills": 415,
+          "log": [
+            {
+              "t": 76,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 141,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 76,
+              "lvl": 6
+            },
+            {
+              "t": 220,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 76,
+              "lvl": 8
+            },
+            {
+              "t": 298,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 100,
+              "lvl": 9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "diff": "legend",
+      "ship": "beongae",
+      "games": [
+        {
+          "state": "dead",
+          "region": 5,
+          "stage": 4,
+          "minutes": 15.2,
+          "lvl": 18,
+          "kills": 964,
+          "log": [
+            {
+              "t": 72,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 139,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 100,
+              "lvl": 6
+            },
+            {
+              "t": 233,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 100,
+              "lvl": 8
+            },
+            {
+              "t": 326,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 87,
+              "lvl": 9
+            },
+            {
+              "t": 431,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 66,
+              "lvl": 12
+            },
+            {
+              "t": 530,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 100,
+              "lvl": 13
+            },
+            {
+              "t": 645,
+              "region": 3,
+              "boss": "slot",
+              "hp": 100,
+              "lvl": 15
+            },
+            {
+              "t": 733,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 100,
+              "lvl": 16
+            },
+            {
+              "t": 845,
+              "region": 4,
+              "boss": "smog",
+              "hp": 100,
+              "lvl": 17
+            }
+          ]
+        },
+        {
+          "state": "dead",
+          "region": 5,
+          "stage": 4,
+          "minutes": 15.9,
+          "lvl": 18,
+          "kills": 925,
+          "log": [
+            {
+              "t": 76,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 139,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 88,
+              "lvl": 6
+            },
+            {
+              "t": 234,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 100,
+              "lvl": 8
+            },
+            {
+              "t": 338,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 100,
+              "lvl": 9
+            },
+            {
+              "t": 447,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 41,
+              "lvl": 11
+            },
+            {
+              "t": 571,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 18,
+              "lvl": 12
+            },
+            {
+              "t": 679,
+              "region": 3,
+              "boss": "slot",
+              "hp": 85,
+              "lvl": 14
+            },
+            {
+              "t": 767,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 100,
+              "lvl": 15
+            },
+            {
+              "t": 876,
+              "region": 4,
+              "boss": "smog",
+              "hp": 100,
+              "lvl": 17
+            }
+          ]
+        },
+        {
+          "state": "dead",
+          "region": 3,
+          "stage": 2,
+          "minutes": 7.1,
+          "lvl": 12,
+          "kills": 419,
+          "log": [
+            {
+              "t": 78,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 143,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 100,
+              "lvl": 6
+            },
+            {
+              "t": 234,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 100,
+              "lvl": 8
+            },
+            {
+              "t": 337,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 87,
+              "lvl": 9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "diff": "hell",
+      "ship": "byeolbit",
+      "games": [
+        {
+          "state": "win",
+          "region": 5,
+          "stage": 4,
+          "minutes": 14.1,
+          "lvl": 18,
+          "kills": 972,
+          "log": [
+            {
+              "t": 73,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 130,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 85,
+              "lvl": 6
+            },
+            {
+              "t": 221,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 100,
+              "lvl": 8
+            },
+            {
+              "t": 297,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 115,
+              "lvl": 9
+            },
+            {
+              "t": 393,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 130,
+              "lvl": 12
+            },
+            {
+              "t": 473,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 130,
+              "lvl": 13
+            },
+            {
+              "t": 570,
+              "region": 3,
+              "boss": "slot",
+              "hp": 145,
+              "lvl": 15
+            },
+            {
+              "t": 656,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 145,
+              "lvl": 15
+            },
+            {
+              "t": 768,
+              "region": 4,
+              "boss": "smog",
+              "hp": 145,
+              "lvl": 17
+            },
+            {
+              "t": 848,
+              "region": 4,
+              "boss": "aicore",
+              "hp": 89,
+              "lvl": 18
+            }
+          ]
+        },
+        {
+          "state": "dead",
+          "region": 3,
+          "stage": 1,
+          "minutes": 8.4,
+          "lvl": 9,
+          "kills": 312,
+          "log": [
+            {
+              "t": 92,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 85,
+              "lvl": 4
+            },
+            {
+              "t": 188,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 55,
+              "lvl": 5
+            },
+            {
+              "t": 323,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 55,
+              "lvl": 7
+            },
+            {
+              "t": 453,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 39,
+              "lvl": 8
+            }
+          ]
+        },
+        {
+          "state": "dead",
+          "region": 3,
+          "stage": 0,
+          "minutes": 7.6,
+          "lvl": 9,
+          "kills": 286,
+          "log": [
+            {
+              "t": 88,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 183,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 70,
+              "lvl": 6
+            },
+            {
+              "t": 308,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 85,
+              "lvl": 7
+            },
+            {
+              "t": 426,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 69,
+              "lvl": 9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "diff": "hell",
+      "ship": "drone",
+      "games": [
+        {
+          "state": "dead",
+          "region": 3,
+          "stage": 3,
+          "minutes": 10.3,
+          "lvl": 11,
+          "kills": 350,
+          "log": [
+            {
+              "t": 96,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 115,
+              "lvl": 5
+            },
+            {
+              "t": 207,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 85,
+              "lvl": 6
+            },
+            {
+              "t": 331,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 64,
+              "lvl": 8
+            },
+            {
+              "t": 447,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 64,
+              "lvl": 9
+            },
+            {
+              "t": 585,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 40,
+              "lvl": 11
+            }
+          ]
+        },
+        {
+          "state": "dead",
+          "region": 3,
+          "stage": 2,
+          "minutes": 7.7,
+          "lvl": 11,
+          "kills": 353,
+          "log": [
+            {
+              "t": 74,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 5
+            },
+            {
+              "t": 163,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 55,
+              "lvl": 7
+            },
+            {
+              "t": 270,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 70,
+              "lvl": 9
+            },
+            {
+              "t": 377,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 99,
+              "lvl": 10
+            }
+          ]
+        },
+        {
+          "state": "dead",
+          "region": 2,
+          "stage": 4,
+          "minutes": 6.2,
+          "lvl": 8,
+          "kills": 222,
+          "log": [
+            {
+              "t": 94,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 169,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 85,
+              "lvl": 5
+            },
+            {
+              "t": 301,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 79,
+              "lvl": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "diff": "hell",
+      "ship": "beongae",
+      "games": [
+        {
+          "state": "dead",
+          "region": 3,
+          "stage": 2,
+          "minutes": 7.9,
+          "lvl": 12,
+          "kills": 424,
+          "log": [
+            {
+              "t": 89,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 5
+            },
+            {
+              "t": 165,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 55,
+              "lvl": 6
+            },
+            {
+              "t": 274,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 55,
+              "lvl": 9
+            },
+            {
+              "t": 369,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 74,
+              "lvl": 10
+            }
+          ]
+        },
+        {
+          "state": "dead",
+          "region": 5,
+          "stage": 1,
+          "minutes": 18.1,
+          "lvl": 16,
+          "kills": 802,
+          "log": [
+            {
+              "t": 87,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 162,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 51,
+              "lvl": 6
+            },
+            {
+              "t": 273,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 107,
+              "lvl": 8
+            },
+            {
+              "t": 397,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 99,
+              "lvl": 10
+            },
+            {
+              "t": 538,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 57,
+              "lvl": 12
+            },
+            {
+              "t": 691,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 43,
+              "lvl": 13
+            },
+            {
+              "t": 858,
+              "region": 3,
+              "boss": "slot",
+              "hp": 38,
+              "lvl": 14
+            },
+            {
+              "t": 1024,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 38,
+              "lvl": 15
+            }
+          ]
+        },
+        {
+          "state": "dead",
+          "region": 5,
+          "stage": 4,
+          "minutes": 18.7,
+          "lvl": 18,
+          "kills": 973,
+          "log": [
+            {
+              "t": 87,
+              "region": 0,
+              "boss": "blackhole",
+              "hp": 100,
+              "lvl": 4
+            },
+            {
+              "t": 166,
+              "region": 0,
+              "boss": "scroller",
+              "hp": 70,
+              "lvl": 6
+            },
+            {
+              "t": 272,
+              "region": 1,
+              "boss": "copybot",
+              "hp": 100,
+              "lvl": 8
+            },
+            {
+              "t": 367,
+              "region": 1,
+              "boss": "deepfaker",
+              "hp": 100,
+              "lvl": 9
+            },
+            {
+              "t": 484,
+              "region": 2,
+              "boss": "cloud",
+              "hp": 30,
+              "lvl": 11
+            },
+            {
+              "t": 593,
+              "region": 2,
+              "boss": "thorn",
+              "hp": 100,
+              "lvl": 13
+            },
+            {
+              "t": 732,
+              "region": 3,
+              "boss": "slot",
+              "hp": 100,
+              "lvl": 15
+            },
+            {
+              "t": 882,
+              "region": 3,
+              "boss": "octopus",
+              "hp": 100,
+              "lvl": 16
+            },
+            {
+              "t": 1047,
+              "region": 4,
+              "boss": "smog",
+              "hp": 100,
+              "lvl": 18
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

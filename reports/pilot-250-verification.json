@@ -1,0 +1,80 @@
+{
+  "version": "2.5.0",
+  "checks": {
+    "unique": 9,
+    "changed": [
+      {
+        "pilot": "chungnami",
+        "ship": "byeolbit",
+        "pixels": 13771,
+        "outside": 0
+      },
+      {
+        "pilot": "chungnami",
+        "ship": "drone",
+        "pixels": 12446,
+        "outside": 0
+      },
+      {
+        "pilot": "chungnami",
+        "ship": "beongae",
+        "pixels": 12051,
+        "outside": 0
+      },
+      {
+        "pilot": "centeri",
+        "ship": "byeolbit",
+        "pixels": 13771,
+        "outside": 0
+      },
+      {
+        "pilot": "centeri",
+        "ship": "drone",
+        "pixels": 12446,
+        "outside": 0
+      },
+      {
+        "pilot": "centeri",
+        "ship": "beongae",
+        "pixels": 12050,
+        "outside": 0
+      },
+      {
+        "pilot": "edui",
+        "ship": "byeolbit",
+        "pixels": 13771,
+        "outside": 0
+      },
+      {
+        "pilot": "edui",
+        "ship": "drone",
+        "pixels": 12446,
+        "outside": 0
+      },
+      {
+        "pilot": "edui",
+        "ship": "beongae",
+        "pixels": 12050,
+        "outside": 0
+      }
+    ],
+    "skillIndices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "bosses": 10,
+    "renderPilotCombinations": 9
+  },
+  "pageErrors": [],
+  "failedResponses": []
+}
