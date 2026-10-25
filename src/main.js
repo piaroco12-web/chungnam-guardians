@@ -308,7 +308,7 @@ function finish(b, win, reason = '') {
   const showResult = reviewScore => ui.result({
     win: !!win, region: `${b.run.region + 1}. ${REGIONS[b.run.region].name}`, diff: d.name, kills: b.run.kills, level: b.run.level,
     coins: earned, cards: b.run.cardsGained.length, unlocks, teacher: save.teacher, kiosk: !!save.settings.kiosk,
-    reason, stories, review: reviewScore, luck: luckOf(b.run), lb, student: save.student, cardList: b.run.cardsGained.map(id => CARDS.find(c => c.id === id)).filter(Boolean),
+    reason, stories, review: reviewScore, luck: luckOf(b.run), threat: b.run.threatMax || 1, lb, student: save.student, cardList: b.run.cardsGained.map(id => CARDS.find(c => c.id === id)).filter(Boolean),
   }, { again: () => { state.sel = {}; toSelect('pilot'); }, base: () => toBase('sortie'), next: nextStudent });
   // 수업 시간이 끝나면 그날 얻은 카드로 OX 3문제를 풀고 결과로
   if (reason === 'time') return runReview(reviewCards(b.run.cardsGained), showResult);

@@ -7,7 +7,7 @@ import { ZODIAC } from '../data/zodiac.js';
 import { drawProjectile, drawBomb, drawBoomerang, drawSatellite, drawImpact, drawHit } from './combat-vfx.js';
 import { save, view } from './save.js';
 import { drawEnemyBullet } from './bullet-art.js';
-import { drawBeam, drawVine, drawFakeGift, drawOverlay } from './boss-fx.js';
+import { drawBeam, drawVine, drawFakeGift, drawOverlay, drawArm, drawEdgeMark } from './boss-fx.js';
 
 // 섬광 줄이기: 화면 번쩍임·흔들림·빠른 깜빡임을 약하게 (광과민성 배려)
 const calm = () => !!save.settings.calm;
@@ -140,6 +140,7 @@ export function render(g, b, scale) {
   for (const h of b.hazards) {
     if (h.kind === 'vine') drawVine(g, h, b.t);
     if (h.kind === 'beam') drawBeam(g, h, b.t, calm());
+    if (h.kind === 'arm') drawArm(g, h, b.t, calm());
     if (h.kind === 'spark') { g.fillStyle = `rgba(255,242,122,${Math.min(1, h.t)})`; g.beginPath(); g.arc(h.x, h.y, 6, 0, 7); g.fill(); }
     if (h.kind === 'pillar') { g.fillStyle = h.used ? 'rgba(255,255,255,.15)' : 'rgba(255,240,200,.5)'; g.fillRect(h.x - 18, 0, 36, H); }
   }
@@ -181,7 +182,8 @@ export function render(g, b, scale) {
     if (e.decoy) { g.globalAlpha = calm() ? 0.6 : 0.55 + 0.25 * Math.sin(b.t * 12); sprite(g, art.boss(e.boss), e.x, e.y, e.r * 2.4); g.restore(); continue; }
     if (e.elite) { g.strokeStyle = '#ffd23d'; g.lineWidth = 5; g.shadowColor = '#ffd23d'; g.shadowBlur = 16; g.beginPath(); g.arc(e.x, e.y, e.r + 8, 0, 7); g.stroke(); g.shadowBlur = 0; if (e.type !== 'bug') emojiAt(g, '👑', e.x, e.y - e.r - 14, 24); }
     if (e.flash > 0) g.filter = calm() ? 'brightness(1.25)' : 'brightness(2.2)';
-    sprite(g, art.enemy(e.type, e.elite), e.x, e.y, e.r * 2.6);
+    if (e.vx < 0) { g.translate(e.x * 2, 0); g.scale(-1, 1); }   // 왼쪽으로 헤엄치는 물고기는 뒤집어 그린다
+    sprite(g, art.enemy(e.type, e.elite, b.run.region), e.x, e.y, e.r * 2.6);
     g.restore();
     statusMarks(g, e, b.t);
     if (e.hp < e.maxHp && ENEMIES[e.type]) { g.fillStyle = '#141414'; g.fillRect(e.x - 20, e.y - e.r - 12, 40, 6); g.fillStyle = '#ff3d5a'; g.fillRect(e.x - 19, e.y - e.r - 11, 38 * Math.max(0, e.hp / e.maxHp), 4); }
@@ -269,6 +271,7 @@ export function render(g, b, scale) {
 
   // 시야 가림 (먹물·매연)
   for (const o of b.overlays) drawOverlay(g, o, b.t);
+  for (const h of b.hazards) if (h.kind === 'mark') drawEdgeMark(g, h, b.t, calm());
 
   // 글자
   g.textAlign = 'center'; g.textBaseline = 'middle';

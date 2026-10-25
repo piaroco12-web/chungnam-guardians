@@ -1,7 +1,8 @@
 // 그림 로더: assets/img/<이름>.webp (없으면 .png) 가 있으면 그 그림을, 없으면 코드로 그린 임시 그림을 쓴다.
 // 새 PNG를 넣었다면 python tools/to_webp.py 로 WebP로 바꾸고 오프라인 목록도 맞춘다.
 // 파일 이름은 docs/chatgpt-brief.md(ChatGPT 지시서)와 같다.
-import { PILOTS, SHIPS, BOSSES, ENEMIES } from '../data/content.js';
+import { PILOTS, SHIPS, BOSSES, ENEMIES, REGIONS } from '../data/content.js';
+import { regionEnemyArt, hueShifted } from './enemy-art.js';
 import { GODS, DUOS, LEGENDS } from '../data/boons.js';
 import { ZODIAC } from '../data/zodiac.js';
 import { STORY, PACTS } from '../data/extras.js';
@@ -175,6 +176,11 @@ function hangarArt(s) {
 }
 
 const once = (k, f) => cache[k] || (cache[k] = f());
+export function enemyHue(t, region) {
+  const home = REGIONS.findIndex(r => r.enemies.includes(t)), here = REGIONS[region];
+  if (home < 0 || !here || home === region) return 0;
+  return (((here.hue || 0) - (REGIONS[home].hue || 0)) % 360 + 360) % 360;
+}
 function roundedBug(elite) {
   const im = get('enemy_bug_round_sheet');
   if (!im) return null;
@@ -240,7 +246,12 @@ function occupiedShip(shipId, pilotId, colorId) {
 // 전투에 쓰는 그림 (Image 또는 Canvas)
 export const art = {
   ship: (id, pilotId, colorId) => (pilotId && occupiedShip(id, pilotId, colorId)) || tinted(get('ship_' + id), colorId) || once('ship' + id, () => shipTop(SHIPS.find(s => s.id === id))),
-  enemy: (t, elite = false) => (t === 'bug' && roundedBug(elite)) || cell('enemy_sheet', ENEMY_ORDER.indexOf(t), 3, 2) || once('en' + t, () => enemyArt(t)),
+  // 지역 번호를 주면 그 지역 색(이로치)으로: 몬스터가 처음 나오는 지역이 원래 색
+  enemy: (t, elite = false, region = null) => {
+    const base = (t === 'bug' && roundedBug(elite)) || (ENEMY_ORDER.includes(t) && cell('enemy_sheet', ENEMY_ORDER.indexOf(t), 3, 2)) || regionEnemyArt(t) || once('en' + t, () => enemyArt(t));
+    const deg = region == null ? 0 : enemyHue(t, region);
+    return deg ? hueShifted(base, deg, 'en:' + t + ':' + !!elite) : base;
+  },
   boss: id => get(bossFile(id)) || once('boss' + id, () => bossArt(id)),
   drone: () => get('unit_drone'),
   missile: (lv = 1, evolved = false) => cell('missile_refined_sheet', evolved ? 2 : lv >= 3 ? 1 : 0, 3),

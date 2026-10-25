@@ -24,6 +24,7 @@ function botMove(b, skill) {
     for (const h of b.hazards) {
       if (h.kind === 'beam' && Math.abs(nx - h.x) < h.w / 2 + 30) danger += 50;
       if (h.kind === 'vine' && Math.abs(nx - h.x) < 40) danger += 50;
+      if (h.kind === 'arm' && Math.abs(nx - h.x) < 50) danger += 50;
     }
     const aim = target ? Math.abs(target.x - nx) / W * 2 : 0;
     const home = Math.abs(ny - (H - 170)) / H;

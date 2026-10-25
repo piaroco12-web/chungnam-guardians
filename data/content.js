@@ -36,18 +36,19 @@ export const DIFFS = [
 // 지역: 배경 색과 장식, 중간 보스, 지역 보스
 export const REGIONS = [
   { id: 'asan', name: '아산', bg: 'bg_asan', sky: ['#2b2f7a', '#4a2a6a'], land: '#3d4f9a', lane: '#251a40', deco: 'circuit',
-    mid: 'blackhole', boss: 'scroller', enemies: ['spam', 'notify', 'bug'] },
+    mid: 'blackhole', boss: 'scroller', enemies: ['spam', 'notify', 'bug', 'likebee'], hue: 0 },
   { id: 'gongju', name: '공주', bg: 'bg_gongju', sky: ['#1d4f7a', '#1d6a8a'], land: '#4f7a3a', lane: '#1f5a86', deco: 'wall',
-    mid: 'copybot', boss: 'deepfaker', enemies: ['spam', 'popup', 'link'] },
+    mid: 'copybot', boss: 'deepfaker', enemies: ['spam', 'popup', 'link', 'copyslime'], hue: 140 },
   { id: 'buyeo', name: '부여', bg: 'bg_buyeo', sky: ['#245a5a', '#2d6f5f'], land: '#5a8a4a', lane: '#2c6f78', deco: 'lotus',
-    mid: 'cloud', boss: 'thorn', enemies: ['troll', 'popup', 'notify'] },
+    mid: 'cloud', boss: 'thorn', enemies: ['troll', 'popup', 'notify', 'rumormoth'], hue: 75 },
   { id: 'boryeong', name: '보령', bg: 'bg_boryeong', sky: ['#3a5a8a', '#5a6f8a'], land: '#7a6a58', lane: '#2f6fa8', deco: 'mud',
-    mid: 'slot', boss: 'octopus', enemies: ['link', 'spam', 'troll'] },
+    mid: 'slot', boss: 'octopus', enemies: ['link', 'spam', 'troll', 'phishfish'], hue: 200 },
   { id: 'naepo', name: '내포', bg: 'bg_naepo', sky: ['#120f30', '#2a1050'], land: '#2a2f5a', lane: '#100c26', deco: 'neon',
-    mid: 'smog', boss: 'aicore', enemies: ['bug', 'troll', 'link', 'notify'] },
+    mid: 'smog', boss: 'aicore', enemies: ['bug', 'troll', 'link', 'notify', 'smogdrone', 'biaseye'], hue: 290 },
 ];
 
-// 일반 적 6종 (임시 그림은 draw.js가 type 이름으로 그림)
+// 일반 적: 공통 6종 + 지역 몬스터 6종 (지역 몬스터 그림은 src/enemy-art.js)
+// 같은 몬스터도 지역마다 색이 다르다(이로치): REGIONS의 hue 차이만큼 색상을 돌린다. 처음 나오는 지역이 원래 색.
 export const ENEMIES = {
   spam:   { name: '스팸봇',      hp: 22, r: 22, speed: 120, move: 'down',   shoot: 0,   color: '#9aa3b5', xp: 1 },
   notify: { name: '알림 폭탄',   hp: 16, r: 18, speed: 210, move: 'dive',   shoot: 0,   color: '#ff4d5e', xp: 1, explode: true },
@@ -55,11 +56,27 @@ export const ENEMIES = {
   link:   { name: '가짜 링크 뱀', hp: 26, r: 20, speed: 150, move: 'snake',  shoot: 0,   color: '#4fd18b', xp: 1 },
   popup:  { name: '팝업 박쥐',   hp: 34, r: 24, speed: 80,  move: 'hover',  shoot: 1.8, color: '#5aa8ff', xp: 2 },
   bug:    { name: '버그 딱정벌레', hp: 60, r: 28, speed: 60, move: 'down',  shoot: 3.0, color: '#ffb23d', xp: 3, armor: true },
+  // 지역 몬스터
+  likebee:   { name: '좋아요 벌',   hp: 14, r: 18, speed: 170, move: 'swarm',   shoot: 0,   color: '#ff6fa8', xp: 1, home: '아산 · 숏폼', group: 3 },
+  copyslime: { name: '복붙 슬라임', hp: 40, r: 24, speed: 70,  move: 'down',    shoot: 0,   color: '#c9d3e6', xp: 2, split: true, home: '공주 · 표절' },
+  rumormoth: { name: '뒷담 나방',   hp: 30, r: 22, speed: 85,  move: 'flutter', shoot: 2.2, color: '#9b7bff', xp: 2, home: '부여 · 따돌림' },
+  phishfish: { name: '낚시 물고기', hp: 28, r: 22, speed: 175, move: 'cross',   shoot: 0,   color: '#3fb8ff', xp: 2, home: '보령 · 피싱' },
+  smogdrone: { name: '매연 드론',   hp: 70, r: 26, speed: 70,  move: 'hover',   shoot: 2.6, color: '#8a8f99', xp: 3, armor: true, home: '내포 · 기후' },
+  biaseye:   { name: '편향 눈알',   hp: 36, r: 20, speed: 90,  move: 'hover',   shoot: 3.2, color: '#ff3d5a', xp: 2, home: '내포 · AI 편향' },
 };
 
 // 체력 배율 (2026-10 사용자 지정): 일반 몬스터 ×2, 중간 보스 ×2, 지역 보스 ×3, 최종 보스(내포 지역 보스) ×4
 export const HP_MULT = { enemy: 2, mid: 2, boss: 3, final: 4 };
 export const FINAL_BOSS = 'aicore';
+
+// 위협도 (2026-10 사용자 요청: 비행기가 강해지는 만큼 적·보스도 강해지게)
+// 웨이브가 끝날 때마다 '일반 적이 나타나서 쓰러질 때까지 걸린 평균 시간'을 잰다.
+// 목표 시간(target, 지역별)보다 빨리 쓰러뜨리면 위협도가 오르고, 오래 걸리면 다시 내려간다(1 아래로는 안 내려감).
+// 위협도는 이후 나오는 적 체력(×위협도)과 보스 체력(×위협도^boss), 적 공격 빈도에 곱해진다.
+export const THREAT = { target: [2.8, 3.6, 4.0, 4.3, 4.3], k: 0.6, step: 1.35, boss: 0.7, fire: 0.5,
+  max: { sprout: 1.4, chall: 2.0, legend: 2.3, hell: 2.6 } };   // 난이도별 위협도 상한: 새싹은 조금만 오른다
+// 지역이 뒤일수록 적이 더 자주 쏘고(지역마다 +12%) 보스 패턴이 빨라진다(지역마다 +5%)
+export const REGION_AGGRO = { fire: 0.12, boss: 0.05, by: { sprout: 0.4, chall: 1, legend: 1.2, hell: 1.4 } };   // by: 난이도별 배율
 
 // 보스 10종: patterns는 battle.js의 BOSS_PATTERNS 이름
 export const BOSSES = {
@@ -70,7 +87,7 @@ export const BOSSES = {
   cloud:     { name: '악플 먹구름', issue: '사이버폭력', hp: 2300, r: 84, color: '#6a5a9a', face: '💬', patterns: ['rain', 'zigzag'], line: '말 한마디쯤이야, 괜찮잖아~', card: 'p_cyber' },
   thorn:     { name: '따돌림 가시덩굴', issue: '학교폭력·따돌림', hp: 3900, r: 78, color: '#4fae5a', face: '🌵', patterns: ['vine', 'lockfruit', 'aimed'], line: '여기는 아무나 못 들어와!', card: 'p_bully' },
   slot:      { name: '잭팟 슬롯킹', issue: '사이버도박', hp: 2900, r: 76, color: '#ffb23d', face: '🎰', patterns: ['roulette', 'coinshot'], line: '이번엔 진짜 대박 날 거야!', card: 'p_gamble' },
-  octopus:   { name: '피싱 문어', issue: '개인정보·피싱', hp: 4700, r: 82, color: '#ff8a3d', face: '🐙', patterns: ['tentacle', 'fakeitem', 'ink'], line: '선물 당첨! 이 링크만 누르면 돼~', card: 'p_phish' },
+  octopus:   { name: '피싱 문어', issue: '개인정보·피싱', hp: 4700, r: 82, color: '#ff8a3d', face: '🐙', patterns: ['tentacle', 'ambush', 'hookback', 'fakeitem', 'ink'], line: '선물 당첨! 이 링크만 누르면 돼~', card: 'p_phish' },
   smog:      { name: '스모그 대왕', issue: '기후위기', hp: 3600, r: 88, color: '#8a8f99', face: '🏭', patterns: ['fog', 'bottles'], line: '콜록, 좀 더 태워 볼까?', card: 'p_climate' },
   aicore:    { name: '폭주 AI 코어', issue: 'AI 윤리·편향', hp: 5600, r: 92, color: '#ff3d5a', face: '👁️', patterns: ['biasLaser', 'dataStorm', 'chaos'], line: '내 판단이 무조건 정답이다!', card: 'p_aiethics' },
 };

@@ -13,6 +13,10 @@ function kindOf(b) {
     case 'troll': return 'bubble';                       // 악플 벌레: 화난 말풍선
     case 'popup': return 'popup';                        // 팝업 박쥐: 작은 팝업 창
     case 'bug': return 'warn';                           // 버그 딱정벌레: 오류 경고 표시
+    case 'rumormoth': return 'bubble';                   // 뒷담 나방: 소문 말풍선
+    case 'phishfish': return 'hook';                     // 낚시 물고기: 낚싯바늘
+    case 'smogdrone': return 'bottle';                   // 매연 드론: 페트병
+    case 'copyslime': return 'paper';
     case 'blackhole': return c === '#ffe14a' ? 'star' : 'pad';                     // 게임 과몰입: 경험치 별·게임패드
     case 'scroller': return c === '#ff5a8a' ? (r >= 9 ? 'heart' : 'play') : 'bell'; // 숏폼: 좋아요·재생·알림 종
     case 'copybot': return r >= 9 ? 'paper' : 'plane';                              // 대필: 숙제 종이·종이비행기

@@ -123,3 +123,52 @@ export function drawOverlay(g, o, t) {
   }
   g.restore();
 }
+
+// ───────── 문어 다리 (피싱 문어): 화면 아래(뒤쪽)에서 솟아오른다 ─────────
+// 경고 동안은 바닥에 물결 원과 ▲ 표시, 그다음 빨판 달린 다리가 위로 뻗는다.
+export function drawArm(g, h, t, calm) {
+  const x = h.x, base = H + 10;
+  g.save();
+  if (h.warn > 0) {
+    const k = calm ? 0.7 : 0.55 + 0.35 * Math.sin(t * 10);
+    g.fillStyle = `rgba(255,110,50,${0.34 * k})`; g.fillRect(x - 26, base - (h.max || 400), 52, h.max || 400);
+    g.setLineDash([12, 8]); g.lineDashOffset = calm ? 0 : t * 60; g.strokeStyle = `rgba(255,150,90,${0.9 * k})`; g.lineWidth = 3;
+    g.beginPath(); g.moveTo(x - 26, base); g.lineTo(x - 26, base - (h.max || 400)); g.moveTo(x + 26, base); g.lineTo(x + 26, base - (h.max || 400)); g.stroke(); g.setLineDash([]);
+    for (let i = 0; i < 3; i++) { const r = 18 + ((t * 40 + i * 14) % 42); g.strokeStyle = `rgba(255,190,140,${0.8 - r / 70})`; g.lineWidth = 3; g.beginPath(); g.ellipse(x, H - 18, r, r * 0.35, 0, 0, TAU); g.stroke(); }
+    g.fillStyle = '#ffe2c8'; g.strokeStyle = INK; g.lineWidth = 2.5; g.lineJoin = 'round';
+    g.beginPath(); g.moveTo(x, H - 92); g.lineTo(x + 16, H - 64); g.lineTo(x - 16, H - 64); g.closePath(); g.fill(); g.stroke();
+    g.restore(); return;
+  }
+  const len = h.len || 0; if (len < 4) { g.restore(); return; }
+  const top = base - len, sway = yy => Math.sin(yy * 0.02 + t * 4 + x) * 9 * Math.min(1, (base - yy) / 120);
+  const half = yy => 13 + 13 * (yy - top) / len;   // 끝으로 갈수록 가늘게
+  const path = (dx = 0) => {
+    g.beginPath();
+    for (let yy = base; yy >= top; yy -= 10) g.lineTo(x + sway(yy) - half(yy) + dx, yy);
+    g.quadraticCurveTo(x + sway(top) + dx, top - 18, x + sway(top) + half(top) + dx, top);
+    for (let yy = top; yy <= base; yy += 10) g.lineTo(x + sway(yy) + half(yy) + dx, yy);
+    g.closePath();
+  };
+  g.fillStyle = 'rgba(6,8,34,.35)'; g.save(); g.translate(4, 6); path(); g.fill(); g.restore();
+  const gr = g.createLinearGradient(x - 26, 0, x + 26, 0); gr.addColorStop(0, '#d9561f'); gr.addColorStop(0.45, '#ff9a4d'); gr.addColorStop(1, '#c4461a');
+  g.fillStyle = gr; path(); g.fill(); g.strokeStyle = INK; g.lineWidth = 3.5; g.lineJoin = 'round'; g.stroke();
+  g.fillStyle = 'rgba(255,230,200,.55)'; g.beginPath(); for (let yy = base; yy >= top + 12; yy -= 10) g.lineTo(x + sway(yy) - half(yy) * 0.45, yy); g.lineTo(x + sway(top + 12) - half(top) * 0.2, top + 12); g.closePath(); g.fill();
+  // 빨판
+  for (let yy = top + 26, i = 0; yy < base - 6; yy += 30, i++) {
+    const sx = x + sway(yy) + (i % 2 ? 1 : -1) * half(yy) * 0.35, r = 4 + half(yy) * 0.22;
+    g.fillStyle = '#ffd7b8'; g.beginPath(); g.ellipse(sx, yy, r, r * 0.8, 0, 0, TAU); g.fill(); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
+    g.fillStyle = '#e46b35'; g.beginPath(); g.arc(sx, yy, r * 0.4, 0, TAU); g.fill();
+  }
+  g.restore();
+}
+
+// 화면 가장자리 경고 표시: 뒤·옆에서 탄이 들어올 자리
+export function drawEdgeMark(g, h, t, calm) {
+  const k = calm ? 0.8 : 0.6 + 0.4 * Math.abs(Math.sin(t * 9));
+  g.save(); g.translate(h.x, h.y); g.rotate(h.a || 0);
+  g.globalAlpha = k;
+  g.fillStyle = '#ff5a3d'; g.strokeStyle = INK; g.lineWidth = 3; g.lineJoin = 'round';
+  g.beginPath(); g.moveTo(0, -20); g.lineTo(18, 12); g.lineTo(-18, 12); g.closePath(); g.fill(); g.stroke();
+  g.fillStyle = '#fff'; g.font = '20px "Black Han Sans",sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('!', 0, 2);
+  g.restore();
+}

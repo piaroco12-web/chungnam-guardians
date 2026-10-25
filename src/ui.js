@@ -15,7 +15,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.7.2';
+export const VERSION = '2.8.0';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -508,6 +508,7 @@ export function result(r, act) {
       <div class="stat"><span>얻은 코인</span><span><span data-count="${r.coins}">0</span>${r.teacher ? ' (저장 안 됨)' : ''}</span></div>
       ${r.luck && r.luck.gamble ? `<div class="stat"><span>도전 강화</span><span>${r.luck.gamble}번 중 ${r.luck.gambleWin}번 성공 <small style="font-size:.7em">(확률 ${Math.round(LUCK.gamble.success * 100)}%)</small></span></div>` : ''}
       ${r.luck && (r.luck.events || r.luck.rage) ? `<div class="stat"><span>돌발·분노</span><span>돌발 ${r.luck.events}번 · 보스 분노 ${r.luck.rage}번</span></div>` : ''}
+      ${r.threat > 1 ? `<div class="stat"><span>최고 위협도</span><span>×${r.threat.toFixed(1)} <small style="font-size:.7em">(빨리 쓰러뜨릴수록 적도 강해져요)</small></span></div>` : ''}
       ${r.lb ? `<div class="stat"><span>선생님께 기록</span><span id="lbstat">보내는 중…</span></div>` : ''}
       ${r.review ? `<div class="stat"><span>오늘의 복습</span><span>${r.review.ok}/${r.review.total} 정답</span></div>` : ''}
       ${r.cards ? `<div class="stat"><span>새 카드</span><span>${r.cards}장</span></div>` : ''}
