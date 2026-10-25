@@ -30,7 +30,9 @@ const fresh = () => ({
   items: { purge: 0 }, // 정화 대폭발 (상점 300코인, 최대 1개)
   quizRush: { date: '', count: 0 },   // OX 퀴즈 러시: 하루 3판
   shipColor: 'base',   // 고른 기체 색 (범주 완성으로 열림)
-  student: null,       // 오늘의 도전 기록을 보낼 반·번호 { cls: '5-2', num: 13 } — 다음 학생 준비 때 지워진다
+  account: null,       // 학생 계정 { key, school, cls, num, nick, hash } (src/account.js) — 다음 학생 준비 때 지워진다
+  dev: Math.random().toString(36).slice(2, 10),   // 이 기기(저장본) 표시: 여러 기기 기록을 합칠 때 코인 장부를 기기마다 따로 센다
+  wallet: {},          // 코인·대폭발 장부 { 기기: { ci 번 코인, co 쓴 코인, pi 산 대폭발, po 쓴 대폭발 } } → coins·items 는 이 장부의 합
   // unlockRule 은 일부러 넣지 않는다: 예전 기록에 없을 때 아래 옮기기가 돌아야 해서
 });
 
@@ -58,6 +60,10 @@ if (!Array.isArray(save.combos)) save.combos = [];
 if (!save.mastery || typeof save.mastery !== 'object') save.mastery = {};
 save.items = Object.assign({ purge: 0 }, save.items);
 if (!save.quizRush || typeof save.quizRush !== 'object') save.quizRush = { date: '', count: 0 };
+// 장부가 없던 예전 기록: 지금 코인·대폭발을 이 기기 장부로 옮긴다
+if (!save.dev) save.dev = Math.random().toString(36).slice(2, 10);
+if (!save.wallet || typeof save.wallet !== 'object' || !Object.keys(save.wallet).length) { save.wallet = { [save.dev]: { ci: save.coins || 0, co: 0, pi: save.items.purge || 0, po: 0 } }; write(KEY, save); }
+if (save.student && !save.account) delete save.student;   // 예전 반·번호만 있던 기록은 계정으로 다시 넣는다
 if (save.unlockRule !== 3) {
   const oldBeongae = REGIONS.map(r => r.boss);
   if (oldBeongae.every(id => save.bosses.includes(id)) && !save.grandShips.includes('beongae')) save.grandShips.push('beongae');
@@ -71,6 +77,19 @@ export function creditMastery(run) {
   save.mastery[run.mainWeapon] = (save.mastery[run.mainWeapon] || 0) + add; run.credited = run.kills;
 }
 export function recordCombo(run, bossId) { const k = `${run.pilot}|${run.ship}|${bossId}`; if (!save.combos.includes(k)) save.combos.push(k); }
+
+// ───────── 코인·대폭발 장부 (2.12.0) ─────────
+// 여러 기기 기록을 '더 큰 값'으로 합쳐도 쓴 코인이 되살아나지 않도록, 기기마다 번 것·쓴 것을 따로 쌓는다
+const myLedger = () => (save.wallet[save.dev] ||= { ci: 0, co: 0, pi: 0, po: 0 });
+export function refreshWallet() {
+  let ci = 0, co = 0, pi = 0, po = 0;
+  for (const w of Object.values(save.wallet)) { ci += w.ci || 0; co += w.co || 0; pi += w.pi || 0; po += w.po || 0; }
+  save.coins = Math.max(0, ci - co); save.items.purge = Math.max(0, Math.min(1, pi - po));
+}
+export function earnCoins(n) { if (n > 0) { myLedger().ci += n; refreshWallet(); } }
+export function spendCoins(n) { if (n > 0 && save.coins >= n) { myLedger().co += n; refreshWallet(); return true; } return false; }
+export function addPurge() { myLedger().pi++; refreshWallet(); }
+export function usePurgeItem() { if (save.items.purge > 0) { myLedger().po++; refreshWallet(); } }
 
 export function persist() { write(KEY, save); }
 

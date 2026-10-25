@@ -3,8 +3,9 @@ import { W, H, fitStage } from './view.js';
 import { initInput, input, isActive } from './input.js';
 import { loadAssets } from './assets.js';
 import { sfx, bgm, unlockAudio } from './audio.js';
-import { save, persist, progress, saveRun, loadRun, clearRun, view, resetForNextStudent, unlockSnap, unlockNews, recordCombo, creditMastery } from './save.js';
+import { save, persist, progress, saveRun, loadRun, clearRun, view, resetForNextStudent, unlockSnap, unlockNews, recordCombo, creditMastery, earnCoins, usePurgeItem } from './save.js';
 import { MAIN_WEAPONS } from '../data/weapons.js';
+import { sync } from './account.js';
 import { Battle, newRun } from './battle.js';
 import { render } from './render.js';
 import { levelChoices, applyLevelChoice, altarChoices, applyAltarChoice, godOf } from './progress.js';
@@ -54,6 +55,8 @@ function toTitle() {
 function toBase(tab) {
   restoreRandom();
   state.scene = 'base'; state.battle = null; if (tab) state.tab = tab; bgm('base');
+  // 계정이 있으면 서버 기록과 합친다(1분에 한 번). 새로 받은 게 있으면 기지 화면을 다시 그린다
+  if (save.account) sync().then(changed => { if (changed && state.scene === 'base') toBase(); });
   if (!view.pilotUnlocked(PILOTS.find(p => p.id === state.pilot))) state.pilot = 'chungnami';
   if (!view.shipUnlocked(SHIPS.find(s => s.id === state.ship))) state.ship = 'byeolbit';
   if (!view.weaponUnlocked(MAIN_WEAPONS.find(w => w.id === state.weapon) || {})) state.weapon = 'gun';
@@ -76,13 +79,13 @@ function startQuizRush() {
   state.scene = 'quiz'; bgm('altar');
   ui.quizRush(pool, ok => {
     if (save.teacher) return;
-    progress(s => { if (s.quizRush.date !== todayKey()) s.quizRush = { date: todayKey(), count: 0 }; s.quizRush.count++; s.coins += ok * QUIZ_RUSH.coin; });
+    progress(s => { if (s.quizRush.date !== todayKey()) s.quizRush = { date: todayKey(), count: 0 }; s.quizRush.count++; earnCoins(ok * QUIZ_RUSH.coin); });
   }, () => toBase('sortie'));
 }
 function usePurge(b) {
   if (!save.teacher && !(save.items.purge > 0)) return;
   if (!b.usePurge()) return;
-  if (!save.teacher) progress(s => { s.items.purge = Math.max(0, (s.items.purge || 0) - 1); });
+  if (!save.teacher) progress(() => usePurgeItem());
   b.hooks.hud();
 }
 
@@ -113,9 +116,9 @@ function startRun(region) {
 let askedStudent = false;
 function startDaily() {
   // 순위표를 쓰면 처음 한 번 반·번호를 묻는다 (건너뛰면 이번에는 기록을 보내지 않음)
-  if (lbEnabled() && !save.teacher && !save.student && !askedStudent) {
+  if (lbEnabled() && !save.teacher && !save.account && !askedStudent) {
     askedStudent = true;
-    return ui.askStudent(s => { save.student = s; persist(); startDaily(); }, () => startDaily());
+    return ui.askStudent(() => startDaily(), () => startDaily());
   }
   clearRun();
   const d = dailyInfo();
@@ -318,7 +321,7 @@ function finish(b, win, reason = '') {
   progress(() => creditMastery(b.run));
   for (const w of MAIN_WEAPONS) if (view.weaponUnlocked(w) && !wBefore.includes(w.id)) unlocks.push('메인 무기 ' + w.name);
   progress(s => {
-    s.coins += earned;
+    earnCoins(earned);
     if (b.run.kills > s.best.kills) s.best.kills = b.run.kills;
     if (win && (d.id === 'legend' || d.id === 'hell') && !s.beatLegend) { s.beatLegend = true; unlocks.push('극한 난이도'); }
     s.stats.runs++;
@@ -331,6 +334,7 @@ function finish(b, win, reason = '') {
       if (!best || cur.region > best.region || (cur.region === best.region && cur.kills > best.kills)) s.daily[b.run.daily] = cur;
     }
   });
+  if (save.account) sync(true);   // 판이 끝나면 바로 서버에 저장
   if (win && save.stats.wins === 1) unlocks.push('도전 계약');
   // 이야기 조각
   const snap = { ...save.stats, bosses: save.bosses, cleared: save.cleared.length, cards: save.cards.length };
@@ -339,10 +343,10 @@ function finish(b, win, reason = '') {
   bgm(reason === 'time' ? null : win ? 'victory' : 'defeat');
   // 오늘의 도전 기록을 선생님 구글 시트로 (반·번호가 있을 때만)
   let lb = null;
-  if (b.run.daily && lbEnabled() && save.student && !save.teacher) {
+  if (b.run.daily && lbEnabled() && save.account && !save.teacher) {
     const STAGE = ['웨이브 1', '웨이브 2', '중간 보스', '웨이브 3', '지역 보스'];
     lb = sendRecord({
-      date: b.run.daily, cls: save.student.cls, num: save.student.num,
+      date: b.run.daily, key: save.account.key, school: save.account.school, cls: save.account.cls, num: save.account.num, nick: save.account.nick,
       start: b.run.startRegion, startName: REGIONS[b.run.startRegion]?.name, region: b.run.region, regionName: REGIONS[b.run.region].name,
       stage: win ? 5 : b.run.stage, stageName: win ? '완주' : STAGE[b.run.stage] || '', kills: b.run.kills, level: b.run.level, win: !!win,
       pilot: PILOTS.find(p => p.id === b.run.pilot)?.name, ship: SHIPS.find(s => s.id === b.run.ship)?.name, weapon: MAIN_WEAPONS.find(w => w.id === b.run.mainWeapon)?.name, version: ui.VERSION,
@@ -351,7 +355,7 @@ function finish(b, win, reason = '') {
   const showResult = reviewScore => ui.result({
     win: !!win, region: `${b.run.region + 1}. ${REGIONS[b.run.region].name}`, diff: d.name, kills: b.run.kills, level: b.run.level,
     coins: earned, cards: b.run.cardsGained.length, unlocks, teacher: save.teacher, kiosk: !!save.settings.kiosk,
-    reason, stories, review: reviewScore, luck: luckOf(b.run), threat: b.run.threatMax || 1, lb, student: save.student, cardList: b.run.cardsGained.map(id => CARDS.find(c => c.id === id)).filter(Boolean),
+    reason, stories, review: reviewScore, luck: luckOf(b.run), threat: b.run.threatMax || 1, lb, student: save.account, cardList: b.run.cardsGained.map(id => CARDS.find(c => c.id === id)).filter(Boolean),
   }, { again: () => { state.sel = {}; toSelect('pilot'); }, base: () => toBase('sortie'), next: nextStudent });
   // 수업 시간이 끝나면 그날 얻은 카드로 OX 3문제를 풀고 결과로
   if (reason === 'time') return runReview(reviewCards(b.run.cardsGained), showResult);

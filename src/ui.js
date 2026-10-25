@@ -7,8 +7,9 @@ import { PATHS, QUIZ, CARD_QUIZ, PACTS, STORY, QUIZ_RUSH, PURGE } from '../data/
 import { LUCK } from '../data/luck.js';
 import { SETS, SHIP_UNLOCK, BASE_COLOR } from '../data/unlocks.js';
 import { lbEnabled, loadBoard } from './leaderboard.js';
+import { login, logout, normSchool, normCls } from './account.js';
 import { MAIN_WEAPONS, mainOf, SHIP_WEAPON, BAR_NAMES } from '../data/weapons.js';
-import { save, view, persist, TEACHER_CODE, totalCodex, totalCards, resetAll, resetForNextStudent } from './save.js';
+import { save, view, persist, TEACHER_CODE, totalCodex, totalCards, resetAll, resetForNextStudent, spendCoins, addPurge } from './save.js';
 import { art, pic } from './assets.js';
 import { sfx, refreshBgm } from './audio.js';
 import { scatterText, stagger, stamp as stampFx, unfold, highlight, countUp, bouncy, jelly, nope, dealChoices, chooseCard } from './motion.js';
@@ -16,7 +17,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.11.1';
+export const VERSION = '2.12.0';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -149,14 +150,14 @@ function metaTab(bb, state, act) {
     if ((save.items.purge || 0) >= PURGE.max) return;
     if (save.teacher) return toast('교사 모드에서는 전투마다 1개가 저절로 있어요');
     if (save.coins < PURGE.cost) { nope(el.closest('.row')); return toast(`코인이 ${PURGE.cost - save.coins}개 모자라요`); }
-    save.coins -= PURGE.cost; save.items.purge = (save.items.purge || 0) + 1; persist(); sfx.levelup(); act.refresh();
+    spendCoins(PURGE.cost); addPurge(); persist(); sfx.levelup(); act.refresh();
   }, bb);
   click('[data-m]', (e, el) => {
     const m = META_UPGRADES.find(x => x.id === el.dataset.m), lv = save.meta[m.id], cost = m.cost(lv);
     if (lv >= m.max) return;
     if (save.teacher) return toast('교사 모드에서는 강화가 저장되지 않아요');
     if (save.coins < cost) { nope(el.closest('.row')); return toast(`코인이 ${cost - save.coins}개 모자라요`); }
-    save.coins -= cost; save.meta[m.id]++; persist(); sfx.levelup(); act.refresh();
+    spendCoins(cost); save.meta[m.id]++; persist(); sfx.levelup(); act.refresh();
   }, bb);
 }
 
@@ -231,7 +232,7 @@ function settings(bb, state, act) {
     ${row('calm', '섬광 줄이기', '번쩍임·화면 흔들림·깜빡임을 약하게 해요. 빛에 예민한 친구에게 권해요.')}
     ${save.teacher ? `<div class="row" style="flex-wrap:wrap"><div class="tx" style="flex-basis:100%"><b>수업 시간 모드</b><p>정한 시간이 지나면 판을 마무리하고 오늘 얻은 카드를 보여 줘요.</p></div>
       <div style="display:flex;flex-wrap:wrap;gap:calc(var(--u)*6)">${[0, 5, 10, 15, 20, 30].map(m => `<button class="btn sm ${save.settings.classMin === m ? '' : 'gray'}" data-cm="${m}" style="padding:calc(var(--u)*6) calc(var(--u)*8)">${m ? m + '분' : '끔'}</button>`).join('')}</div></div>` : ''}
-    ${lbEnabled() && !save.teacher ? `<div class="row"><div class="tx"><b>오늘의 도전 기록 보내기</b><p>${save.student ? `${esc(save.student.cls)}반 ${save.student.num}번으로 선생님께 보내요.` : '반·번호를 넣으면 오늘의 도전 기록이 선생님 순위표로 가요.'}</p></div><button class="btn blue sm" id="stu">${save.student ? '바꾸기' : '넣기'}</button></div>` : ''}
+    ${lbEnabled() && !save.teacher ? `<div class="row"><div class="tx"><b>내 계정</b><p>${save.account ? `${esc(save.account.school)} ${esc(save.account.cls)}반 ${save.account.num}번 · ${esc(save.account.nick)}<br>기록이 서버에 저장돼 다른 기기에서도 이어져요.${save.account.synced ? ` 마지막 저장 ${new Date(save.account.synced).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}` : ''}` : '학교·반·번호·닉네임·비밀번호로 들어가면 오늘의 도전 기록을 보내고, 어느 기기에서나 기록이 이어져요.'}</p></div>${save.account ? '<button class="btn gray sm" id="logout">나가기</button>' : '<button class="btn blue sm" id="stu">들어가기</button>'}</div>` : ''}
     ${lbEnabled() && save.teacher ? `<div class="row"><div class="tx"><b>오늘의 도전 순위표</b><p>학생들이 보낸 기록을 날짜별로 봐요.${save.settings.lbKey ? '' : ' 먼저 읽기 열쇠를 넣어 주세요.'}</p></div><div style="display:flex;gap:calc(var(--u)*6)"><button class="btn gray sm" id="lbkey">열쇠</button><button class="btn blue sm" id="lbopen">보기</button></div></div>` : ''}
     <div class="row"><div class="tx"><b>최신 버전 받기</b><p>지금 버전 ${VERSION}. 화면이 예전 그대로면 눌러 주세요. 기록은 지워지지 않아요.</p></div><button class="btn blue sm" id="upd">받기</button></div>
     <div class="row"><div class="tx"><b>조작 방법</b><p>화면을 드래그해서 이동, 손을 떼면 슬로우 모션. PC는 방향키·WASD로 이동, Space 필살기, Esc 일시정지.</p></div></div>
@@ -245,7 +246,8 @@ function settings(bb, state, act) {
   click('#reset', () => modal(`<b class="ol" style="font-size:calc(var(--u)*26)">정말 지울까요?</b><p>되돌릴 수 없어요.</p>`, [['지우기', 'red', () => { resetAll(); act.refresh(); toast('기록을 지웠어요'); }], ['취소', 'gray']]), bb);
   click('#credits', showCredits, bb);
   click('#upd', () => { toast('최신 버전을 받는 중이에요…'); import('./main.js').then(m => m.forceUpdate()); }, bb);
-  click('#stu', () => askStudent(s => { save.student = s; persist(); act.refresh(); toast(`${s.cls}반 ${s.num}번으로 보낼게요`); }, () => {}), bb);
+  click('#stu', () => askStudent(() => act.refresh(), () => {}), bb);
+  click('#logout', () => modal(`<b class="ol" style="font-size:calc(var(--u)*26)">계정에서 나갈까요?</b><p>기록을 서버에 저장하고, 이 기기에서는 기록을 비워요(다른 친구가 써도 섞이지 않게). 같은 정보로 다시 들어오면 그대로 이어져요.</p>`, [['나가기', 'red', () => { toast('저장하는 중…'); logout().then(r => { if (!r.ok) return toast(r.error); act.refresh(); toast('계정에서 나왔어요'); }); }], ['취소', 'gray']]), bb);
   click('#lbkey', () => modal(`<b class="ol" style="font-size:calc(var(--u)*26)">순위표 읽기 열쇠</b><p>구글 시트 코드(READ_KEY)에 넣은 말과 같게 적어 주세요. 이 기기에만 저장돼요.</p><input id="lbk" type="password" autocomplete="off" aria-label="읽기 열쇠" value="${esc(save.settings.lbKey || '')}">`,
     [['저장', '', () => { save.settings.lbKey = document.getElementById('lbk').value.trim(); persist(); act.refresh(); toast('열쇠를 저장했어요'); }], ['취소', 'gray']]), bb);
   click('#lbopen', () => openBoard(new Date()), bb);
@@ -501,18 +503,35 @@ export function altar(run, choices, onPick, onReroll) {
 
 // ───────── 오늘의 도전 순위표 ─────────
 // 반·번호 입력: 실명 대신 반과 번호만 받는다
-export function askStudent(onSave, onSkip) {
-  const s = save.student || {};
-  modal(`<b class="ol" style="font-size:calc(var(--u)*26)">오늘의 도전 기록 보내기</b>
-    <p>반과 번호를 넣으면 기록이 선생님 순위표로 가요. 이름은 적지 않아요.</p>
-    <div style="display:flex;gap:calc(var(--u)*10);justify-content:center;align-items:center">
-      <input id="scls" inputmode="text" placeholder="5-2" aria-label="학년-반" value="${esc(s.cls || '')}" style="width:calc(var(--u)*130)"><span>반</span>
-      <input id="snum" inputmode="numeric" placeholder="13" aria-label="번호" value="${s.num || ''}" style="width:calc(var(--u)*100)"><span>번</span></div>`,
-    [['보내기', '', () => {
-      const cls = document.getElementById('scls').value.trim().replace(/[^0-9가-힣a-zA-Z-]/g, '').slice(0, 8);
-      const num = parseInt(document.getElementById('snum').value, 10);
-      if (!cls || !(num > 0 && num < 100)) { toast('반과 번호를 숫자로 넣어 주세요 (예: 5-2, 13)'); return false; }
-      onSave({ cls, num });
+// 학생 계정 로그인/만들기 (2.12.0): 학교·반·번호·닉네임·비밀번호 4자리
+// 처음이면 계정이 만들어지고, 다음부터 다른 기기에서도 같은 정보로 들어오면 기록이 이어진다.
+export function askStudent(onDone, onSkip, title = '내 계정 · 오늘의 도전 기록') {
+  const a = save.account || {};
+  modal(`<b class="ol" style="font-size:calc(var(--u)*24)">${esc(title)}</b>
+    <p style="font-size:calc(var(--u)*15)">처음이면 계정이 새로 만들어져요. 다른 기기에서도 같은 정보로 들어오면 해금·강화·카드가 그대로 이어져요.<br><b>닉네임에 진짜 이름은 쓰지 마세요.</b></p>
+    <div class="acct-form">
+      <label>학교<input id="asch" placeholder="홍성초" value="${esc(a.school || '')}" autocomplete="off"></label>
+      <div class="acct-row"><label>반<input id="acls" placeholder="5-2" value="${esc(a.cls || '')}" autocomplete="off"></label><label>번호<input id="anum" inputmode="numeric" placeholder="13" value="${a.num || ''}" autocomplete="off"></label></div>
+      <label>닉네임<input id="anick" placeholder="별빛조종사" maxlength="10" value="${esc(a.nick || '')}" autocomplete="off"></label>
+      <label>비밀번호 (숫자 4자리)<input id="apin" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off"></label>
+      <p class="acct-msg" id="amsg"></p>
+    </div>`,
+    [['들어가기', '', () => {
+      const v = id => document.getElementById(id).value.trim();
+      const school = v('asch'), cls = v('acls'), num = parseInt(v('anum'), 10), nick = v('anick').replace(/[<>"'&]/g, '').slice(0, 10), pin = v('apin');
+      const msg = t => { const m = document.getElementById('amsg'); if (m) m.textContent = t; };
+      if (normSchool(school).length < 2) { msg('학교 이름을 넣어 주세요 (예: 홍성초)'); return false; }
+      if (!normCls(cls) || !(num > 0 && num < 100)) { msg('반과 번호를 넣어 주세요 (예: 5-2, 13)'); return false; }
+      if (!nick) { msg('닉네임을 넣어 주세요'); return false; }
+      if (!/^\d{4}$/.test(pin)) { msg('비밀번호는 숫자 4자리예요'); return false; }
+      msg('확인하는 중…');
+      login({ school, cls, num, nick, pin }).then(res => {
+        if (!res.ok) { msg(res.error || '들어가지 못했어요'); return; }
+        document.querySelector('.modal')?.remove();
+        toast(res.created ? `${nick} 계정을 만들었어요!` : `${nick}, 다시 만나서 반가워요!`);
+        onDone && onDone(save.account);
+      });
+      return false;
     }], ['건너뛰기', 'gray', () => onSkip && onSkip()]]);
 }
 
@@ -527,8 +546,8 @@ async function openBoard(day) {
   const box = document.getElementById('lbbody'); if (!box) return;
   if (!res.ok) { box.innerHTML = `<p class="note">${esc(res.error || '불러오지 못했어요')}</p>`; return; }
   if (!res.list.length) { box.innerHTML = '<p class="note">이 날 보낸 기록이 아직 없어요.</p>'; return; }
-  box.innerHTML = `<table class="lb"><thead><tr><th>순위</th><th>반·번호</th><th>도달</th><th>처치</th><th>도전</th></tr></thead><tbody>${res.list.map((r, i) =>
-    `<tr${i < 3 ? ` class="top${i + 1}"` : ''}><td>${['🥇', '🥈', '🥉'][i] || i + 1}</td><td>${esc(r.cls)}반 ${esc(r.num)}번</td><td>${r.win ? '완주!' : `${esc(r.region)} ${esc(r.stage)}`}</td><td>${esc(r.kills)}</td><td>${esc(r.tries)}번</td></tr>`).join('')}</tbody></table>
+  box.innerHTML = `<table class="lb"><thead><tr><th>순위</th><th>학생</th><th>도달</th><th>처치</th><th>도전</th></tr></thead><tbody>${res.list.map((r, i) =>
+    `<tr${i < 3 ? ` class="top${i + 1}"` : ''}><td>${['🥇', '🥈', '🥉'][i] || i + 1}</td><td>${esc(r.nick || '')}<br><small>${esc(r.school || '')} ${esc(r.cls)}-${esc(r.num)}</small></td><td>${r.win ? '완주!' : `${esc(r.region)} ${esc(r.stage)}`}</td><td>${esc(r.kills)}</td><td>${esc(r.tries)}번</td></tr>`).join('')}</tbody></table>
     <p class="note">학생마다 그날 가장 좋은 기록 하나 · 출발 ${esc(res.list[0].start || '')} · 전체 기록은 구글 시트에 있어요</p>`;
 }
 
@@ -599,7 +618,7 @@ export function result(r, act) {
   stagger(root().querySelectorAll('.stat'), 90, 14);
   root().querySelectorAll('[data-count]').forEach((el, i) => setTimeout(() => countUp(el, +el.dataset.count, 1400), 300 + i * 200));
   click('#again', act.again); click('#tobase', act.base); click('#nextkid', act.next);
-  if (r.lb) r.lb.then(st => { const el = document.getElementById('lbstat'); if (el) el.textContent = st === 'sent' ? `${r.student.cls}반 ${r.student.num}번 보냈어요 ✓` : '못 보냈어요 (인터넷 확인)'; });
+  if (r.lb) r.lb.then(st => { const el = document.getElementById('lbstat'); if (el) el.textContent = st === 'sent' ? `${r.student.nick} 보냈어요 ✓` : '못 보냈어요 (인터넷 확인)'; });
 }
 
 export function statsModal(b) {
