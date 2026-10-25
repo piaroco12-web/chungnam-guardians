@@ -212,5 +212,5 @@ export const STORY = [
 ];
 
 // 추가 기능 (2.11.0, docs/NEXT_FEATURES_PLAN.md)
-export const QUIZ_RUSH = { seconds: 60, coin: 10, perDay: 3, wrongPause: 1.4, rightPause: 0.45 };
+export const QUIZ_RUSH = { seconds: 60, coin: 10, perDay: 3, wrongPause: 1.4, rightPause: 1.4 };
 export const PURGE = { cost: 300, max: 1, bossPct: 0.1, inv: 1 };
