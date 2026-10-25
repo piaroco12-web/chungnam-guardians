@@ -1,9 +1,10 @@
 // 학생 계정 (2.12.0): 학교·반·번호·닉네임·비밀번호(숫자 4자리)
 //  · 계정 구분 = 학교+반+번호. 닉네임은 순위표에 보이는 이름(바꿀 수 있음).
-//  · 비밀번호는 이 기기에서 암호화(SHA-256)해서 보낸다 → 시트에는 암호만 남고 선생님도 원래 숫자를 볼 수 없다.
+//  · 비밀번호 원문 대신 계정별 SHA-256 해시를 보낸다. 해시도 접속 자격이므로 메모리에만 둔다.
 //  · 서버 = 오늘의 도전 순위표와 같은 구글 시트(Apps Script)의 '계정' 탭. 주소는 data/config.js
 //  · 동기화: 기지에 들어올 때·판이 끝날 때 자동. 서버 기록과 이 기기 기록은 '더 많이 모은 쪽'으로 합친다.
 import { LEADERBOARD_URL } from '../data/config.js';
+import { serverRequest } from './server-api.js';
 import { save, persist, refreshWallet, resetForNextStudent } from './save.js';
 
 export const accountEnabled = () => !!LEADERBOARD_URL;
@@ -24,15 +25,14 @@ export const pinHash = (key, pin) => sha256(`cnguard|${key}|${pin}`);
 
 async function call(body) {
   try {
-    const r = await fetch(LEADERBOARD_URL, { method: 'POST', body: JSON.stringify(body), redirect: 'follow' });
-    return await r.json();
-  } catch {
-    return { ok: false, error: '인터넷 연결을 확인해 주세요', offline: true };
+    return await serverRequest(body);
+  } catch (err) {
+    return { ok: false, error: err.message || '인터넷 연결을 확인해 주세요', offline: true };
   }
 }
 
 // 서버로 보내는 기록: 기기 설정·교사 모드·계정 정보·이어하기는 빼고 진행 기록만
-const SKIP = new Set(['settings', 'teacher', 'student', 'account', 'unlockRule', 'shipColor', 'dev', 'coins', 'items']);   // coins·items 는 wallet 장부에서 다시 계산
+const SKIP = new Set(['settings', 'teacher', 'student', 'account', 'unlockRule', 'shipColor', 'dev', 'coins', 'items', '__proto__', 'prototype', 'constructor']);   // coins·items 는 wallet 장부에서 다시 계산
 export function snapshot() { const o = {}; for (const [k, v] of Object.entries(save)) if (!SKIP.has(k)) o[k] = v; return o; }
 
 // 두 기록 합치기: 목록은 합집합, 숫자는 큰 값, 날짜별 기록은 날마다 더 좋은 것 → 기록이 줄어드는 일이 없다
@@ -49,7 +49,7 @@ export function mergeInto(dst, src) {
     else if (k === 'wallet' && v) { dst.wallet ||= {}; for (const [dev, w] of Object.entries(v)) { const c = (dst.wallet[dev] ||= { ci: 0, co: 0, pi: 0, po: 0 }); for (const f of ['ci', 'co', 'pi', 'po']) if ((w[f] || 0) > (c[f] || 0)) { c[f] = w[f]; changed = true; } } }
     else if (k === 'daily' && v) { dst.daily ||= {}; for (const [d, r] of Object.entries(v)) { const c = dst.daily[d]; if (!c || r.region > c.region || (r.region === c.region && r.kills > c.kills)) { dst.daily[d] = r; changed = true; } } }
     else if (k === 'quizRush' && v) { const c = dst.quizRush || {}; if (v.date > (c.date || '') || (v.date === c.date && v.count > (c.count || 0))) { dst.quizRush = { ...v }; changed = true; } }
-    else if (v && typeof v === 'object') { dst[k] ||= {}; for (const [kk, vv] of Object.entries(v)) { if (typeof vv === 'number') { const before = dst[k][kk]; dst[k][kk] = num(before, vv); } else if (typeof vv === 'boolean' && vv && !dst[k][kk]) { dst[k][kk] = true; changed = true; } } }
+    else if (v && typeof v === 'object') { dst[k] ||= {}; for (const [kk, vv] of Object.entries(v)) { if (['__proto__','constructor','prototype'].includes(kk)) continue; if (typeof vv === 'number') { const before = dst[k][kk]; dst[k][kk] = num(before, vv); } else if (typeof vv === 'boolean' && vv && !dst[k][kk]) { dst[k][kk] = true; changed = true; } } }
   }
   if (changed) refreshWallet();
   return changed;
