@@ -356,9 +356,9 @@ export class Battle {
         for (let i = 0; i < n; i++) { const a = (i - (n - 1) / 2) * 0.35; this.pb.push({ x: p.x + Math.sin(a) * 14, y: p.y - 20, vx: Math.sin(a) * speed, vy: -Math.cos(a) * speed, dmg, r: 6 * size, pierce: pierce + (e.u ? 3 : e.b ? 2 : 0), kind: 'homing', homing: true, retarget: e.b, explode: e.u ? 40 : 0, explodeDmg: dmg * 0.5, ...look, hit: new Set() }); }
         break;
       }
-      case 'wave': {   // 파동포: 앞쪽으로 퍼지는 고리. 적 탄을 지우고 밀어냄. A 크게, B 탄 지우면 회복
+      case 'wave': {   // 파동포 (2.10.3): 크기가 고정된 초승달 파동이 앞으로 곧게 나간다(기체 너비의 1.5배). 적 탄을 지우고 밀어냄. A 크게, B 탄 지우면 회복
         const big = e.a;
-        this.objs.push({ kind: 'pwave', x: p.x, y: p.y - 24, r: 24, speed: speed, reach: f.reach * (big ? 1.15 : 1) * this.st.area, arc: f.arc + (big ? 0.35 : 0) + (chn ? 0.18 : 0),
+        this.objs.push({ kind: 'pwave', x: p.x, y: p.y - 40, vy: -speed, w: f.width * (big ? 1.35 : 1) * this.st.area, bow: f.bow,
           band: f.band * (big ? 1.5 : 1) * size, dmg: dmg * (e.u ? 1.4 : big ? 1.2 : 1), heal: e.b, hit: new Set(), ...look });
         break;
       }
@@ -517,12 +517,14 @@ export class Battle {
       switch (o.kind) {
         case 'spawnLater': case 'later': o.t -= dt; if (o.t <= 0) { o.fn(); alive = false; } break;
         case 'pwave': {   // 파동포 고리: 띠 안에 든 적은 한 번 맞고 밀려나고, 적 탄은 지워진다
-          o.r += o.speed * dt; const half = o.arc / 2, inBand = (x, y, extra) => { const dx = x - o.x, dy = y - o.y, d = Math.hypot(dx, dy); return Math.abs(d - o.r) <= o.band + extra && Math.abs(Math.atan2(dx, -dy)) <= half; };
+          o.y += o.vy * dt; const half = o.w / 2;
+          // 초승달 띠: 가운데가 bow만큼 앞으로 볼록. x 위치마다 띠의 가운데 높이를 구해 그 근처면 맞는다
+          const inBand = (x, y, extra) => { const dx = x - o.x; if (Math.abs(dx) > half + extra) return false; const k = Math.min(1, Math.abs(dx) / half), cy = o.y - o.bow * (1 - k * k); return Math.abs(y - cy) <= o.band + extra; };
           for (const e of [...this.enemies]) { if (e.decoy || e.dying || o.hit.has(e) || !inBand(e.x, e.y, e.r)) continue; o.hit.add(e); this.damage(e, o.dmg, { elem: o.elem, src: 'main' }); this.knock(e, 18); }
           const before = this.eb.length; this.eb = this.eb.filter(b => !inBand(b.x, b.y, 0));
           const cleared = before - this.eb.length;
           if (cleared && o.heal) this.heal(cleared * 0.5, false);
-          if (o.r > o.reach) alive = false;
+          if (o.y < -80) alive = false;
           break;
         }
         case 'mine': {

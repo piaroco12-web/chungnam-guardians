@@ -47,11 +47,11 @@ export const MAIN_WEAPONS = [
     ult: { id: 'mw_homing_u', name: '별똥별 유도', desc: '수 2배 · 3번 관통 · 맞으면 폭발' },
     unlock: { need: [['spread', 500]], text: '산탄으로 500마리 정화하면' } },
   { id: 'wave', name: '파동포', tag: '생존', icon: '🌊', color: '#82e7ff',
-    desc: '앞으로 넓게 퍼지는 파동. 적 탄을 지우고 적을 밀어내요.',
-    fire: { rate: 0.7, dmg: 68, speed: 600, count: 1, pierce: 99, kind: 'wave', arc: 1.05, reach: 660, band: 22 },   // 2.10.2: 폭 절반(120°→60°), 재사용 2배, 피해 2배
+    desc: '기체보다 조금 넓은 초승달 파동이 앞으로 나가요. 적 탄을 지우고 적을 밀어내요.',
+    fire: { rate: 0.7, dmg: 68, speed: 560, count: 1, pierce: 99, kind: 'wave', width: 138, bow: 22, band: 20 },   // 2.10.3: 크기 고정 초승달(기체 92의 1.5배 너비)이 앞으로 직진, 재사용 2배, 피해 2배
     bars: { dmg: 3, rate: 1, pierce: 5, range: 3, easy: 3 },
     pairs: [
-      { up: 'area', evo: { id: 'mw_wave_a', name: '대형 파동', desc: '더 넓게(80°), 띠가 1.5배 굵게, 피해 +20%' } },
+      { up: 'area', evo: { id: 'mw_wave_a', name: '대형 파동', desc: '파동 폭 1.35배, 띠 1.5배 굵게, 피해 +20%' } },
       { up: 'hp', evo: { id: 'mw_wave_b', name: '수호 파동', desc: '적 탄을 지울 때마다 체력 회복' } },
     ],
     ult: { id: 'mw_wave_u', name: '서해 해일포', desc: '대형·수호 파동을 모두 · 피해 +40%' },
