@@ -1,6 +1,6 @@
 {
-  "version": "2.5.0",
-  "count": 94,
+  "version": "2.5.2",
+  "count": 95,
   "images": [
     {
       "path": "assets/img/bg_asan.webp",
@@ -1128,6 +1128,18 @@
       "grid": [
         3,
         1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/choice_routes_sheet.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 456072,
+      "grid": [
+        3,
+        2
       ],
       "hasTransparency": true,
       "format": "webp"
