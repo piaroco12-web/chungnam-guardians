@@ -7,7 +7,7 @@ export const PILOTS = [
   { id: 'centeri', name: '센터이', hp: 80, tag: '속성 피해 강화', color: '#a77bff', accent: '#3fe0c0',
     desc: '가호 속성 피해 +30%, 상태이상 지속 +1초', unlock: { text: 'SW·AI 개념 카드를 모두 모으면' } },
   { id: 'edui', name: '에듀이', hp: 120, tag: '보호막', color: '#8fd14f', accent: '#ff9a3c',
-    desc: '12초마다 적 탄 1발을 막는 방패 생성', unlock: { text: '지역 상식 카드를 모두 모으면' } },
+    desc: '12초마다 적 탄 1발을 막는 방패 생성', unlock: { text: '지역 상식 카드 10장을 모으면' } },
 ];
 
 export const SHIPS = [

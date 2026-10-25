@@ -15,7 +15,7 @@ export const SHIP_UNLOCK = {
 export const PILOT_UNLOCK = {
   chungnami: null,
   centeri: { kind: 'SW·AI 개념', text: 'SW·AI 개념 카드를 모두 모으면' },
-  edui: { kind: '지역 상식', n: 10, text: '지역 상식 카드를 10장 모으면' },
+  edui: { kind: '지역 상식', n: 10, text: '지역 상식 카드 10장을 모으면' },
 };
 
 // 범주 완성 보너스. all = 카드 64장 전부
