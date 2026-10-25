@@ -409,3 +409,34 @@ h2.ol{font-size:calc(var(--u)*38);margin:calc(var(--u)*6) 0 calc(var(--u)*14);te
   text-shadow:0 calc(var(--u)*4) 0 var(--ink);background:radial-gradient(#9a7cff,#3a2490);border-radius:50%}
 .choice .desc .luck{color:#ffd23d}
 .choice .desc .miss{color:#c9cbe0;font-size:.9em}
+/* 선택 화면: 그림을 강조하고 선택 결과를 짧게 보여 준다. */
+.selection-screen{isolation:isolate}
+.selection-screen .choices{perspective:900px}
+.selection-screen .choice{will-change:transform;backface-visibility:hidden}
+.selection-screen .choice .art{background:radial-gradient(circle at 35% 25%,#fff,#dcf4ff 65%,var(--accent));box-shadow:0 0 0 calc(var(--u)*3) #173354,0 calc(var(--u)*7) 0 #102140,inset 0 calc(var(--u)*3) 0 #ffffffc9}
+.selection-screen .choice .art img{object-fit:contain;padding:calc(var(--u)*4)}
+.selection-screen .choice.duo,.selection-screen .choice.legend{border-color:#ffe8a2;box-shadow:0 0 0 calc(var(--u)*3) #251e49,0 calc(var(--u)*8) 0 #12162e,0 0 calc(var(--u)*20) #f1ba6655}
+.selection-screen .choice .framed-art{background:radial-gradient(#ffffff88,#bedcff44);border-color:#e9fcff}
+.selection-screen .choice .framed-art .badge-frame{padding:0}
+.zodiac-screen .choice .art{width:calc(var(--u)*118);height:calc(var(--u)*118);margin-top:calc(var(--u)*42);border-radius:50%;background:radial-gradient(#ffffe5,#afeadf)!important}
+.zodiac-screen .choice .art img{object-fit:contain;transform:scale(1.12)}
+.path-screen .choice .art{width:calc(var(--u)*148);height:calc(var(--u)*148);border-color:#f4ffdf}
+.path-screen .choice .art img{position:static;width:100%;height:100%;left:auto;top:auto;transform:none;padding:calc(var(--u)*3)}
+.path-screen .choice .top{background:radial-gradient(circle at 50% 65%,#ffffffbb,transparent 60%),linear-gradient(145deg,var(--top-light),var(--accent),var(--top-dark))}
+.choice-picked{position:relative;z-index:6!important;border-color:#fff2ad!important;filter:saturate(1.15);box-shadow:0 0 0 calc(var(--u)*3) #fff5b4,0 0 calc(var(--u)*28) #ffd263a0!important}
+.choice-picked::after{content:'✓ 선택 완료';position:absolute;z-index:8;left:50%;bottom:calc(var(--u)*16);transform:translateX(-50%);white-space:nowrap;border:calc(var(--u)*2) solid #fff6c7;border-radius:calc(var(--u)*12);padding:calc(var(--u)*6) calc(var(--u)*10);background:linear-gradient(#fff2a4,#ffba32);color:#15294c;font-family:var(--display);font-size:calc(var(--u)*18);text-shadow:none;box-shadow:0 calc(var(--u)*4) 0 #79521e}
+.choice-picked::before{content:'';position:absolute;inset:0;z-index:7;border-radius:inherit;background:linear-gradient(115deg,transparent 30%,#fff8c577 48%,transparent 65%);pointer-events:none;animation:selection-sheen .33s ease-out both}
+.selection-burst{position:absolute;z-index:9;width:1px;height:1px;pointer-events:none}
+.selection-burst::before{content:'';position:absolute;inset:-46px;border:3px solid #fff4b9;border-radius:50%;animation:selection-ring .36s ease-out both}
+.selection-burst i{position:absolute;width:8px;height:8px;background:#fff5bc;clip-path:polygon(50% 0,65% 35%,100% 50%,65% 65%,50% 100%,35% 65%,0 50%,35% 35%);animation:selection-spark .36s ease-out both}
+.selection-pending button{cursor:wait}
+.selection-quiet .choice-picked::before{display:none}
+.selection-pending .choice:disabled,.selection-pending .pick:disabled{color:inherit}
+@keyframes selection-sheen{from{opacity:0;transform:translateX(-35%)}50%{opacity:1}to{opacity:0;transform:translateX(35%)}}
+@keyframes selection-ring{from{opacity:.7;transform:scale(.45)}to{opacity:0;transform:scale(1.5)}}
+@keyframes selection-spark{from{opacity:1;transform:translate(0,0) scale(1.2)}to{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.3)}}
+@media(prefers-reduced-motion:reduce){.choice-picked::before,.selection-burst{display:none}.selection-screen .choice{will-change:auto}}
+.selection-screen .choice{height:calc(var(--u)*440)}
+.selection-screen .choice.gamble .desc,.selection-screen .choice.mystery .desc{font-size:calc(var(--u)*16);line-height:1.5}
+.selection-screen .choice.gamble .top{background:radial-gradient(circle at 50% 60%,#fff8bf99,transparent 58%),linear-gradient(135deg,#ffe8a0,#ffbe44,#eb8054)}
+.selection-screen .choice.mystery .top{background:radial-gradient(circle at 50% 60%,#ffffff88,transparent 56%),linear-gradient(135deg,#c6bbff,#956eec,#54439f)}
