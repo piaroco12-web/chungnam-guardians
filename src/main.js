@@ -9,8 +9,10 @@ import { render } from './render.js';
 import { levelChoices, applyLevelChoice, altarChoices, applyAltarChoice, godOf } from './progress.js';
 import { PILOTS, SHIPS, DIFFS, REGIONS, BOSSES, CARDS } from '../data/content.js';
 import { PATHS, PACTS, STORY } from '../data/extras.js';
-import { BOONS } from '../data/boons.js';
+import { BOONS, RARITY } from '../data/boons.js';
 import * as ui from './ui.js';
+import { LUCK, randIn } from '../data/luck.js';
+import { luckOf } from './progress.js';
 import { FlowArt } from './bgart.js';
 import { updateSide } from './side.js';
 
@@ -133,11 +135,12 @@ function openLevelUp(b) {
   const choices = levelChoices(b.run);
   ui.levelUp(b.run, choices, b.ship.id, c => {
     sfx.pick();
-    applyLevelChoice(b.run, c);
+    const res = applyLevelChoice(b.run, c);
     b.recalc();
     if (b.run._healUp) { b.heal(b.run._healUp); delete b.run._healUp; }
     if (b.run._healPct) { b.heal(b.maxHp * b.run._healPct); delete b.run._healPct; }
     resumeBattle(b);
+    if (res && res.gamble) { res.ok ? sfx.levelup() : sfx.hurt(); ui.toast(res.ok ? `🎲 도전 성공! ${c.def.name} 2단계 상승` : `🎲 아쉬워요, 이번엔 실패 (성공 확률 ${Math.round(c.chance * 100)}%)`); }
   });
 }
 
@@ -219,6 +222,7 @@ function openAltar(b) {
       b.nextRegion();
       if (!b.run.daily) saveRun(b.run);
       resumeBattle(b); bgm('battle');
+      if (c.mystery) ui.toast(`흔들리는 제단: ${c.def.name} (${RARITY[c.rarity].name})`);
     });
   }, () => { if (b.run.rerolls > 0) { b.run.rerolls--; choices = altarChoices(b.run); draw(); } });
   draw();
@@ -233,7 +237,7 @@ function openPath(b) {
   ui.pathPick(pool, p => {
     sfx.pick();
     const next = () => { b.startStage(); resumeBattle(b); };
-    if (p.id === 'heal') { b.heal(b.maxHp * 0.35); return next(); }
+    if (p.id === 'heal') { const k = randIn(LUCK.path.heal); b.heal(b.maxHp * k); next(); return ui.toast(`쉼터 길: 체력 ${Math.round(k * 100)}% 회복`); }
     if (p.id === 'boon') {
       let choices = altarChoices(b.run, 2);
       const draw = () => ui.altar(b.run, choices, c => {
@@ -241,11 +245,14 @@ function openPath(b) {
         const gained = applyAltarChoice(b.run, c);
         if (gained) progress(s => { if (!s.codex.includes(gained)) s.codex.push(gained); });
         b.recalc(); next();
+        if (c.mystery) ui.toast(`흔들리는 제단: ${c.def.name} (${RARITY[c.rarity].name})`);
       }, () => { if (b.run.rerolls > 0) { b.run.rerolls--; choices = altarChoices(b.run, 2); draw(); } });
       return draw();
     }
-    b.run.buff = { kind: p.id, stage: b.run.stage };
+    const range = LUCK.path[p.id];
+    b.run.buff = { kind: p.id, stage: b.run.stage, mult: range ? randIn(range) : null };
     next();
+    if (range) ui.toast(`${p.name}: 이번엔 ${b.run.buff.mult.toFixed(1)}배`);
   });
 }
 
@@ -282,7 +289,7 @@ function finish(b, win, reason = '') {
   const showResult = reviewScore => ui.result({
     win: !!win, region: `${b.run.region + 1}. ${REGIONS[b.run.region].name}`, diff: d.name, kills: b.run.kills, level: b.run.level,
     coins: earned, cards: b.run.cardsGained.length, unlocks, teacher: save.teacher, kiosk: !!save.settings.kiosk,
-    reason, stories, review: reviewScore, cardList: b.run.cardsGained.map(id => CARDS.find(c => c.id === id)).filter(Boolean),
+    reason, stories, review: reviewScore, luck: luckOf(b.run), cardList: b.run.cardsGained.map(id => CARDS.find(c => c.id === id)).filter(Boolean),
   }, { again: () => { state.sel = {}; toSelect('pilot'); }, base: () => toBase('sortie'), next: nextStudent });
   // 수업 시간이 끝나면 그날 얻은 카드로 OX 3문제를 풀고 결과로
   if (reason === 'time') return runReview(reviewCards(b.run.cardsGained), showResult);

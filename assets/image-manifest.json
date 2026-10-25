@@ -1074,13 +1074,14 @@
       "path": "assets/img/region_landmarks_sheet.webp",
       "width": 1536,
       "height": 1024,
-      "bytes": 309236,
+      "bytes": 354766,
       "grid": [
         3,
         2
       ],
       "hasTransparency": true,
-      "format": "webp"
+      "format": "webp",
+      "note": "흑백 원본(art-src)에 지역별 색을 입힌 임시판 — tools/tint_landmarks.py"
     },
     {
       "path": "assets/img/menu_nav_3d_sheet.webp",

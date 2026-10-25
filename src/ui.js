@@ -4,6 +4,7 @@ import { GODS, BOONS, DUOS, LEGENDS, RARITY, SLOT_NAMES } from '../data/boons.js
 import { WEAPONS, UPGRADES, EVOLUTIONS, boonDef, godOf, MAX_SLOTS } from './progress.js';
 import { ZODIAC } from '../data/zodiac.js';
 import { PATHS, QUIZ, CARD_QUIZ, PACTS, STORY } from '../data/extras.js';
+import { LUCK } from '../data/luck.js';
 import { save, view, persist, TEACHER_CODE, totalCodex, totalCards, resetAll, resetForNextStudent } from './save.js';
 import { art, pic } from './assets.js';
 import { sfx, refreshBgm } from './audio.js';
@@ -12,7 +13,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.5.0';
+export const VERSION = '2.5.1';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -158,15 +159,17 @@ function cardsTab(bb) {
   const groups = ['지역 상식', 'SW·AI 개념', '예방 수칙', 'AI 역량'];
   const n = CARDS.filter(c => view.hasCard(c.id)).length;
   bb.innerHTML = `<h2 class="ol">카드첩 ${n}/${totalCards()}</h2>${groups.map(gname => `<div class="sec-label">${gname}</div><div class="grid cards">${CARDS.filter(c => c.kind === gname).map(c => view.hasCard(c.id)
-    ? `<div class="ccard got" data-c="${c.id}"><span class="e">${cardArt(c)}</span><b>${gridTitle(c.title)}</b></div>`
+    ? `<div class="ccard got ${kindClass(c)}" data-c="${c.id}"><span class="e">${cardArt(c)}</span><b>${gridTitle(c.title)}</b></div>`
     : `<div class="ccard"><span class="e">❔</span><span class="k">${hintFor(c)}</span></div>`).join('')}</div>`).join('')}`;
   const opened = STORY.filter(st => save.teacher || save.story.includes(st.id));
   bb.insertAdjacentHTML('beforeend', `<div class="sec-label">이야기 조각 ${opened.length}/${STORY.length}</div><div class="rows">${STORY.map(st => (save.teacher || save.story.includes(st.id))
     ? `<div class="row story" data-st="${st.id}"><div class="ic" style="width:calc(var(--u)*72);height:calc(var(--u)*72);overflow:hidden">${pic.story(st.id) ? `<img src="${pic.story(st.id)}" alt="" style="width:100%;height:100%;object-fit:cover">` : st.e}</div><div class="tx"><b>${esc(st.who)}</b><p style="color:#fff">${esc(st.text)}</p></div></div>`
-    : '<div class="row" style="opacity:.5"><div class="ic">🔒</div><div class="tx"><p>출격을 거듭하면 열려요</p></div></div>').join('')}</div>`);
+    : '<div class="row locked" style="opacity:.6"><div class="ic">🔒</div><div class="tx"><p>출격을 거듭하면 열려요</p></div></div>').join('')}</div>`);
   click('[data-c]', (e, el) => cardModal(CARDS.find(c => c.id === el.dataset.c)), bb);
   click('[data-st]', (e, el) => { const st = STORY.find(x => x.id === el.dataset.st), im = pic.story(st.id); modal(`${im ? `<img src="${im}" alt="" style="width:100%;border-radius:calc(var(--u)*12);border:calc(var(--u)*3) solid var(--ink)">` : `<div style="font-size:calc(var(--u)*64)">${st.e}</div>`}<b class="ol" style="font-size:calc(var(--u)*26)">${esc(st.who)}</b><p style="font-size:calc(var(--u)*19);font-weight:700;line-height:1.6;text-align:left">${esc(st.text)}</p>`); }, bb);
 }
+// 카드 종류별 색 이름
+const kindClass = c => ({ '지역 상식': 'kind-region', 'SW·AI 개념': 'kind-concept', '예방 수칙': 'kind-rule', 'AI 역량': 'kind-ai' })[c.kind] || '';
 function hintFor(c) {
   if (c.kind === '지역 상식') return REGIONS.find(r => 'r_' + r.id === c.id)?.name + ' 클리어';
   if (c.kind === 'SW·AI 개념') return godOf(c.god).name + ' 가호 얻기';
@@ -174,7 +177,7 @@ function hintFor(c) {
   const b = Object.values(BOSSES).find(x => x.card === c.id); return b ? b.name + ' 처치' : '';
 }
 export function cardModal(c) {
-  modal(`<div class="monochrome-card card-detail" style="display:grid;justify-items:center;gap:calc(var(--u)*12)"><div class="card-modal-art" style="font-size:calc(var(--u)*64)">${cardArt(c)}</div><b class="ol" style="display:block;width:100%;text-align:center;font-size:calc(var(--u)*30)">${esc(c.title)}</b><p style="font-size:calc(var(--u)*19);font-weight:700;line-height:1.6;text-align:left">${esc(c.text)}</p></div>`);
+  modal(`<div class="card-detail ${kindClass(c)}" style="display:grid;justify-items:center;gap:calc(var(--u)*12)"><div class="card-modal-art" style="font-size:calc(var(--u)*64)">${cardArt(c)}</div><b class="ol" style="display:block;width:100%;text-align:center;font-size:calc(var(--u)*30)">${esc(c.title)}</b><p style="font-size:calc(var(--u)*19);font-weight:700;line-height:1.6;text-align:left">${esc(c.text)}</p></div>`);
 }
 
 function settings(bb, state, act) {
@@ -351,6 +354,11 @@ export function levelUp(run, choices, ship, onPick) {
     else if (c.type === 'evo') { const ev = c.ev; name = typeof ev.name === 'string' ? ev.name : ev.name[ship]; desc = typeof ev.desc === 'string' ? ev.desc : ev.desc[ship]; icon = `<span class="evolved-skill">${skillArt(weaponDef(ev.from))}</span>`; badge = '진화'; lv = 3; cls = 'legend'; elem = '진화'; ei = '🌟'; }
     else if (c.type === 'coin') { name = '코인 꾸러미'; icon = '💰'; desc = '코인 +20'; elem = '보너스'; }
     else { name = '응급 수리'; icon = '🔧'; desc = '체력 30% 회복'; elem = '보너스'; }
+    if (c.gamble) {   // 도전 강화: 확률을 그대로 보여 준다
+      const to = Math.min(5, c.lv + 2), p = Math.round(c.chance * 100);
+      desc = `<span class="up">${c.lv ? `Lv.${c.lv} → ${to}` : `새로 얻고 바로 Lv.${to}`}</span><br><b class="luck">성공 ${p}%</b> 2단계 상승<br><span class="miss">실패 ${100 - p}%: 이번엔 효과 없음</span>`;
+      badge = '도전'; cls += ' gamble'; elem = '도전 강화'; ei = '🎲'; lv = Math.min(3, Math.ceil(to * 3 / 5));
+    }
     return `<div class="choicewrap">${badge ? `<span class="badge">${badge}</span>` : ''}<button class="choice ${cls}" data-i="${i}"><div class="top"><div class="name">${esc(name)}</div><div class="art">${icon}</div></div>${dots(lv)}<div class="desc">${desc}</div><div class="elem"><i>${ei}</i>${elem}</div></button></div>`;
   };
   const r = show(`<div class="screen dim upgrade-screen"><div class="upttl ol">업그레이드</div>${ownBar(run)}<div class="choices">${choices.map(card).join('')}</div><div class="hint ol">위에서 <em>스킬</em>을 하나 골라 보세요.</div></div>`);
@@ -368,7 +376,12 @@ export function altar(run, choices, onPick, onReroll) {
     else if (c.type === 'duo') { name = c.def.name; desc = c.def.desc; cls = 'duo'; badge = '듀오'; slot = c.def.gods.map(x => godOf(x).name).join('+'); rar = '듀오'; }
     else if (c.type === 'legend') { name = c.def.name; desc = c.def.desc; cls = 'legend'; badge = '전설'; slot = '전설'; rar = '전설'; }
     else { name = g.name + '의 선물'; desc = `코인 +${c.coins}`; rar = '선물'; }
-    const icon = c.def ? boonIcon(c.def.id) : g.e;
+    let icon = c.def ? boonIcon(c.def.id) : g.e;
+    if (c.mystery) {   // 흔들리는 제단: 내용을 숨기고 확률만 보여 준다
+      const w = LUCK.mystery.weights, tot = w.reduce((a, b) => a + b, 0), hero = Math.round(w[2] / tot * 100), base = Math.round(RARITY[2].w / RARITY.reduce((a, r) => a + r.w, 0) * 100);
+      name = '흔들리는 제단'; icon = '<span class="mystery-q">?</span>'; rar = '???'; slot = '???'; badge = '신비'; cls = 'mystery';
+      desc = `어떤 ${esc(g.name)} 가호가 나올지 몰라요<br><b class="luck">영웅 등급 ${hero}%</b> (보통 ${base}%)`;
+    }
     const frame = ['legend', 'duo'].includes(c.type) ? null : pic.frame(0);
     return `<div class="choicewrap">${badge ? `<span class="badge">${badge}</span>` : ''}<button class="choice ${cls}" data-i="${i}"><div class="top"><div class="name">${esc(name)}</div><div class="art framed-art">${icon}${frame ? `<img class="badge-frame" src="${frame}" alt="">` : ''}</div></div><div class="dots" style="color:#fff;font-size:calc(var(--u)*14);font-weight:900">${rar} · ${slot}</div><div class="desc">${desc}</div><div class="elem"><i style="background:${g.color}">${g.e}</i>${g.elem}</div></button></div>`;
   };
@@ -403,6 +416,8 @@ export function result(r, act) {
       <div class="stat"><span>처치</span><span data-count="${r.kills}">0</span></div>
       <div class="stat"><span>레벨</span><span>${r.level}</span></div>
       <div class="stat"><span>얻은 코인</span><span><span data-count="${r.coins}">0</span>${r.teacher ? ' (저장 안 됨)' : ''}</span></div>
+      ${r.luck && r.luck.gamble ? `<div class="stat"><span>도전 강화</span><span>${r.luck.gamble}번 중 ${r.luck.gambleWin}번 성공 <small style="font-size:.7em">(확률 ${Math.round(LUCK.gamble.success * 100)}%)</small></span></div>` : ''}
+      ${r.luck && (r.luck.events || r.luck.rage) ? `<div class="stat"><span>돌발·분노</span><span>돌발 ${r.luck.events}번 · 보스 분노 ${r.luck.rage}번</span></div>` : ''}
       ${r.review ? `<div class="stat"><span>오늘의 복습</span><span>${r.review.ok}/${r.review.total} 정답</span></div>` : ''}
       ${r.cards ? `<div class="stat"><span>새 카드</span><span>${r.cards}장</span></div>` : ''}
       ${r.cardList && r.cardList.length ? `<div class="stat" style="flex-direction:column;gap:calc(var(--u)*4)"><span>오늘 배운 것</span><span style="font-family:var(--body);font-size:calc(var(--u)*17);color:#fff;font-weight:700">${r.cardList.map(c => `${c.e} ${esc(c.title)}`).join('<br>')}</span></div>` : ''}
