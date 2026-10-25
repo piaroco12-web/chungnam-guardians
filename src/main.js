@@ -65,7 +65,6 @@ function toSelect(step) {
       const i = order.indexOf(step); i <= 0 ? toBase() : toSelect(order[i - 1]);
     },
     pick: (st, v) => {
-      sfx.pick();
       if (st === 'pilot') { state.pilot = v; toSelect('ship'); }
       else if (st === 'ship') { state.ship = v; toSelect('diff'); }
       else if (st === 'diff') { state.diff = v; view.pactsUnlocked() ? toSelect('pact') : save.teacher ? toSelect('region') : startRun(0); }
@@ -134,7 +133,6 @@ function openLevelUp(b) {
   b.paused = true; sfx.levelup();
   const choices = levelChoices(b.run);
   ui.levelUp(b.run, choices, b.ship.id, c => {
-    sfx.pick();
     const res = applyLevelChoice(b.run, c);
     b.recalc();
     if (b.run._healUp) { b.heal(b.run._healUp); delete b.run._healUp; }
@@ -178,7 +176,6 @@ function afterQuiz(b, id, isRegion) {
     // 중간 보스 뒤: AI 12지신 동료 고르기
     if (b.pact('solo')) return showCards(cards, () => { b.stageCleared(); resumeBattle(b); });
     return showCards(cards, () => ui.zodiacPick(ui.zodiacChoices(), z => {
-      sfx.pick();
       b.run.companion = z.id; b.recalc();
       progress(s => { s.stats.zodiac++; });
       const more = [];
@@ -208,7 +205,6 @@ function openAltar(b) {
   bgm('altar');
   let choices = altarChoices(b.run);
   const draw = () => ui.altar(b.run, choices, c => {
-    sfx.pick();
     const before = new Set(Object.keys(b.run.boons).map(id => BOONS.find(x => x.id === id).god));
     const gained = applyAltarChoice(b.run, c);
     if (gained) progress(s => { if (!s.codex.includes(gained)) s.codex.push(gained); });
@@ -235,13 +231,11 @@ function openPath(b) {
   let pool = PATHS.filter(p => !(p.id === 'heal' && b.pact('noHeal')) && !(p.id === 'elite' && beforeBoss));
   pool = pool.sort(() => Math.random() - 0.5).slice(0, 2);
   ui.pathPick(pool, p => {
-    sfx.pick();
     const next = () => { b.startStage(); resumeBattle(b); };
     if (p.id === 'heal') { const k = randIn(LUCK.path.heal); b.heal(b.maxHp * k); next(); return ui.toast(`쉼터 길: 체력 ${Math.round(k * 100)}% 회복`); }
     if (p.id === 'boon') {
       let choices = altarChoices(b.run, 2);
       const draw = () => ui.altar(b.run, choices, c => {
-        sfx.pick();
         const gained = applyAltarChoice(b.run, c);
         if (gained) progress(s => { if (!s.codex.includes(gained)) s.codex.push(gained); });
         b.recalc(); next();

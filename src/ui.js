@@ -8,17 +8,21 @@ import { LUCK } from '../data/luck.js';
 import { save, view, persist, TEACHER_CODE, totalCodex, totalCards, resetAll, resetForNextStudent } from './save.js';
 import { art, pic } from './assets.js';
 import { sfx, refreshBgm } from './audio.js';
-import { scatterText, stagger, stamp as stampFx, unfold, highlight, countUp, bouncy, jelly, nope } from './motion.js';
+import { scatterText, stagger, stamp as stampFx, unfold, highlight, countUp, bouncy, jelly, nope, dealChoices, chooseCard } from './motion.js';
 import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.5.1';
+export const VERSION = '2.5.2';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
 const on = (sel, ev, fn, r = root()) => r.querySelectorAll(sel).forEach(el => el.addEventListener(ev, e => { fn(e, el); }));
 const click = (sel, fn, r) => on(sel, 'click', (e, el) => { sfx.click(); fn(e, el); }, r);
+const confirmChoice = (el, kind, fn) => {
+  if (el.closest('.screen')?.dataset.choicePending === 'true') return;
+  sfx.choose(kind); chooseCard(el, fn);
+};
 export function toast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; root().appendChild(t); setTimeout(() => t.remove(), 2300); }
 
 // 아이콘: 가호 시트 그림이 있으면 그 칸, 없으면 수호신 기호
@@ -32,6 +36,7 @@ function boonIcon(id) {
 const weaponDef = id => WEAPONS.find(w => w.id === id);
 const upDef = id => UPGRADES.find(u => u.id === id);
 const skillArt = d => { const im = pic.skill(d.id); return im ? `<img src="${im}" alt="">` : d.icon; };
+const choiceArt = (id, fallback) => { const im = pic.path(id); return im ? `<img src="${im}" alt="">` : fallback; };
 const dots = (lv, max = 3) => `<div class="dots">${Array.from({ length: max }, (_, i) => `<i class="${i < lv ? 'on' : ''}"></i>`).join('')}</div>`;
 const coinIcon = '<span class="coin"></span>';
 function cardArt(c) {
@@ -246,21 +251,21 @@ export function select(step, sel, act) {
   if (step === 'region') body = head(4, '시작 지역 (교사 모드)') + `<div class="picks">${REGIONS.map((rg, i) => `<button class="pick diff" data-v="${i}"><div class="tx"><b>${i + 1}. ${rg.name}</b><p>중간 보스 ${BOSSES[rg.mid].name} · 지역 보스 ${BOSSES[rg.boss].name}</p></div></button>`).join('')}</div>`;
   const r = show(`<div class="screen" style="background:rgba(20,26,58,.6);overflow-y:auto">${body}</div>`);
   click('#back', act.back);
-  click('.pick', (e, el) => {
-    if (el.classList.contains('lock')) { nope(el); return toast('아직 잠겨 있어요'); }
-    if (step === 'pact') { // 다시 그리지 않고 그 자리에서 켜고 끈다
+  on('.pick', 'click', (e, el) => {
+    if (el.classList.contains('lock')) { sfx.click(); nope(el); return toast('아직 잠겨 있어요'); }
+    if (step === 'pact') { sfx.click(); // 다시 그리지 않고 그 자리에서 켜고 끈다
       const on = sel.pacts || (sel.pacts = []), id = el.dataset.v, i = on.indexOf(id);
       i >= 0 ? on.splice(i, 1) : on.push(id);
       const now = on.includes(id);
       el.setAttribute('aria-pressed', now); el.style.borderColor = now ? '#ffc53d' : 'var(--ink)'; el.querySelector('.ck').textContent = now ? '✓' : '';
-      if (now) jelly(el);
+      if (now && !save.settings.calm) jelly(el);
       r.querySelector('#pb').textContent = Math.round(PACTS.filter(p => on.includes(p.id)).reduce((a, p) => a + p.bonus, 0) * 100);
       return;
     }
-    act.pick(step, el.dataset.v);
+    confirmChoice(el, 'pilot', () => act.pick(step, el.dataset.v));
   });
-  click('#pactgo', () => act.pick('pactgo'));
-  stagger(r.querySelectorAll('.pick'));
+  on('#pactgo', 'click', (e, el) => confirmChoice(el, 'pilot', () => act.pick('pactgo')));
+  dealChoices(r.querySelectorAll('.pick'));
   return r;
 }
 
@@ -352,8 +357,8 @@ export function levelUp(run, choices, ship, onPick) {
     if (c.type === 'weapon') { name = c.def.name; icon = skillArt(c.def); lv = Math.min(3, Math.ceil((c.lv + 1) * 3 / 5)); desc = c.lv ? `<span class="up">Lv.${c.lv} → ${c.lv + 1}</span><br>${c.def.desc(c.lv + 1)}` : c.def.desc(1); badge = c.lv ? '' : '신규'; }
     else if (c.type === 'upgrade') { name = c.def.name; icon = skillArt(c.def); lv = Math.min(3, Math.ceil((c.lv + 1) * 3 / 5)); desc = c.def.desc(c.lv + 1); badge = c.lv ? '' : '신규'; elem = '강화'; ei = '📘'; }
     else if (c.type === 'evo') { const ev = c.ev; name = typeof ev.name === 'string' ? ev.name : ev.name[ship]; desc = typeof ev.desc === 'string' ? ev.desc : ev.desc[ship]; icon = `<span class="evolved-skill">${skillArt(weaponDef(ev.from))}</span>`; badge = '진화'; lv = 3; cls = 'legend'; elem = '진화'; ei = '🌟'; }
-    else if (c.type === 'coin') { name = '코인 꾸러미'; icon = '💰'; desc = '코인 +20'; elem = '보너스'; }
-    else { name = '응급 수리'; icon = '🔧'; desc = '체력 30% 회복'; elem = '보너스'; }
+    else if (c.type === 'coin') { name = '코인 꾸러미'; icon = choiceArt('coin', '💰'); desc = '코인 +20'; elem = '보너스'; }
+    else { name = '응급 수리'; icon = choiceArt('repair', '🔧'); desc = '체력 30% 회복'; elem = '보너스'; }
     if (c.gamble) {   // 도전 강화: 확률을 그대로 보여 준다
       const to = Math.min(5, c.lv + 2), p = Math.round(c.chance * 100);
       desc = `<span class="up">${c.lv ? `Lv.${c.lv} → ${to}` : `새로 얻고 바로 Lv.${to}`}</span><br><b class="luck">성공 ${p}%</b> 2단계 상승<br><span class="miss">실패 ${100 - p}%: 이번엔 효과 없음</span>`;
@@ -361,9 +366,9 @@ export function levelUp(run, choices, ship, onPick) {
     }
     return `<div class="choicewrap">${badge ? `<span class="badge">${badge}</span>` : ''}<button class="choice ${cls}" data-i="${i}"><div class="top"><div class="name">${esc(name)}</div><div class="art">${icon}</div></div>${dots(lv)}<div class="desc">${desc}</div><div class="elem"><i>${ei}</i>${elem}</div></button></div>`;
   };
-  const r = show(`<div class="screen dim upgrade-screen"><div class="upttl ol">업그레이드</div>${ownBar(run)}<div class="choices">${choices.map(card).join('')}</div><div class="hint ol">위에서 <em>스킬</em>을 하나 골라 보세요.</div></div>`);
-  stagger(r.querySelectorAll('.choicewrap'), 110, 30);
-  click('.choice', (e, el) => onPick(choices[+el.dataset.i]));
+  const r = show(`<div class="screen dim upgrade-screen selection-screen"><div class="upttl ol">업그레이드</div>${ownBar(run)}<div class="choices">${choices.map(card).join('')}</div><div class="hint ol">위에서 <em>스킬</em>을 하나 골라 보세요.</div></div>`);
+  dealChoices(r.querySelectorAll('.choicewrap'));
+  on('.choice', 'click', (e, el) => confirmChoice(el, 'upgrade', () => onPick(choices[+el.dataset.i])));
 }
 
 // ───────── 수호신 제단 ─────────
@@ -376,22 +381,22 @@ export function altar(run, choices, onPick, onReroll) {
     else if (c.type === 'duo') { name = c.def.name; desc = c.def.desc; cls = 'duo'; badge = '듀오'; slot = c.def.gods.map(x => godOf(x).name).join('+'); rar = '듀오'; }
     else if (c.type === 'legend') { name = c.def.name; desc = c.def.desc; cls = 'legend'; badge = '전설'; slot = '전설'; rar = '전설'; }
     else { name = g.name + '의 선물'; desc = `코인 +${c.coins}`; rar = '선물'; }
-    let icon = c.def ? boonIcon(c.def.id) : g.e;
+    let icon = c.def ? boonIcon(c.def.id) : choiceArt('coin', g.e);
     if (c.mystery) {   // 흔들리는 제단: 내용을 숨기고 확률만 보여 준다
       const w = LUCK.mystery.weights, tot = w.reduce((a, b) => a + b, 0), hero = Math.round(w[2] / tot * 100), base = Math.round(RARITY[2].w / RARITY.reduce((a, r) => a + r.w, 0) * 100);
       name = '흔들리는 제단'; icon = '<span class="mystery-q">?</span>'; rar = '???'; slot = '???'; badge = '신비'; cls = 'mystery';
       desc = `어떤 ${esc(g.name)} 가호가 나올지 몰라요<br><b class="luck">영웅 등급 ${hero}%</b> (보통 ${base}%)`;
     }
     const frame = ['legend', 'duo'].includes(c.type) ? null : pic.frame(0);
-    return `<div class="choicewrap">${badge ? `<span class="badge">${badge}</span>` : ''}<button class="choice ${cls}" data-i="${i}"><div class="top"><div class="name">${esc(name)}</div><div class="art framed-art">${icon}${frame ? `<img class="badge-frame" src="${frame}" alt="">` : ''}</div></div><div class="dots" style="color:#fff;font-size:calc(var(--u)*14);font-weight:900">${rar} · ${slot}</div><div class="desc">${desc}</div><div class="elem"><i style="background:${g.color}">${g.e}</i>${g.elem}</div></button></div>`;
+    return `<div class="choicewrap" style="--accent:${g.color};--top-light:#eefaff;--top-dark:${g.dark}">${badge ? `<span class="badge">${badge}</span>` : ''}<button class="choice ${cls}" data-i="${i}"><div class="top"><div class="name">${esc(name)}</div><div class="art framed-art">${icon}${frame ? `<img class="badge-frame" src="${frame}" alt="">` : ''}</div></div><div class="dots" style="color:#fff;font-size:calc(var(--u)*14);font-weight:900">${rar} · ${slot}</div><div class="desc">${desc}</div><div class="elem"><i style="background:${g.color}">${g.e}</i>${g.elem}</div></button></div>`;
   };
-  const r = show(`<div class="screen dim altar"><div class="upttl ol" style="margin-top:calc(var(--u)*70)">수호신 제단</div>
+  const r = show(`<div class="screen dim altar upgrade-screen selection-screen"><div class="upttl ol" style="margin-top:calc(var(--u)*70)">수호신 제단</div>
     <div class="godrow">${choices.map(c => `<div class="god"><div class="face" style="background:${c.god.color}"><img src="${pic.god(c.god)}" alt=""></div><b class="ol">${c.god.name}</b></div>`).join('')}</div>
     <div class="choices" style="padding-top:calc(var(--u)*14)">${choices.map(card).join('')}</div>
     <div class="altar-foot">${run.rerolls > 0 ? `<button class="btn blue sm" id="rr">🎲 다시 뽑기 (${run.rerolls})</button>` : ''}<span class="ol" style="font-size:calc(var(--u)*20)">수호신의 가호를 하나 받으세요</span></div></div>`);
   mountFlow(r.querySelector('.altar'), { seed: run.region * 97 + 11, colors: choices.map(c => c.god.color), base: '#141a3a', count: 160 });
-  stagger(r.querySelectorAll('.god'), 140, 20); stagger(r.querySelectorAll('.choicewrap'), 140, 30);
-  click('.choice', (e, el) => onPick(choices[+el.dataset.i]));
+  dealChoices(r.querySelectorAll('.god')); dealChoices(r.querySelectorAll('.choicewrap'));
+  on('.choice', 'click', (e, el) => confirmChoice(el, 'boon', () => onPick(choices[+el.dataset.i])));
   click('#rr', onReroll);
 }
 
@@ -403,7 +408,7 @@ export function cardReveal(c, onNext) {
     <button class="btn cardbtn" id="cn">확인</button></div>`);
   unfold(r.querySelector('.bigcard'));
   highlight(r.querySelector('.bigcard p'), c.hl);
-  click('#cn', onNext);
+  on('#cn', 'click', () => confirmChoice(r.querySelector('.bigcard'), 'reward', onNext));
 }
 
 // ───────── 결과 ─────────
@@ -441,16 +446,15 @@ export function statsModal(b) {
 export function zodiacPick(choices, onPick) {
   const card = (z, i) => {
     const img = pic.zodiac(z);
-    return `<div class="choicewrap"><button class="choice" data-i="${i}"><div class="top" style="background:${z.color}"><div class="name">${z.name}</div><div class="art" style="background:#fff">${img ? `<img src="${img}" alt="">` : z.e}</div></div>
+    return `<div class="choicewrap" style="--accent:${z.color};--top-light:#f6fff3;--top-dark:#356a91"><button class="choice" data-i="${i}"><div class="top" style="background:${z.color}"><div class="name">${z.name}</div><div class="art" style="background:#fff">${img ? `<img src="${img}" alt="">` : z.e}</div></div>
       <div class="dots" style="color:#fff;font-size:calc(var(--u)*15);font-weight:900">${esc(z.word)}</div><div class="desc">${esc(z.desc)}</div><div class="elem"><i>🤖</i>${esc(z.key)}</div></button></div>`;
   };
-  const r = show(`<div class="screen dim altar"><div class="upttl ol" style="margin-top:calc(var(--u)*110);font-size:calc(var(--u)*34);width:calc(var(--u)*440)">AI 12지신 수호대</div>
+  const r = show(`<div class="screen dim altar upgrade-screen selection-screen zodiac-screen"><div class="upttl ol" style="margin-top:calc(var(--u)*110);font-size:calc(var(--u)*34);width:calc(var(--u)*440)">AI 12지신 수호대</div>
     <p class="ol" style="margin-top:calc(var(--u)*18);font-size:calc(var(--u)*22);text-align:center">이 지역 끝까지 함께 날아 줄<br>동료를 한 마리 고르세요</p>
     <div class="choices">${choices.map(card).join('')}</div></div>`);
   mountFlow(r.querySelector('.altar'), { seed: 12, colors: choices.map(z => z.color), base: '#141a3a', count: 140 });
-  stagger(r.querySelectorAll('.choicewrap'), 140, 30);
-  let picked = false;
-  click('.choice', (e, el) => { if (picked) return; picked = true; jelly(el, () => onPick(choices[+el.dataset.i])); });
+  dealChoices(r.querySelectorAll('.choicewrap'));
+  on('.choice', 'click', (e, el) => confirmChoice(el, 'zodiac', () => onPick(choices[+el.dataset.i])));
 }
 
 // 보스 정화 도장 (M06)
@@ -474,19 +478,14 @@ async function showCredits() {
 
 // ───────── 갈림길 ─────────
 export function pathPick(opts, onPick) {
-  const pathArt = p => {
-    const key = { coin: 'coin', heal: 'heart', xp: 'xp' }[p.id];
-    const im = key && art.item(key);
-    return im ? `<img src="${im.toDataURL()}" alt="">` : p.e;
-  };
-  const r = show(`<div class="screen dim altar upgrade-screen path-screen"><div class="upttl ol" style="margin-top:calc(var(--u)*150)">갈림길</div>
+  const pathArt = p => { const im = pic.path(p.id); return im ? `<img src="${im}" alt="">` : p.e; };
+  const r = show(`<div class="screen dim altar upgrade-screen selection-screen path-screen"><div class="upttl ol" style="margin-top:calc(var(--u)*150)">갈림길</div>
     <p class="ol" style="margin-top:calc(var(--u)*18);font-size:calc(var(--u)*22);text-align:center">어느 길로 갈까요?</p>
     <div class="choices" style="grid-template-columns:repeat(2,1fr);padding-inline:calc(var(--u)*34)">${opts.map((p, i) => `<div class="choicewrap route-${p.id}"><button class="choice" data-i="${i}" style="height:calc(var(--u)*390)">
       <div class="top" style="height:calc(var(--u)*220)"><div class="name">${p.name}</div><div class="art">${pathArt(p)}</div></div><div class="desc" style="font-size:calc(var(--u)*18)">${p.desc}</div><div class="elem">이 길로 가기 →</div></button></div>`).join('')}</div></div>`);
   mountFlow(r.querySelector('.altar'), { seed: 7, colors: ['#ffc53d', '#3fe0c0'], base: '#141a3a', count: 120 });
-  stagger(r.querySelectorAll('.choicewrap'), 140, 30);
-  let picked = false;
-  click('.choice', (e, el) => { if (picked) return; picked = true; jelly(el, () => onPick(opts[+el.dataset.i])); });
+  dealChoices(r.querySelectorAll('.choicewrap'));
+  on('.choice', 'click', (e, el) => confirmChoice(el, 'route', () => onPick(opts[+el.dataset.i])));
 }
 
 // ───────── 정화 퀴즈 (OX) ─────────

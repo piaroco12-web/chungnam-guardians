@@ -75,7 +75,7 @@ function loadSamples() {
   if (!a || samplesStarted) return;
   samplesStarted = true;
   const files = new Set([...Object.values(samples).map(v => v[0]), 'explosion_large']);
-  for (const file of files) fetch(`assets/sfx/sfx_${file}.mp3`)
+  for (const file of files) fetch(new URL(`../assets/sfx/sfx_${file}.mp3`, import.meta.url))
     .then(r => { if (!r.ok) throw new Error('audio unavailable'); return r.arrayBuffer(); })
     .then(bytes => a.decodeAudioData(bytes)).then(b => buffers.set(file, b)).catch(() => {});
 }
@@ -96,6 +96,14 @@ function sample(name, args) {
 }
 export const sfx = { ...synth };
 for (const name of Object.keys(samples)) sfx[name] = (...args) => sample(name, args);
+// 카드 확정음은 UI에서 한 번만 재생한다. 짧은 음색 차이로 선택 종류를 구분한다.
+sfx.choose = (kind = 'upgrade') => {
+  if (!save.settings.sfx || !gate('choose', 100)) return;
+  sfx.pick();
+  const base = { route: 523, boon: 784, zodiac: 659, pilot: 587, reward: 880, toggle: 440 }[kind] || 698;
+  tone({ type: 'sine', freq: base, duration: .09, vol: .045, delay: .035 });
+  tone({ type: 'sine', freq: base * 1.5, duration: .13, vol: .04, delay: .105 });
+};
 // 결과 화면 음악이 켜져 있으면 패배 징글과 합성음이 겹치지 않게 한다.
 sfx.over = () => { if (!save.settings.bgm) synth.over(); };
 
@@ -112,7 +120,7 @@ export function bgm(name) {
   if (!name || !save.settings.bgm || !TRACKS[name]) return;
   let a = tracks[name];
   if (!a) {
-    a = new Audio(`assets/bgm/bgm_${TRACKS[name]}.mp3`);
+    a = new Audio(new URL(`../assets/bgm/bgm_${TRACKS[name]}.mp3`, import.meta.url).href);
     a.loop = !['victory', 'defeat'].includes(name);
     a.volume = name === 'boss' ? 0.24 : 0.20;
     a.preload = 'auto'; tracks[name] = a;

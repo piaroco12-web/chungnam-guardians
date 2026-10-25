@@ -69,6 +69,7 @@ export function countUp(el, to, ms = 1400, suffix = '') {
 // M11 통통 버튼: 누르면 작아졌다 통통 튀며 돌아옴 (스프링 느낌의 키프레임)
 export function bouncy(root) {
   root.addEventListener('pointerdown', e => {
+    if (save.settings.calm) return;
     const b = e.target.closest('.btn'); if (!b || b.disabled) return;
     play(b, [{ scale: 1 }, { scale: 0.9, offset: 0.15 }, { scale: 1.08, offset: 0.45 }, { scale: 0.97, offset: 0.7 }, { scale: 1 }], { duration: 480, easing: 'ease-out', fill: 'none' });
   });
@@ -78,6 +79,45 @@ export function bouncy(root) {
 export function jelly(el, done) {
   const a = play(el, [{ transform: 'scale(1,1)' }, { transform: 'scale(1.2,.8)', offset: 0.18 }, { transform: 'scale(.9,1.1)', offset: 0.42 }, { transform: 'scale(1.05,.95)', offset: 0.65 }, { transform: 'scale(1,1)' }], { duration: 520, easing: 'ease-out', fill: 'none' });
   if (a) a.finished.then(() => done && done()); else done && done();
+}
+
+// 선택 카드 등장: 읽는 순서만 짧게 안내한다.
+export function dealChoices(els) {
+  if (save.settings.calm || reduce()) return;
+  [...els].forEach((el, i) => play(el,
+    [{ opacity: 0, transform: 'translateY(18px) rotateX(8deg) scale(.97)' }, { opacity: 1, transform: 'none' }],
+    { duration: 340, delay: i * 65, easing: EXPO }));
+}
+
+// 선택 확정은 화면당 한 번만 실행한다. 화면이 닫히면 늦은 콜백은 버린다.
+export function chooseCard(el, done) {
+  const screen = el?.closest('.screen');
+  if (!screen || screen.dataset.choicePending === 'true') return false;
+  screen.dataset.choicePending = 'true';
+  screen.querySelectorAll('button').forEach(b => { b.disabled = true; });
+  el.classList.add('choice-picked');
+  const quiet = save.settings.calm || reduce();
+  let finished = false;
+  const finish = () => { if (finished) return; finished = true; if (screen.isConnected) done?.(); };
+  if (quiet) { screen.classList.add('selection-quiet'); finish(); return true; }
+  screen.classList.add('selection-pending');
+  const group = el.closest('.choices, .picks');
+  group?.querySelectorAll('.choice, .pick').forEach(other => {
+    if (other !== el) play(other, [{ opacity: 1 }, { opacity: .2, transform: 'translateY(8px) scale(.96)' }], { duration: 220, easing: CUBIC });
+  });
+  const burst = document.createElement('span'); burst.className = 'selection-burst'; burst.setAttribute('aria-hidden', 'true');
+  const a = el.getBoundingClientRect(), b = screen.getBoundingClientRect();
+  burst.style.left = (a.x + a.width / 2 - b.x) + 'px'; burst.style.top = (a.y + a.height * .42 - b.y) + 'px';
+  for (let i = 0; i < 8; i++) {
+    const p = document.createElement('i'), angle = i * Math.PI / 4;
+    p.style.setProperty('--dx', Math.cos(angle) * 78 + 'px'); p.style.setProperty('--dy', Math.sin(angle) * 78 + 'px');
+    burst.appendChild(p);
+  }
+  screen.appendChild(burst);
+  const animation = play(el, [{ transform: 'scale(1)' }, { transform: 'translateY(-5px) scale(1.055)', offset: .5 }, { transform: 'translateY(-3px) scale(1.025)' }], { duration: 330, easing: CUBIC, fill: 'forwards' });
+  animation?.finished.then(finish).catch(finish);
+  setTimeout(finish, 380);
+  return true;
 }
 
 // M13 고개 젓기: 안 될 때 좌우로 흔들고 테두리를 잠깐 빨갛게
