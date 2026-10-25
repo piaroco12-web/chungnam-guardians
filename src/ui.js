@@ -6,6 +6,7 @@ import { ZODIAC } from '../data/zodiac.js';
 import { PATHS, QUIZ, CARD_QUIZ, PACTS, STORY } from '../data/extras.js';
 import { LUCK } from '../data/luck.js';
 import { SETS, SHIP_UNLOCK, BASE_COLOR } from '../data/unlocks.js';
+import { lbEnabled, loadBoard } from './leaderboard.js';
 import { save, view, persist, TEACHER_CODE, totalCodex, totalCards, resetAll, resetForNextStudent } from './save.js';
 import { art, pic } from './assets.js';
 import { sfx, refreshBgm } from './audio.js';
@@ -14,7 +15,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.6.1';
+export const VERSION = '2.7.0';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -101,7 +102,7 @@ function sortie(bb, state, act) {
     <button class="btn" id="go" style="font-size:calc(var(--u)*40);padding:calc(var(--u)*14) calc(var(--u)*60)">출격하기</button>
     ${state.hasRun ? '<button class="btn blue sm" id="cont">이어하기</button>' : ''}
     ${state.daily ? `<div class="row daily" style="width:100%"><div class="ic">📅</div><div class="tx"><b>오늘의 도전 · ${esc(state.daily.label)}</b>
-      <p>${esc(state.daily.pilotName)} + ${esc(state.daily.shipName)} · 도전 난이도 · 모두 같은 하늘<br>오늘 내 최고: ${state.daily.best ? `${state.daily.best.region}지역 · 처치 ${state.daily.best.kills}` : '아직 없음'}</p></div>
+      <p>${esc(state.daily.regionName)}에서 출발 · ${esc(state.daily.pilotName)} + ${esc(state.daily.shipName)} · 도전 난이도<br>오늘 내 최고: ${state.daily.best ? `${esc(REGIONS[state.daily.best.region - 1]?.name || state.daily.best.region + '지역')}까지 · 처치 ${state.daily.best.kills}` : '아직 없음'}</p></div>
       <button class="btn blue sm" id="daily">도전</button></div>` : ''}
     <button class="btn gray sm" id="home">타이틀로</button>
   </div>`;
@@ -199,6 +200,8 @@ function settings(bb, state, act) {
     ${row('calm', '섬광 줄이기', '번쩍임·화면 흔들림·깜빡임을 약하게 해요. 빛에 예민한 친구에게 권해요.')}
     ${save.teacher ? `<div class="row"><div class="tx"><b>수업 시간 모드</b><p>정한 시간이 지나면 판을 마무리하고 오늘 얻은 카드를 보여 줘요.</p></div>
       <div style="display:flex;gap:calc(var(--u)*4)">${[0, 10, 15, 20, 30].map(m => `<button class="btn sm ${save.settings.classMin === m ? '' : 'gray'}" data-cm="${m}" style="padding:calc(var(--u)*6) calc(var(--u)*8)">${m ? m + '분' : '끔'}</button>`).join('')}</div></div>` : ''}
+    ${lbEnabled() && !save.teacher ? `<div class="row"><div class="tx"><b>오늘의 도전 기록 보내기</b><p>${save.student ? `${esc(save.student.cls)}반 ${save.student.num}번으로 선생님께 보내요.` : '반·번호를 넣으면 오늘의 도전 기록이 선생님 순위표로 가요.'}</p></div><button class="btn blue sm" id="stu">${save.student ? '바꾸기' : '넣기'}</button></div>` : ''}
+    ${lbEnabled() && save.teacher ? `<div class="row"><div class="tx"><b>오늘의 도전 순위표</b><p>학생들이 보낸 기록을 날짜별로 봐요.${save.settings.lbKey ? '' : ' 먼저 읽기 열쇠를 넣어 주세요.'}</p></div><div style="display:flex;gap:calc(var(--u)*6)"><button class="btn gray sm" id="lbkey">열쇠</button><button class="btn blue sm" id="lbopen">보기</button></div></div>` : ''}
     <div class="row"><div class="tx"><b>조작 방법</b><p>화면을 드래그해서 이동, 손을 떼면 슬로우 모션. PC는 방향키·WASD로 이동, Space 필살기, Esc 일시정지.</p></div></div>
     <div class="row"><div class="tx"><b>만든 사람들</b><p>음악·효과음·그림 출처와 라이선스</p></div><button class="btn blue sm" id="credits">보기</button></div>
     <div class="row"><div class="tx"><b>기록 초기화</b><p>코인·강화·카드·도감을 모두 지워요.</p></div><button class="btn red sm" id="reset">초기화</button></div>
@@ -209,6 +212,10 @@ function settings(bb, state, act) {
   click('[data-s]', (e, el) => { const k = el.dataset.s; save.settings[k] = !save.settings[k]; persist(); if (k === 'bgm') refreshBgm(); act.refresh(); }, bb);
   click('#reset', () => modal(`<b class="ol" style="font-size:calc(var(--u)*26)">정말 지울까요?</b><p>되돌릴 수 없어요.</p>`, [['지우기', 'red', () => { resetAll(); act.refresh(); toast('기록을 지웠어요'); }], ['취소', 'gray']]), bb);
   click('#credits', showCredits, bb);
+  click('#stu', () => askStudent(s => { save.student = s; persist(); act.refresh(); toast(`${s.cls}반 ${s.num}번으로 보낼게요`); }, () => {}), bb);
+  click('#lbkey', () => modal(`<b class="ol" style="font-size:calc(var(--u)*26)">순위표 읽기 열쇠</b><p>구글 시트 코드(READ_KEY)에 넣은 말과 같게 적어 주세요. 이 기기에만 저장돼요.</p><input id="lbk" type="password" autocomplete="off" aria-label="읽기 열쇠" value="${esc(save.settings.lbKey || '')}">`,
+    [['저장', '', () => { save.settings.lbKey = document.getElementById('lbk').value.trim(); persist(); act.refresh(); toast('열쇠를 저장했어요'); }], ['취소', 'gray']]), bb);
+  click('#lbopen', () => openBoard(new Date()), bb);
   click('[data-cm]', (e, el) => { save.settings.classMin = +el.dataset.cm; persist(); act.refresh(); toast(save.settings.classMin ? `수업 시간 ${save.settings.classMin}분으로 정했어요` : '수업 시간 모드를 껐어요'); }, bb);
   click('#toff', () => { save.teacher = false; persist(); act.refresh(); toast('교사 모드를 껐어요'); }, bb);
   click('#nextkid', () => modal(`<b class="ol" style="font-size:calc(var(--u)*26)">다음 학생을 준비할까요?</b><p>학생 기록을 지우고 교사 모드를 꺼요. 설정은 그대로예요.</p>`, [['준비', 'red', () => { resetForNextStudent(); act.title(); toast('다음 친구가 처음부터 시작할 수 있어요'); }], ['취소', 'gray']]), bb);
@@ -412,6 +419,39 @@ export function altar(run, choices, onPick, onReroll) {
   click('#rr', onReroll);
 }
 
+// ───────── 오늘의 도전 순위표 ─────────
+// 반·번호 입력: 실명 대신 반과 번호만 받는다
+export function askStudent(onSave, onSkip) {
+  const s = save.student || {};
+  modal(`<b class="ol" style="font-size:calc(var(--u)*26)">오늘의 도전 기록 보내기</b>
+    <p>반과 번호를 넣으면 기록이 선생님 순위표로 가요. 이름은 적지 않아요.</p>
+    <div style="display:flex;gap:calc(var(--u)*10);justify-content:center;align-items:center">
+      <input id="scls" inputmode="text" placeholder="5-2" aria-label="학년-반" value="${esc(s.cls || '')}" style="width:calc(var(--u)*130)"><span>반</span>
+      <input id="snum" inputmode="numeric" placeholder="13" aria-label="번호" value="${s.num || ''}" style="width:calc(var(--u)*100)"><span>번</span></div>`,
+    [['보내기', '', () => {
+      const cls = document.getElementById('scls').value.trim().replace(/[^0-9가-힣a-zA-Z-]/g, '').slice(0, 8);
+      const num = parseInt(document.getElementById('snum').value, 10);
+      if (!cls || !(num > 0 && num < 100)) { toast('반과 번호를 숫자로 넣어 주세요 (예: 5-2, 13)'); return false; }
+      onSave({ cls, num });
+    }], ['건너뛰기', 'gray', () => onSkip && onSkip()]]);
+}
+
+function dayKey(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+async function openBoard(day) {
+  const key = dayKey(day);
+  const shift = n => { const d = new Date(day); d.setDate(d.getDate() + n); document.querySelector('.modal')?.remove(); openBoard(d); };
+  modal(`<b class="ol" style="font-size:calc(var(--u)*26)">오늘의 도전 순위표</b><div class="lb-nav"><button class="btn gray sm" id="lbp">◀</button><b>${day.getMonth() + 1}월 ${day.getDate()}일</b><button class="btn gray sm" id="lbn">▶</button></div><div id="lbbody" class="lb-body"><p class="note">불러오는 중…</p></div>`);
+  document.getElementById('lbp').onclick = () => shift(-1);
+  document.getElementById('lbn').onclick = () => shift(1);
+  const res = await loadBoard(key, save.settings.lbKey);
+  const box = document.getElementById('lbbody'); if (!box) return;
+  if (!res.ok) { box.innerHTML = `<p class="note">${esc(res.error || '불러오지 못했어요')}</p>`; return; }
+  if (!res.list.length) { box.innerHTML = '<p class="note">이 날 보낸 기록이 아직 없어요.</p>'; return; }
+  box.innerHTML = `<table class="lb"><thead><tr><th>순위</th><th>반·번호</th><th>도달</th><th>처치</th><th>도전</th></tr></thead><tbody>${res.list.map((r, i) =>
+    `<tr${i < 3 ? ` class="top${i + 1}"` : ''}><td>${['🥇', '🥈', '🥉'][i] || i + 1}</td><td>${esc(r.cls)}반 ${esc(r.num)}번</td><td>${r.win ? '완주!' : `${esc(r.region)} ${esc(r.stage)}`}</td><td>${esc(r.kills)}</td><td>${esc(r.tries)}번</td></tr>`).join('')}</tbody></table>
+    <p class="note">학생마다 그날 가장 좋은 기록 하나 · 출발 ${esc(res.list[0].start || '')} · 전체 기록은 구글 시트에 있어요</p>`;
+}
+
 // ───────── 해금·범주 완성 축하 ─────────
 export function newsName(n) {
   if (n.type === 'set') return `${n.set.kind || '카드 33장'} 완성 (${n.set.title})`;
@@ -466,6 +506,7 @@ export function result(r, act) {
       <div class="stat"><span>얻은 코인</span><span><span data-count="${r.coins}">0</span>${r.teacher ? ' (저장 안 됨)' : ''}</span></div>
       ${r.luck && r.luck.gamble ? `<div class="stat"><span>도전 강화</span><span>${r.luck.gamble}번 중 ${r.luck.gambleWin}번 성공 <small style="font-size:.7em">(확률 ${Math.round(LUCK.gamble.success * 100)}%)</small></span></div>` : ''}
       ${r.luck && (r.luck.events || r.luck.rage) ? `<div class="stat"><span>돌발·분노</span><span>돌발 ${r.luck.events}번 · 보스 분노 ${r.luck.rage}번</span></div>` : ''}
+      ${r.lb ? `<div class="stat"><span>선생님께 기록</span><span id="lbstat">보내는 중…</span></div>` : ''}
       ${r.review ? `<div class="stat"><span>오늘의 복습</span><span>${r.review.ok}/${r.review.total} 정답</span></div>` : ''}
       ${r.cards ? `<div class="stat"><span>새 카드</span><span>${r.cards}장</span></div>` : ''}
       ${r.cardList && r.cardList.length ? `<div class="stat" style="flex-direction:column;gap:calc(var(--u)*4)"><span>오늘 배운 것</span><span style="font-family:var(--body);font-size:calc(var(--u)*17);color:#fff;font-weight:700">${r.cardList.map(c => `${c.e} ${esc(c.title)}`).join('<br>')}</span></div>` : ''}
@@ -477,6 +518,7 @@ export function result(r, act) {
   stagger(root().querySelectorAll('.stat'), 90, 14);
   root().querySelectorAll('[data-count]').forEach((el, i) => setTimeout(() => countUp(el, +el.dataset.count, 1400), 300 + i * 200));
   click('#again', act.again); click('#tobase', act.base); click('#nextkid', act.next);
+  if (r.lb) r.lb.then(st => { const el = document.getElementById('lbstat'); if (el) el.textContent = st === 'sent' ? `${r.student.cls}반 ${r.student.num}번 보냈어요 ✓` : '못 보냈어요 (인터넷 확인)'; });
 }
 
 export function statsModal(b) {

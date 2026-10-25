@@ -487,3 +487,11 @@ h2.ol{font-size:calc(var(--u)*38);margin:calc(var(--u)*6) 0 calc(var(--u)*14);te
 .news-card .news-art{width:calc(var(--u)*180);height:calc(var(--u)*180);object-fit:contain}
 .news-card p{font-size:calc(var(--u)*19);text-align:center}
 .news-card p strong{font-weight:900;color:#b8650c}
+
+/* ───────── 오늘의 도전 순위표 ───────── */
+.lb-nav{display:flex;align-items:center;justify-content:center;gap:calc(var(--u)*14);font-size:calc(var(--u)*20)}
+.lb-body{max-height:calc(var(--u)*460);overflow-y:auto}
+table.lb{width:100%;border-collapse:collapse;font-size:calc(var(--u)*16);font-variant-numeric:tabular-nums}
+table.lb th{color:var(--amber);font-weight:900;padding:calc(var(--u)*6);border-bottom:calc(var(--u)*2) solid #ffffff40}
+table.lb td{padding:calc(var(--u)*6);border-bottom:1px solid #ffffff20;text-align:center}
+table.lb tr.top1 td{background:#ffd23d22} table.lb tr.top2 td{background:#c9cbe022} table.lb tr.top3 td{background:#ff9a3c22}

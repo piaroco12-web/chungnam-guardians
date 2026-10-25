@@ -15,7 +15,7 @@ const fresh = () => ({
   codex: [],            // 얻어 본 가호·듀오·전설 id
   cards: [],
   tutorialDone: false,
-  settings: { sfx: true, bgm: true, vibe: true, classMin: 0, calm: false, kiosk: false },
+  settings: { sfx: true, bgm: true, vibe: true, classMin: 0, calm: false, kiosk: false, lbKey: '' },   // lbKey: 교사 기기의 순위표 읽기 열쇠
   teacher: false,
   best: { region: 0, kills: 0 },
   stats: { runs: 0, deaths: 0, wins: 0, zodiac: 0, daily: 0, pact: 0, legendWin: false },
@@ -24,6 +24,7 @@ const fresh = () => ({
   daily: {},           // 날짜 → 그날 최고 기록 { region, kills }
   grandPilots: [],     // 예전 규칙(지역 클리어)으로 이미 연 캐릭터 — 새 규칙과 상관없이 계속 열림
   shipColor: 'base',   // 고른 기체 색 (범주 완성으로 열림)
+  student: null,       // 오늘의 도전 기록을 보낼 반·번호 { cls: '5-2', num: 13 } — 다음 학생 준비 때 지워진다
   // unlockRule 은 일부러 넣지 않는다: 예전 기록에 없을 때 아래 옮기기가 돌아야 해서
 });
 

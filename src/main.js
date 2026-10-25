@@ -13,6 +13,7 @@ import { BOONS, RARITY } from '../data/boons.js';
 import * as ui from './ui.js';
 import { LUCK, randIn } from '../data/luck.js';
 import { luckOf } from './progress.js';
+import { lbEnabled, sendRecord } from './leaderboard.js';
 import { FlowArt } from './bgart.js';
 import { updateSide } from './side.js';
 
@@ -36,7 +37,8 @@ function dailyInfo() {
   const r = seeded(seed);
   const pilot = PILOTS[Math.floor(r() * PILOTS.length)], ship = SHIPS[Math.floor(r() * SHIPS.length)];
   const d = new Date();
-  return { key, seed, pilot: pilot.id, ship: ship.id, pilotName: pilot.name, shipName: ship.name, label: `${d.getMonth() + 1}월 ${d.getDate()}일`, best: save.daily[key] || null };
+  const region = Math.floor(r() * REGIONS.length);   // 그날의 출발 지역도 날짜로 정한다 (모두 같은 지역)
+  return { key, seed, pilot: pilot.id, ship: ship.id, region, regionName: REGIONS[region].name, pilotName: pilot.name, shipName: ship.name, label: `${d.getMonth() + 1}월 ${d.getDate()}일`, best: save.daily[key] || null };
 }
 function restoreRandom() { Math.random = realRandom; }
 
@@ -81,11 +83,17 @@ function startRun(region) {
   const run = newRun({ pilot: state.pilot, ship: state.ship, diff: state.diff, region, pacts: [...(state.sel.pacts || [])] });
   beginBattle(run);
 }
+let askedStudent = false;
 function startDaily() {
+  // 순위표를 쓰면 처음 한 번 반·번호를 묻는다 (건너뛰면 이번에는 기록을 보내지 않음)
+  if (lbEnabled() && !save.teacher && !save.student && !askedStudent) {
+    askedStudent = true;
+    return ui.askStudent(s => { save.student = s; persist(); startDaily(); }, () => startDaily());
+  }
   clearRun();
   const d = dailyInfo();
   Math.random = seeded(d.seed);   // 오늘 하루는 모두 같은 하늘
-  beginBattle(newRun({ pilot: d.pilot, ship: d.ship, diff: 'chall', daily: d.key }));
+  beginBattle(newRun({ pilot: d.pilot, ship: d.ship, diff: 'chall', daily: d.key, region: d.region }));
 }
 function continueRun() {
   const run = loadRun(); if (!run) return toBase();
@@ -286,10 +294,21 @@ function finish(b, win, reason = '') {
   const stories = save.teacher ? [] : STORY.filter(st => !save.story.includes(st.id) && st.when(snap)).slice(0, 2);
   progress(s => { for (const st of stories) s.story.push(st.id); });
   bgm(reason === 'time' ? null : win ? 'victory' : 'defeat');
+  // 오늘의 도전 기록을 선생님 구글 시트로 (반·번호가 있을 때만)
+  let lb = null;
+  if (b.run.daily && lbEnabled() && save.student && !save.teacher) {
+    const STAGE = ['웨이브 1', '웨이브 2', '중간 보스', '웨이브 3', '지역 보스'];
+    lb = sendRecord({
+      date: b.run.daily, cls: save.student.cls, num: save.student.num,
+      start: b.run.startRegion, startName: REGIONS[b.run.startRegion]?.name, region: b.run.region, regionName: REGIONS[b.run.region].name,
+      stage: win ? 5 : b.run.stage, stageName: win ? '완주' : STAGE[b.run.stage] || '', kills: b.run.kills, level: b.run.level, win: !!win,
+      pilot: PILOTS.find(p => p.id === b.run.pilot)?.name, ship: SHIPS.find(s => s.id === b.run.ship)?.name, version: ui.VERSION,
+    });
+  }
   const showResult = reviewScore => ui.result({
     win: !!win, region: `${b.run.region + 1}. ${REGIONS[b.run.region].name}`, diff: d.name, kills: b.run.kills, level: b.run.level,
     coins: earned, cards: b.run.cardsGained.length, unlocks, teacher: save.teacher, kiosk: !!save.settings.kiosk,
-    reason, stories, review: reviewScore, luck: luckOf(b.run), cardList: b.run.cardsGained.map(id => CARDS.find(c => c.id === id)).filter(Boolean),
+    reason, stories, review: reviewScore, luck: luckOf(b.run), lb, student: save.student, cardList: b.run.cardsGained.map(id => CARDS.find(c => c.id === id)).filter(Boolean),
   }, { again: () => { state.sel = {}; toSelect('pilot'); }, base: () => toBase('sortie'), next: nextStudent });
   // 수업 시간이 끝나면 그날 얻은 카드로 OX 3문제를 풀고 결과로
   if (reason === 'time') return runReview(reviewCards(b.run.cardsGained), showResult);
