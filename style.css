@@ -535,6 +535,9 @@ table.lb tr.top1 td{background:#ffd23d22} table.lb tr.top2 td{background:#c9cbe0
 .choice .art .mw-emoji{font-size:calc(var(--u)*54)}
 .o .mw-emoji,.slot .mw-emoji{font-size:calc(var(--u)*26)}
 .wpick .wpair b{font-size:inherit;display:inline;font-family:var(--display);font-weight:400}
+.feature-icon{display:block;width:100%;height:100%;object-fit:contain}
+.feature-save-notice{position:absolute;right:calc(var(--u)*18);bottom:calc(var(--u)*210);display:flex;align-items:center;gap:calc(var(--u)*8);padding:calc(var(--u)*7) calc(var(--u)*13);border:calc(var(--u)*2) solid #a2f1dc;border-radius:calc(var(--u)*16);background:#10283aee;color:#fff4cf;box-shadow:0 calc(var(--u)*4) 0 #071428;font-size:calc(var(--u)*17);font-weight:800;pointer-events:none!important;z-index:12}
+.feature-save-notice .feature-icon{width:calc(var(--u)*42);height:calc(var(--u)*42)}
 
 /* 자동 저장 표시 (2.11.0) */
 .savetag{position:absolute;right:calc(var(--u)*130);bottom:calc(var(--u)*60);font-size:calc(var(--u)*16);opacity:0;animation:savetag 1.6s ease-out forwards;pointer-events:none}
@@ -549,3 +552,8 @@ table.lb tr.top1 td{background:#ffd23d22} table.lb tr.top2 td{background:#c9cbe0
 .hud .purge{position:absolute;right:calc(var(--u)*44);bottom:calc(var(--u)*150);width:calc(var(--u)*58);height:calc(var(--u)*58);border-radius:50%;border:calc(var(--u)*3) solid var(--ink);background:radial-gradient(circle at 35% 30%,#ffffff,#ffe9b8 60%,#ffc53d);box-shadow:0 calc(var(--u)*4) 0 var(--ink),0 0 calc(var(--u)*14) rgba(255,240,200,.9);display:grid;place-items:center;padding:0;font-size:calc(var(--u)*28);cursor:pointer}
 .hud .purge img{width:110%;height:110%;object-fit:contain}
 .hud .purge.off{filter:grayscale(1) brightness(.7)}
+.qrush{overflow-y:auto;padding-bottom:calc(var(--u)*22)}
+.quiz-rush-host{display:block;flex:none;width:calc(var(--u)*205);height:calc(var(--u)*165);object-fit:contain;margin-top:calc(var(--u)*12);filter:drop-shadow(0 calc(var(--u)*4) calc(var(--u)*5) #081a3466)}
+.qrush .qr-card{flex-shrink:0}
+.qrush #qrq{word-break:keep-all;overflow-wrap:break-word}
+.hud .purge img{width:96%;height:96%}
