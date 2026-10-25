@@ -3,10 +3,18 @@ import { CARDS, REGIONS } from '../data/content.js';
 import { BOONS, DUOS, LEGENDS } from '../data/boons.js';
 import { SHIP_UNLOCK, PILOT_UNLOCK, SETS, BASE_COLOR } from '../data/unlocks.js';
 import { MW } from '../data/weapons.js';
-import { isTeacherSession, logoutTeacher } from './teacher-auth.js';
 
 const KEY = 'cnguard_v1';
 const RUN_KEY = 'cnguard_run_v1';
+// 교사 모드 비밀번호는 코드에 그대로 두지 않고 암호(SHA-256)로만 둔다. 바꾸려면: 새 비밀번호로
+//   python3 -c "import hashlib;print(hashlib.sha256('cnguard-teacher|새비밀번호'.encode()).hexdigest())"  결과를 아래에 넣는다
+export const TEACHER_HASH = 'e0b37417514182f917b3cf4b275b76d94f3b5fd5350338a1901e9eaaa7e486df';
+export async function checkTeacher(code) {
+  try {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('cnguard-teacher|' + code));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('') === TEACHER_HASH;
+  } catch { return false; }
+}
 
 const fresh = () => ({
   coins: 0,
@@ -16,7 +24,7 @@ const fresh = () => ({
   codex: [],            // 얻어 본 가호·듀오·전설 id
   cards: [],
   tutorialDone: false,
-  settings: { sfx: true, bgm: true, vibe: true, classMin: 0, calm: false, kiosk: false },
+  settings: { sfx: true, bgm: true, vibe: true, classMin: 0, calm: false, kiosk: false, lbKey: '' },   // lbKey: 교사 기기의 순위표 읽기 열쇠
   teacher: false,
   best: { region: 0, kills: 0 },
   stats: { runs: 0, deaths: 0, wins: 0, zodiac: 0, daily: 0, pact: 0, legendWin: false },
@@ -37,27 +45,12 @@ const fresh = () => ({
 });
 
 function read(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }
-function write(k, v) {
-  try {
-    let data = v;
-    if (k === KEY && v.account) {
-      const { hash, ...profile } = v.account; // 해시도 접속 자격이므로 기기에 영구 보관하지 않는다.
-      data = { ...v, account: profile };
-    }
-    localStorage.setItem(k, JSON.stringify(data));
-  } catch { /* 저장 불가 환경 */ }
-}
+function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* 저장 불가 환경 */ } }
 function remove(k) { try { localStorage.removeItem(k); } catch { /* 무시 */ } }
 
 export const save = Object.assign(fresh(), read(KEY) || {});
 save.meta = Object.assign(fresh().meta, save.meta);
 save.settings = Object.assign(fresh().settings, save.settings);
-// 예전 브라우저에 남은 공유 열쇠·교사 플래그는 폐기한다. 저장 데이터로 권한을 복원하지 않는다.
-delete save.settings.lbKey;
-save.account = null; // 학생 계정도 새로 연 탭에서는 PIN을 다시 확인한다. 진행 기록은 유지한다.
-delete save.teacher;
-Object.defineProperty(save, 'teacher', { enumerable: false, configurable: false, get: isTeacherSession, set: value => { if (!value) void logoutTeacher(); } });
-write(KEY, save);
 save.stats = Object.assign(fresh().stats, save.stats);
 for (const k of ['bosses', 'story']) if (!Array.isArray(save[k])) save[k] = [];
 if (!save.daily || typeof save.daily !== 'object') save.daily = {};

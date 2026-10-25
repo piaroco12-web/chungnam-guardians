@@ -556,9 +556,6 @@ table.lb tr.top1 td{background:#ffd23d22} table.lb tr.top2 td{background:#c9cbe0
 .quiz-rush-host{display:block;flex:none;width:calc(var(--u)*205);height:calc(var(--u)*165);object-fit:contain;margin-top:calc(var(--u)*12);filter:drop-shadow(0 calc(var(--u)*4) calc(var(--u)*5) #081a3466)}
 .qrush .qr-card{flex-shrink:0}
 .qrush #qrq{word-break:keep-all;overflow-wrap:break-word}
-.teacher-portal{display:block;color:#b5ffec;font-weight:800;text-decoration:underline;text-underline-offset:.2em;padding:calc(var(--u)*10);border:calc(var(--u)*2) solid #84ddcf;border-radius:calc(var(--u)*10);background:#153c50}
-#teacher-code{width:100%;max-width:100%;box-sizing:border-box}
-#teacher-error{min-height:1.5em;word-break:keep-all}
 .hud .purge img{width:96%;height:96%}
 
 /* 학생 계정 (2.12.0) */
