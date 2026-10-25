@@ -1,6 +1,6 @@
 {
-  "version": "2.3.2",
-  "count": 93,
+  "version": "2.5.0",
+  "count": 94,
   "images": [
     {
       "path": "assets/img/bg_asan.webp",
@@ -523,18 +523,6 @@
       "width": 512,
       "height": 512,
       "bytes": 47590,
-      "grid": [
-        1,
-        1
-      ],
-      "hasTransparency": true,
-      "format": "webp"
-    },
-    {
-      "path": "assets/img/pilot_edui.webp",
-      "width": 512,
-      "height": 512,
-      "bytes": 56490,
       "grid": [
         1,
         1
@@ -1117,6 +1105,30 @@
       ],
       "hasTransparency": true,
       "note": "수호신 가호 스킬: 윗줄 궤도 6, 아랫줄 자동 스킬 6",
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/pilot_edui.webp",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 293262,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/pilot_cockpit_sheet.webp",
+      "width": 2172,
+      "height": 724,
+      "bytes": 277460,
+      "grid": [
+        3,
+        1
+      ],
+      "hasTransparency": true,
       "format": "webp"
     }
   ]
