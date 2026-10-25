@@ -1,0 +1,19 @@
+{
+  "images": 44,
+  "checks": [
+    "15 map choices and regional detail",
+    "15 boss pairs",
+    "10 enemy crops",
+    "6 concept crops",
+    "390px mobile no overflow",
+    "existing Asan card color art",
+    "legacy Naepo mapping",
+    "44 images decode",
+    "runtime atlas and boss API",
+    "1280px gallery"
+  ],
+  "pageErrors": [],
+  "failedLocalResponses": [],
+  "release": "2.12.6",
+  "webpBytes": 11389650
+}
