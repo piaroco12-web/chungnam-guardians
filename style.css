@@ -127,10 +127,21 @@ h2.ol{font-size:calc(var(--u)*38);margin:calc(var(--u)*6) 0 calc(var(--u)*14);te
 .boon-modal-art{width:calc(var(--u)*190);height:calc(var(--u)*190);max-width:70%;margin:0 auto calc(var(--u)*16);display:grid;place-items:center;font-size:calc(var(--u)*56)}
 .boon-modal-art.legend{width:calc(var(--u)*170);height:calc(var(--u)*170)}
 .boon-modal-art img{display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain}
-.card-collection,.monochrome-card{filter:grayscale(1)}
-.card-collection .ccard,.card-collection .ccard.got{background:linear-gradient(145deg,#484848,#202020);border-color:#d3d3d3;box-shadow:inset 0 calc(var(--u)*3) 0 #ffffff30,0 calc(var(--u)*4) 0 #111;color:#fff}
-.card-collection .ccard .e:has(img){background:radial-gradient(#efefef,#969696);border-color:#eee}
-.card-collection .sec-label,.card-collection>h2.ol{background:#202020;border-color:#bbb}
+ /* 카드첩: 얻은 카드는 종류별 색, 아직 못 얻은 카드·이야기만 흑백 */
+.card-collection .ccard:not(.got),.card-collection .row.locked{filter:grayscale(1) brightness(.8)}
+.card-collection .ccard:not(.got){background:linear-gradient(145deg,#484848,#202020);border-color:#8a8a8a;box-shadow:inset 0 calc(var(--u)*3) 0 #ffffff20,0 calc(var(--u)*4) 0 #111}
+.ccard.got{--k1:#355d92;--k2:#182743;--kb:#8bdfff;--kg:#b9eeff}
+.ccard.got.kind-region{--k1:#d9822b;--k2:#7a3b12;--kb:#ffd27a;--kg:#ffe6b0}
+.ccard.got.kind-concept{--k1:#1f9c8a;--k2:#0d4a4a;--kb:#7af2d8;--kg:#c6fff2}
+.ccard.got.kind-rule{--k1:#d9476f;--k2:#6e1734;--kb:#ffb3c9;--kg:#ffd9e4}
+.ccard.got.kind-ai{--k1:#7a52d9;--k2:#2f1a6e;--kb:#c9b0ff;--kg:#e6dbff}
+.card-collection .ccard.got,.ccard.got{background:linear-gradient(145deg,var(--k1),var(--k2));border-color:var(--kb);color:#fff;
+  box-shadow:inset 0 calc(var(--u)*3) 0 #ffffff50,0 calc(var(--u)*4) 0 #0b1632}
+.card-collection .ccard.got .e:has(img){background:radial-gradient(#fffaf0,var(--kg));border-color:#fff4cf}
+.card-detail{--k1:#355d92;--kb:#8bdfff}
+.card-detail.kind-region{--k1:#d9822b;--kb:#ffd27a} .card-detail.kind-concept{--k1:#1f9c8a;--kb:#7af2d8}
+.card-detail.kind-rule{--k1:#d9476f;--kb:#ffb3c9} .card-detail.kind-ai{--k1:#7a52d9;--kb:#c9b0ff}
+.card-detail .card-modal-art:has(img){border-radius:50%;background:radial-gradient(#fffaf0,var(--kb));border:calc(var(--u)*4) solid var(--k1);box-shadow:0 calc(var(--u)*5) 0 #0b1632}
 .ccard{aspect-ratio:3/4;border-radius:calc(var(--u)*10);border:calc(var(--u)*3) solid var(--ink);background:linear-gradient(#26306a,#1b2550);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--u)*4);padding:calc(var(--u)*6);cursor:pointer;text-align:center}
 .ccard.got{background:linear-gradient(145deg,#355d92,#182743);color:#fff;border-color:#8bdfff;box-shadow:inset 0 calc(var(--u)*3) 0 #ffffff40,0 calc(var(--u)*4) 0 #0b1632}
 .ccard .k{font-size:calc(var(--u)*14);font-weight:800;color:#fff;line-height:1.5;text-shadow:0 calc(var(--u)*2) calc(var(--u)*2) #080e26}
@@ -388,3 +399,13 @@ h2.ol{font-size:calc(var(--u)*38);margin:calc(var(--u)*6) 0 calc(var(--u)*14);te
 .slogo{font-family:var(--display);font-size:calc(var(--u)*40);line-height:1.1;color:#fff;text-align:center;
   text-shadow:0 calc(var(--u)*4) 0 var(--ink)}
 .slogo small{display:block;font-size:calc(var(--u)*20);color:var(--amber)}
+
+/* ───────── 운의 요소: 도전 강화·흔들리는 제단 (data/luck.js) ───────── */
+.choice.gamble .top{background:linear-gradient(135deg,#ffd23d,#ff8a3d)}
+.choice.gamble{box-shadow:0 0 0 calc(var(--u)*3) #ffd23d,0 calc(var(--u)*6) 0 var(--ink)}
+.choice.mystery .top{background:repeating-linear-gradient(135deg,#6b4bd6 0 calc(var(--u)*14),#7d5ce8 calc(var(--u)*14) calc(var(--u)*28))}
+.choice.mystery{box-shadow:0 0 0 calc(var(--u)*3) #b99cff,0 calc(var(--u)*6) 0 var(--ink)}
+.mystery-q{display:grid;place-items:center;width:100%;height:100%;font-family:var(--display);font-size:calc(var(--u)*64);color:#fff;
+  text-shadow:0 calc(var(--u)*4) 0 var(--ink);background:radial-gradient(#9a7cff,#3a2490);border-radius:50%}
+.choice .desc .luck{color:#ffd23d}
+.choice .desc .miss{color:#c9cbe0;font-size:.9em}

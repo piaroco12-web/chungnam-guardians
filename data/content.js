@@ -57,6 +57,10 @@ export const ENEMIES = {
   bug:    { name: '버그 딱정벌레', hp: 60, r: 28, speed: 60, move: 'down',  shoot: 3.0, color: '#ffb23d', xp: 3, armor: true },
 };
 
+// 체력 배율 (2026-10 사용자 지정): 일반 몬스터 ×2, 중간 보스 ×2, 지역 보스 ×3, 최종 보스(내포 지역 보스) ×4
+export const HP_MULT = { enemy: 2, mid: 2, boss: 3, final: 4 };
+export const FINAL_BOSS = 'aicore';
+
 // 보스 10종: patterns는 battle.js의 BOSS_PATTERNS 이름
 export const BOSSES = {
   blackhole: { name: '레벨업 블랙홀', issue: '게임 과몰입', hp: 1400, r: 70, color: '#7a4dff', face: '🎮', patterns: ['pull', 'spiral'], line: '한 판만 더~ 딱 한 판만 더!', card: 'p_game' },

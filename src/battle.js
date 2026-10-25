@@ -2,7 +2,9 @@
 // 시간은 dt(실제) × ts(슬로우 배율)로 흐른다. 플레이어 이동만 실제 시간.
 import { W, H } from './view.js';
 import { input, isActive, keyAxis, consumeDrag } from './input.js';
-import { PILOTS, SHIPS, DIFFS, REGIONS, ENEMIES, BOSSES } from '../data/content.js';
+import { PILOTS, SHIPS, DIFFS, REGIONS, ENEMIES, BOSSES, HP_MULT, FINAL_BOSS } from '../data/content.js';
+import { LUCK, EVENTS } from '../data/luck.js';
+import { luckOf } from './progress.js';
 import { BOONS, RARITY } from '../data/boons.js';
 import { art } from './assets.js';
 import { sfx } from './audio.js';
@@ -90,7 +92,15 @@ export class Battle {
       this.waveNo = n;
       this.queue = this.buildWave();
       this.waveT = 0;
-      this.showBanner(`${this.region.name} · 웨이브 ${n}`, '');
+      this.event = null;
+      if (!this.run.daily && Math.random() < LUCK.event.chance) {
+        const kinds = LUCK.event.kinds, k = kinds[Math.floor(Math.random() * kinds.length)];
+        this.event = { kind: k, stage: this.run.stage, t: 0 };
+        luckOf(this.run).events++;
+        this.startEvent(k);
+      }
+      const ev = this.event && EVENTS[this.event.kind];
+      this.showBanner(`${this.region.name} · 웨이브 ${n}`, ev ? `돌발! ${ev.name} · 확률 ${Math.round(LUCK.event.chance * 100)}%` : '', ev ? 2.6 : 1.8);
       sfx.wave();
     } else {
       const id = kind === 'mid' ? this.region.mid : this.region.boss;
@@ -140,7 +150,7 @@ export class Battle {
 
   spawnEnemy(type, x, y, i = 0, extra = {}) {
     const d = ENEMIES[type];
-    const hp = d.hp * this.scaleHp();
+    const hp = d.hp * HP_MULT.enemy * this.scaleHp();
     const e = { type, x, y, x0: x, r: d.r, hp, maxHp: hp, speed: d.speed, t: 0, i, shootT: d.shoot ? rnd(0.5, d.shoot) : 0,
       chill: 0, chillT: 0, frozen: 0, burn: 0, burnDps: 0, hitCd: {}, flash: 0, ...extra };
     if (e.elite) { e.hp = e.maxHp = hp * 7; e.r = d.r * 1.35; e.speed = d.speed * 0.6; }
@@ -152,12 +162,24 @@ export class Battle {
   spawnBoss(id) {
     const b = BOSSES[id];
     const isMid = this.stageKind === 'mid';
-    const hp = b.hp * this.diff.hp * (1 + this.run.region * 0.35) * (this.pact('tough') ? 1.4 : 1);
+    const mult = isMid ? HP_MULT.mid : id === FINAL_BOSS ? HP_MULT.final : HP_MULT.boss;
+    const hp = b.hp * mult * this.diff.hp * (1 + this.run.region * 0.35) * (this.pact('tough') ? 1.4 : 1);
     const patterns = [...b.patterns];
     if (this.diff.id === 'hell') patterns.push('aimed');
     this.boss = { id, name: b.name, issue: b.issue, x: W / 2, y: -120, ty: isMid ? 270 : 290, r: b.r, hp, maxHp: hp, t: 0,
       patterns, pi: 0, pt: 0, acc: 0, acc2: 0, mid: isMid, flash: 0, chill: 0, chillT: 0, frozen: 0, burn: 0, burnDps: 0, hitCd: {}, dying: 0, isBoss: true };
     this.enemies.push(this.boss);
+  }
+
+  // 돌발 상황 시작: 정예는 바로 대기열에, 보급은 바로 떨어뜨린다. 유성우는 update에서 계속
+  startEvent(k) {
+    const reg = this.region;
+    if (k === 'elite') { const pool = reg.enemies.filter(x => x !== 'notify'); this.queue.push({ t: 3, type: pool[Math.floor(Math.random() * pool.length)] || 'spam', form: 'elite', count: 1 }); }
+    if (k === 'supply') {
+      this.items.push({ kind: 'heart', x: rnd(80, W - 80), y: -20, vy: 90, v: 15 });
+      for (let i = 0; i < 6; i++) this.items.push({ kind: 'coin', x: rnd(60, W - 60), y: -20 - i * 30, v: 1, vy: 110 });
+    }
+    this.queue.sort((a, b) => a.t - b.t);
   }
 
   showBanner(title, sub = '', time = 1.8, warn = false, line = '') { this.banner = { title, sub, t: time, max: time, warn, line }; }
@@ -233,6 +255,10 @@ export class Battle {
   }
 
   updateStage(dt, rdt) {
+    if (this.stageKind === 'wave' && this.event && this.event.kind === 'meteor' && this.event.stage === this.run.stage && this.queue.length) {
+      this.event.t += dt;
+      if (this.event.t >= 1.6) { this.event.t = 0; this.shooter = 'meteor'; for (let i = 0; i < 3; i++) this.shot(rnd(30, W - 30), -10, Math.PI / 2 + rnd(-0.12, 0.12), rnd(140, 190), { c: '#ffb23d', r: 9 }); this.shooter = null; }
+    }
     if (this.stageKind === 'wave') {
       this.waveT += dt;
       while (this.queue.length && this.queue[0].t <= this.waveT) this.spawnGroup(this.queue.shift());
@@ -567,7 +593,7 @@ export class Battle {
     sfx.boom(false);
     const xp = ENEMIES[e.type].xp;
     this.items.push({ kind: 'xp', x: e.x, y: e.y, v: xp, vy: 0 });
-    if (Math.random() < (this.buffOn('coin') ? 0.75 : 0.3)) this.items.push({ kind: 'coin', x: e.x + rnd(-10, 10), y: e.y, v: 1, vy: 0 });
+    if (Math.random() < (this.buffOn('coin') ? Math.min(0.95, 0.3 * (this.run.buff.mult || 2.5)) : 0.3)) this.items.push({ kind: 'coin', x: e.x + rnd(-10, 10), y: e.y, v: 1, vy: 0 });
     if (e.elite) { this.items.push({ kind: 'chest', x: e.x, y: e.y, v: 1, vy: 0 }); this.showBanner('정예 처치!', '보물 상자를 챙기세요', 1.1); }
     if (ENEMIES[e.type].explode && this.diff.id !== 'sprout') { this.shooter = e.type; this.ring(e.x, e.y, 6, 150, '#ff4d5e'); this.shooter = null; }
     if (e.burn > 0 && this.duo('duo_glowfire')) this.heal(1);
@@ -715,7 +741,7 @@ export class Battle {
   collect(it) {
     const r = this.run;
     if (it.kind === 'chest') { this.pendingLevels++; r.coins += 10; sfx.levelup(); this.texts.push({ x: this.p.x, y: this.p.y - 60, s: '🎁 보물 상자! 레벨업 +1', t: 1.2, c: '#ffe14a', big: true }); return; }
-    if (it.kind === 'xp') { r.xp += it.v * (this.buffOn('xp') ? 1.6 : 1); sfx.xp(); while (r.xp >= this.xpNeed()) { r.xp -= this.xpNeed(); r.level++; this.pendingLevels++; } }
+    if (it.kind === 'xp') { r.xp += it.v * (this.buffOn('xp') ? (this.run.buff.mult || 1.6) : 1); sfx.xp(); while (r.xp >= this.xpNeed()) { r.xp -= this.xpNeed(); r.level++; this.pendingLevels++; } }
     else if (it.kind === 'coin') { r.coins += it.v * (r.companion === 'pig' ? 2 : 1); sfx.coin(); }
     else if (it.kind === 'heart') { this.heal(it.v); sfx.pick(); }
     else if (it.kind === 'fake') { this.p.slowDebuff = 3; this.texts.push({ x: this.p.x, y: this.p.y - 40, s: '가짜 아이템! 느려짐', t: 1, c: '#ff8a3d' }); sfx.hurt(); }
@@ -773,6 +799,14 @@ export class Battle {
   }
 
   // ───────── 보스 ─────────
+  // 다음 패턴: 무작위(같은 패턴 연속 없음). 끄면 정해진 순서
+  nextPattern(b) {
+    const n = b.patterns.length;
+    if (!LUCK.boss.randomPattern || n < 2) return (b.pi + 1) % n;
+    let i = Math.floor(Math.random() * (n - 1)); if (i >= b.pi) i++;
+    return i;
+  }
+
   updateBoss(b, dt) {
     b.flash -= dt;
     if (b.dying) {
@@ -790,12 +824,18 @@ export class Battle {
     let bdt = dt;
     if (b.frozen > 0) { b.frozen -= dt; bdt = dt * 0.2; }
     if (this.pact('bossRage')) bdt *= 1.3;
+    // 보스 분노: 체력이 절반 아래로 처음 내려갈 때 한 번만 확률로
+    if (!b.rageChecked && b.hp < b.maxHp * LUCK.boss.rageAt) {
+      b.rageChecked = true;
+      if (Math.random() < LUCK.boss.rageChance) { b.rage = true; luckOf(this.run).rage++; this.showBanner('보스 분노!', `공격이 빨라져요 (확률 ${Math.round(LUCK.boss.rageChance * 100)}%)`, 1.6, true); }
+    }
+    if (b.rage) bdt *= LUCK.boss.rageSpeed;
     b.t += bdt;
     const pat = b.patterns[b.pi];
     if (pat !== 'swipe') b.x = W / 2 + Math.sin(b.t * 0.6) * 120;
     b.pt += bdt;
     this.shooter = b.id; BOSS_PATTERNS[pat](this, b, bdt); this.shooter = null;
-    if (b.pt > 5.5) { b.pt = 0; b.acc = 0; b.acc2 = 0; b.pi = (b.pi + 1) % b.patterns.length; b.sub = null; this.enemies.filter(e => e.decoy).forEach(e => { e.life = 0; }); }
+    if (b.pt > 5.5) { b.pt = 0; b.acc = 0; b.acc2 = 0; b.pi = this.nextPattern(b); b.sub = null; this.enemies.filter(e => e.decoy).forEach(e => { e.life = 0; }); }
     if (dist2(b, this.p) < (b.r * 0.8 + this.p.r) ** 2) this.hurt(20);
   }
 
