@@ -69,7 +69,8 @@ if (save.settings.kiosk && !swReload) resetForNextStudent();
 const cardsOf = kind => CARDS.filter(c => !kind || c.kind === kind);
 export const view = {
   pilotUnlocked: p => { const u = PILOT_UNLOCK[p.id]; return save.teacher || !u || save.grandPilots.includes(p.id) || view.setDone({ kind: u.kind }); },
-  shipUnlocked: s => { const u = SHIP_UNLOCK[s.id]; return save.teacher || !u || save.bosses.length >= u.bosses; },
+  shipUnlocked: s => { const u = SHIP_UNLOCK[s.id]; return save.teacher || !u || u.bosses.every(id => save.bosses.includes(id)); },
+  shipProgress: s => { const u = SHIP_UNLOCK[s.id]; return u ? [u.bosses.filter(id => save.bosses.includes(id)).length, u.bosses.length] : [0, 0]; },
   // 범주를 모두 모았나 (kind 가 없으면 33장 전부)
   setDone: set => cardsOf(set.kind).every(c => view.hasCard(c.id)),
   setCount: set => { const all = cardsOf(set.kind); return [all.filter(c => view.hasCard(c.id)).length, all.length]; },

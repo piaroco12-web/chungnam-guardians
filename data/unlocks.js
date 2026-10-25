@@ -1,12 +1,14 @@
 // 해금과 수집 보너스 — 숫자·이름은 여기서만 바꾼다. (2026-10 사용자 결정)
-//  · 기체: 별빛호는 처음부터, 드론호·번개호는 정화한 보스 종류 수로
+//  · 기체: 별빛호는 처음부터, 드론호는 중간 보스 5종 모두, 번개호는 지역 보스 5종(최종 보스 포함) 모두 정화
 //  · 캐릭터: 센터이 = SW·AI 개념 카드 모두, 에듀이 = 지역 상식 카드 모두 (예전 규칙으로 이미 연 학생은 그대로)
 //  · 카드 범주를 모두 모으면: 작은 영구 능력치 + 칭호 + 기체 색
 
+import { REGIONS } from './content.js';
+
 export const SHIP_UNLOCK = {
   byeolbit: null,
-  drone: { bosses: 3, text: '보스 3종을 정화하면' },
-  beongae: { bosses: 6, text: '보스 6종을 정화하면' },
+  drone: { bosses: REGIONS.map(r => r.mid), text: '중간 보스 5종을 모두 정화하면' },
+  beongae: { bosses: REGIONS.map(r => r.boss), text: '지역 보스 5종(최종 보스 포함)을 모두 정화하면' },
 };
 
 export const PILOT_UNLOCK = {

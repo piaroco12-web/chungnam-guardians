@@ -14,7 +14,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.6.0';
+export const VERSION = '2.6.1';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -241,7 +241,7 @@ export function select(step, sel, act) {
   }).join('')}</div>`;
   if (step === 'ship') body = head(2, '기체 선택') + `<div class="picks">${SHIPS.map(s => { const ok = view.shipUnlocked(s), u = SHIP_UNLOCK[s.id];
       return `<button class="pick ${ok ? '' : 'lock'}" data-v="${s.id}" ${ok ? '' : 'aria-disabled="true"'}><div class="pic"><img src="${pic.hangar(s, view.shipColor().id)}" alt=""></div>
-      <div class="tx"><b>${esc(s.name)}</b><span class="tag">${esc(s.tag)}</span><p>${ok ? `${esc(s.desc)}<br>필살기: ${esc(s.ult.name)}` : `🔒 ${esc(u.text)} 열려요 (지금 ${save.bosses.length}종)`}</p></div></button>`; }).join('')}
+      <div class="tx"><b>${esc(s.name)}</b><span class="tag">${esc(s.tag)}</span><p>${ok ? `${esc(s.desc)}<br>필살기: ${esc(s.ult.name)}` : `🔒 ${esc(u.text)} 열려요 (지금 ${view.shipProgress(s).join('/')}종)`}</p></div></button>`; }).join('')}
       <div class="colors"><b class="ol">기체 색</b><div class="chips">${[BASE_COLOR, ...SETS.map(s => s.color)].map(cl => { const set = SETS.find(s => s.color.id === cl.id), ok = !set || view.setDone(set);
         return `<button class="chip-c c-${cl.id} ${view.shipColor().id === cl.id ? 'on' : ''} ${ok ? '' : 'locked'}" data-color="${cl.id}" aria-pressed="${view.shipColor().id === cl.id}" title="${ok ? esc(cl.name) : `${esc(set.kind || '카드 33장')} 모두 모으면 열려요`}"><i></i>${esc(cl.name)}${ok ? '' : ' 🔒'}</button>`; }).join('')}</div></div>
       <p class="note">추천 조합 · 충남이+번개호 보스 화력형 · 에듀이+드론호 생존형 · 센터이+별빛호 가호 조합형</p></div>`;
