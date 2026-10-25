@@ -22,16 +22,24 @@ export function stagger(els, step = 110, dy = 16) {
   [...els].forEach((el, i) => play(el, [{ transform: `translateY(${dy}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 600, easing: CUBIC, delay: i * step }));
 }
 
-// M06 도장 쾅: 무대 위에 도장을 찍고 살짝 흔든 뒤 콜백
+// 정화 축하: 짧게 떠오른 뒤 다음 화면으로, 화면 흔들림은 사용하지 않는다.
 export function stamp(root, html, done) {
-  const wrap = document.createElement('div'); wrap.className = 'stampwrap';
-  wrap.innerHTML = `<div class="stamp ol">${html}</div>`;
+  const wrap = document.createElement('div'); wrap.className = 'stampwrap purification-overlay';
+  wrap.innerHTML = `<div class="purification-panel">${html}</div>`;
   root.appendChild(wrap);
-  const s = wrap.firstChild;
-  const a = play(s, [{ transform: 'scale(2.4) rotate(-24deg)', opacity: 0 }, { transform: 'scale(1) rotate(-8deg)', opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.55,0,1,.45)' });
-  const shake = () => play(root.parentElement || root, [{ transform: 'translateY(0)' }, { transform: 'translateY(4px)' }, { transform: 'translateY(-2px)' }, { transform: 'translateY(0)' }], { duration: 260, fill: 'none' });
-  const finish = () => setTimeout(() => { wrap.remove(); done && done(); }, 850);
-  if (a) a.finished.then(() => { if (!save.settings.calm) shake(); finish(); }); else finish();
+  const panel = wrap.firstChild;
+  const quiet = save.settings.calm || reduce();
+  if (!quiet) {
+    play(panel, [{ transform: 'translateY(22px) scale(.9)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 340, easing: EXPO });
+    const seal = panel.querySelector('.purification-seal');
+    play(seal, [{ transform: 'translateY(-12px) scale(.7)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 420, easing: EXPO, delay: 80 });
+  }
+  let finished = false;
+  setTimeout(() => {
+    if (finished) return; finished = true;
+    const active = wrap.isConnected; wrap.remove();
+    if (active && done) done();
+  }, quiet ? 1100 : 1500);
 }
 
 // M08 펼쳐지는 종이: 위를 기준으로 펼친 뒤 내용이 나타남

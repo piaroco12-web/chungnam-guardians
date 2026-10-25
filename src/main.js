@@ -158,8 +158,8 @@ function showCards(list, done) {
 
 function onBossDefeated(b, id, isRegion) {
   b.paused = true;
-  // M06 도장 쾅: 정화 완료 도장을 찍고 나서 카드로
-  return ui.stamp('정화<br>완료!', () => afterStamp(b, id, isRegion));
+  // 정화된 보스를 축하 패널로 보여 준 뒤 퀴즈로
+  return ui.stamp('정화 완료!', () => afterStamp(b, id, isRegion), id);
 }
 
 function afterStamp(b, id, isRegion) {

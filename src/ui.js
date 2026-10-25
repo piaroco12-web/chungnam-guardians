@@ -13,7 +13,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.5.3';
+export const VERSION = '2.5.4';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -458,8 +458,16 @@ export function zodiacPick(choices, onPick) {
   on('.choice', 'click', (e, el) => confirmChoice(el, 'zodiac', () => onPick(choices[+el.dataset.i])));
 }
 
-// 보스 정화 도장 (M06)
-export function stamp(html, done) { stampFx(root(), html, done); }
+// 정화 축하 패널: 실제 정화된 보스와 성공 훈장을 함께 표시한다.
+export function stamp(html, done, bossId) {
+  const boss = BOSSES[bossId], clean = boss && pic.cleansed(bossId), medal = pic.purified();
+  stampFx(root(), `<div class="purification-seal">${medal ? `<img src="${medal}" alt="">` : '<span>♡</span>'}</div>
+    <h2 class="purification-title">정화 완료!</h2>
+    ${clean ? `<div class="purification-portrait"><img src="${clean}" alt="정화된 ${esc(boss.name)}"></div>` : ''}
+    ${boss ? `<b class="purification-name">${esc(boss.name)}</b>` : ''}
+    <p class="purification-message">따뜻한 마음을 되찾았어요</p>
+    <div class="purification-next">곧 정화 퀴즈가 시작돼요 <span aria-hidden="true">›</span></div>`, done);
+}
 export function zodiacChoices() { const a = [...ZODIAC]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a.slice(0, 3); }
 
 // ───────── 만든 사람들 (음원·그림 출처) ─────────
