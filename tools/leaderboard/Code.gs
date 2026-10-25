@@ -32,7 +32,8 @@ function doPost(e) {
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);                                             // 25명이 동시에 보내도 줄이 섞이지 않게
   try {
-    sheet_().appendRow([new Date(), d.date, cls, num, clip_(d.startName, 10), clip_(d.regionName, 10), clip_(d.stageName, 12),
+    // 반 앞의 ' 는 시트가 '5-2'를 날짜(5월 2일)로 바꾸지 않게 글자로 저장하라는 표시 (셀에는 5-2로 보임)
+    sheet_().appendRow([new Date(), d.date, "'" + cls, num, clip_(d.startName, 10), clip_(d.regionName, 10), clip_(d.stageName, 12),
       score, kills, int_(d.level, 1, 999), d.win ? 'O' : '', clip_(d.pilot, 10), clip_(d.ship, 10), clip_(d.version, 12)]);
   } finally { lock.releaseLock(); }
   return out_({ ok: true });
