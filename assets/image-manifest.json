@@ -1,6 +1,6 @@
 {
-  "version": "2.11.1",
-  "count": 107,
+  "version": "2.12.6",
+  "count": 151,
   "images": [
     {
       "path": "assets/img/bg_asan.webp",
@@ -1271,6 +1271,534 @@
       "width": 1254,
       "height": 1254,
       "bytes": 227382,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/map_chungnam_15.webp",
+      "width": 1080,
+      "height": 1600,
+      "bytes": 439316,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/region_landmarks_15_sheet.webp",
+      "width": 2560,
+      "height": 1536,
+      "bytes": 1045828,
+      "grid": [
+        5,
+        3
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/enemy_region15_sheet.webp",
+      "width": 1920,
+      "height": 768,
+      "bytes": 362268,
+      "grid": [
+        5,
+        2
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/concept_cards_sheet.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 286438,
+      "grid": [
+        3,
+        2
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/bg_cheonan.webp",
+      "width": 1080,
+      "height": 1890,
+      "bytes": 469154,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/bg_dangjin.webp",
+      "width": 1080,
+      "height": 1890,
+      "bytes": 482298,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/bg_seosan.webp",
+      "width": 1080,
+      "height": 1890,
+      "bytes": 392318,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/bg_taean.webp",
+      "width": 1080,
+      "height": 1890,
+      "bytes": 351780,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/bg_seocheon.webp",
+      "width": 1080,
+      "height": 1890,
+      "bytes": 457976,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/bg_cheongyang.webp",
+      "width": 1080,
+      "height": 1890,
+      "bytes": 501400,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/bg_nonsan.webp",
+      "width": 1080,
+      "height": 1890,
+      "bytes": 449662,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/bg_gyeryong.webp",
+      "width": 1080,
+      "height": 1890,
+      "bytes": 481098,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/bg_geumsan.webp",
+      "width": 1080,
+      "height": 1890,
+      "bytes": 512022,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/bg_yesan.webp",
+      "width": 1080,
+      "height": 1890,
+      "bytes": 442330,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": false,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_walnut.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 130102,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_walnut_cleansed.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 149086,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_filter.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 246702,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_filter_cleansed.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 252578,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_snapgull.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 114222,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_snapgull_cleansed.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 127234,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_bubblejelly.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 156490,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_bubblejelly_cleansed.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 151854,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_ewastecrab.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 197190,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_ewastecrab_cleansed.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 211874,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_hatepepper.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 142820,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_hatepepper_cleansed.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 152826,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_piratemole.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 143106,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_piratemole_cleansed.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 149692,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_fakecommander.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 140998,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_fakecommander_cleansed.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 154654,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_owlginseng.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 169434,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_owlginseng_cleansed.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 187294,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_badapple.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 116884,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_badapple_cleansed.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 133890,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_smishbot.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 123904,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_smishbot_cleansed.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 149852,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_deepvoice.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 156166,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_deepvoice_cleansed.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 176786,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_gachaking.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 160362,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_gachaking_cleansed.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 144478,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_locghost.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 136176,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_locghost_cleansed.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 137464,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_starfake.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 138158,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_starfake_cleansed.webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 163486,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
       "format": "webp"
     }
   ]
