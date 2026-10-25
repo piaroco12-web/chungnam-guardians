@@ -69,8 +69,8 @@ async def verify(url):
         await page.locator('#qn').click()
         for _ in range(8):
             await page.wait_for_timeout(150)
-            if await page.locator('#cn').count():
-                await page.locator('#cn').click()
+            if await page.locator('#cn:enabled').count():
+                await page.locator('#cn:enabled').click()
             if await page.locator('.godrow').count():
                 break
         await page.wait_for_selector('.godrow')
@@ -79,8 +79,8 @@ async def verify(url):
         await page.locator('.choice').first.click()
         for _ in range(5):
             await page.wait_for_timeout(150)
-            if await page.locator('#cn').count():
-                await page.locator('#cn').click()
+            if await page.locator('#cn:enabled').count():
+                await page.locator('#cn:enabled').click()
             if await page.locator('#pz').count():
                 break
         await page.wait_for_selector('#pz')
