@@ -8,7 +8,7 @@ import { luckOf } from './progress.js';
 import { BOONS, RARITY } from '../data/boons.js';
 import { art } from './assets.js';
 import { sfx } from './audio.js';
-import { save } from './save.js';
+import { save, view } from './save.js';
 
 export const STAGES = ['wave', 'wave', 'mid', 'wave', 'boss'];
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -59,8 +59,9 @@ export class Battle {
 
   recalc() {
     const u = id => this.up(id), m = save.meta;
+    this.bonus = view.bonus();   // 카드 범주 완성 보너스 (data/unlocks.js)
     this.st = {
-      atk: (1 + u('atk') * 0.1 + m.atk * 0.03) * (this.run.companion === 'tiger' ? 1.25 : 1),
+      atk: (1 + u('atk') * 0.1 + m.atk * 0.03) * (this.run.companion === 'tiger' ? 1.25 : 1) * (1 + this.bonus.atk),
       rate: 1 + u('rate') * 0.08,
       speed: 1 + u('speed') * 0.1,
       cd: Math.max(0.4, 1 - u('cd') * 0.06),
@@ -72,7 +73,7 @@ export class Battle {
       elem: this.run.pilot === 'centeri' ? 1.3 : 1,
       elemDur: this.run.pilot === 'centeri' ? 1 : 0,
     };
-    this.maxHp = this.pilot.hp + m.hp * 5 + u('hp') * 15;
+    this.maxHp = this.pilot.hp + m.hp * 5 + u('hp') * 15 + this.bonus.hp;
     this.maxShields = (this.run.pilot === 'edui' ? 1 : 0) + (this.has('ta_hit') ? (this.rr('ta_hit') >= 2 ? 2 : 1) : 0);
     this.bulletElem = ['gy_bullet', 'gg_bullet', 'sh_bullet', 'bj_bullet', 'cg_bullet', 'ta_bullet'].find(id => this.has(id)) || null;
     this.slowBoon = ['gy_slow', 'gg_slow', 'sh_slow', 'bj_slow', 'cg_slow', 'ta_slow'].find(id => this.has(id)) || null;
@@ -612,7 +613,7 @@ export class Battle {
     this.run.kills++;
   }
 
-  addGauge(n) { this.run.gauge = Math.min(100, this.run.gauge + n); }
+  addGauge(n) { this.run.gauge = Math.min(100, this.run.gauge + n * (1 + (this.bonus?.ult || 0))); }
 
   heal(n, text = true, force = false) {
     if (this.pact('noHeal') && !force) return;
@@ -706,7 +707,7 @@ export class Battle {
     if (this.has('cg_hit') && Math.random() < Math.min(0.35, 0.15 * this.rr('cg_hit'))) { p.inv = 0.4; this.texts.push({ x: p.x, y: p.y - 40, s: '회피!', t: 0.6, c: '#6fdc6a' }); return; }
     if (p.shields > 0) { p.shields--; p.inv = 0.8; sfx.shield(); this.spark(p.x, p.y, '#bfefff', 12); return; }
     if (this.has('gg_hit') && p.iceShell > 0) { p.iceShell = 0; p.inv = 0.8; sfx.ice(); this.spark(p.x, p.y, '#bfefff', 12); return; }
-    n *= (1 + this.run.region * 0.1) * (this.diff.dmg ?? 1);
+    n *= (1 + this.run.region * 0.1) * (this.diff.dmg ?? 1) * (1 - this.bonus.guard);
     this.run.hp -= n; p.inv = 1; this.shake = 8; sfx.hurt();
     if (save.settings.vibe && navigator.vibrate) { try { navigator.vibrate(60); } catch { /* 무시 */ } }
     this.texts.push({ x: p.x, y: p.y - 40, s: '-' + Math.round(n), t: 0.7, c: '#ff5a72' });
@@ -741,7 +742,7 @@ export class Battle {
   collect(it) {
     const r = this.run;
     if (it.kind === 'chest') { this.pendingLevels++; r.coins += 10; sfx.levelup(); this.texts.push({ x: this.p.x, y: this.p.y - 60, s: '🎁 보물 상자! 레벨업 +1', t: 1.2, c: '#ffe14a', big: true }); return; }
-    if (it.kind === 'xp') { r.xp += it.v * (this.buffOn('xp') ? (this.run.buff.mult || 1.6) : 1); sfx.xp(); while (r.xp >= this.xpNeed()) { r.xp -= this.xpNeed(); r.level++; this.pendingLevels++; } }
+    if (it.kind === 'xp') { r.xp += it.v * (this.buffOn('xp') ? (this.run.buff.mult || 1.6) : 1) * (1 + this.bonus.xp); sfx.xp(); while (r.xp >= this.xpNeed()) { r.xp -= this.xpNeed(); r.level++; this.pendingLevels++; } }
     else if (it.kind === 'coin') { r.coins += it.v * (r.companion === 'pig' ? 2 : 1); sfx.coin(); }
     else if (it.kind === 'heart') { this.heal(it.v); sfx.pick(); }
     else if (it.kind === 'fake') { this.p.slowDebuff = 3; this.texts.push({ x: this.p.x, y: this.p.y - 40, s: '가짜 아이템! 느려짐', t: 1, c: '#ff8a3d' }); sfx.hurt(); }

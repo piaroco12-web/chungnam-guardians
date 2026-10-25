@@ -5,6 +5,7 @@ import { PILOTS, SHIPS, BOSSES, ENEMIES } from '../data/content.js';
 import { GODS, DUOS, LEGENDS } from '../data/boons.js';
 import { ZODIAC } from '../data/zodiac.js';
 import { STORY, PACTS } from '../data/extras.js';
+import { SETS } from '../data/unlocks.js';
 
 const img = {};          // 이름 → 불러온 Image
 const cache = {};        // 임시 그림 캐시
@@ -184,15 +185,41 @@ function roundedBug(elite) {
   }));
 }
 
+// ───────── 기체 색 (범주 완성 보상) ─────────
+// 칠해진 부분(채도가 있는 픽셀)의 색상만 바꾸고 밝기·흰색·검은 테두리는 그대로 둔다. 무지개는 가로 위치로 색상이 바뀐다.
+const COLOR_OF = Object.fromEntries(SETS.map(s => [s.color.id, s.color]));
+function tinted(im, colorId) {
+  const col = COLOR_OF[colorId];
+  if (!im || !col) return im;
+  return once('tint:' + (im.src || im.__id || (im.__id = Math.random())) + ':' + colorId, () => canvas(im.width, im.height, (g, w, h) => {
+    g.drawImage(im, 0, 0);
+    const d = g.getImageData(0, 0, w, h), p = d.data;
+    for (let i = 0; i < p.length; i += 4) {
+      if (p[i + 3] < 8) continue;
+      const r = p[i] / 255, gg = p[i + 1] / 255, b = p[i + 2] / 255;
+      const mx = Math.max(r, gg, b), mn = Math.min(r, gg, b), l = (mx + mn) / 2, dd = mx - mn;
+      if (dd < 0.12) continue;                                   // 흰색·회색·검은 테두리는 그대로
+      let s = dd / (1 - Math.abs(2 * l - 1));
+      const x = (i / 4) % w;
+      const hue = (col.rainbow ? (x / w) * 300 + 10 : col.hue) / 360;
+      s = Math.min(1, s * (col.sat || 1.15));
+      const q = l < 0.5 ? l * (1 + s) : l + s - l * s, pp = 2 * l - q;
+      const f = t => { t = (t + 1) % 1; return t < 1 / 6 ? pp + (q - pp) * 6 * t : t < 1 / 2 ? q : t < 2 / 3 ? pp + (q - pp) * (2 / 3 - t) * 6 : pp; };
+      p[i] = f(hue + 1 / 3) * 255; p[i + 1] = f(hue) * 255; p[i + 2] = f(hue - 1 / 3) * 255;
+    }
+    g.putImageData(d, 0, 0);
+  }));
+}
+
 // 기체와 파일럿을 따로 합성하고 완성된 9개 조합을 캐시한다.
-function occupiedShip(shipId, pilotId) {
-  const base = get('ship_' + shipId), index = PILOTS.findIndex(p => p.id === pilotId);
+function occupiedShip(shipId, pilotId, colorId) {
+  const base = tinted(get('ship_' + shipId), colorId), index = PILOTS.findIndex(p => p.id === pilotId);
   if (!base || index < 0) return null;
   const bust = iconCell('pilot_cockpit_sheet', index, 3);
   if (!bust) return null;
   const cockpit = { byeolbit: [256, 244, 118, 142], drone: [256, 244, 108, 140], beongae: [256, 282, 106, 138] }[shipId];
   if (!cockpit) return null;
-  return once('occupied:' + shipId + ':' + pilotId, () => canvas(512, 512, g => {
+  return once('occupied:' + shipId + ':' + pilotId + ':' + (colorId || 'base'), () => canvas(512, 512, g => {
     g.drawImage(base, 0, 0, 512, 512);
     const [x, y, w, h] = cockpit;
     g.save();
@@ -212,7 +239,7 @@ function occupiedShip(shipId, pilotId) {
 
 // 전투에 쓰는 그림 (Image 또는 Canvas)
 export const art = {
-  ship: (id, pilotId) => (pilotId && occupiedShip(id, pilotId)) || get('ship_' + id) || once('ship' + id, () => shipTop(SHIPS.find(s => s.id === id))),
+  ship: (id, pilotId, colorId) => (pilotId && occupiedShip(id, pilotId, colorId)) || tinted(get('ship_' + id), colorId) || once('ship' + id, () => shipTop(SHIPS.find(s => s.id === id))),
   enemy: (t, elite = false) => (t === 'bug' && roundedBug(elite)) || cell('enemy_sheet', ENEMY_ORDER.indexOf(t), 3, 2) || once('en' + t, () => enemyArt(t)),
   boss: id => get(bossFile(id)) || once('boss' + id, () => bossArt(id)),
   drone: () => get('unit_drone'),
@@ -249,7 +276,7 @@ export const pic = {
     return c ? c.toDataURL() : null;
   },
   pilot: p => url(get('pilot_' + p.id) || once('pi' + p.id, () => pilotArt(p))),
-  hangar: s => url(get('ship_' + s.id + '_hangar') || once('hg' + s.id, () => hangarArt(s))),
+  hangar: (s, colorId) => url(tinted(get('ship_' + s.id + '_hangar'), colorId) || once('hg' + s.id, () => hangarArt(s))),
   god: gd => url(get(gd.img) || once('god' + gd.id, () => godArt(gd))),
   boss: id => url(art.boss(id)),
   cleansed: id => get(bossFile(id) + '_cleansed')?.src || null,

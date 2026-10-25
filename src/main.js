@@ -3,7 +3,7 @@ import { W, H, fitStage } from './view.js';
 import { initInput, input, isActive } from './input.js';
 import { loadAssets } from './assets.js';
 import { sfx, bgm, unlockAudio } from './audio.js';
-import { save, persist, progress, saveRun, loadRun, clearRun, view, resetForNextStudent } from './save.js';
+import { save, persist, progress, saveRun, loadRun, clearRun, view, resetForNextStudent, unlockSnap, unlockNews } from './save.js';
 import { Battle, newRun } from './battle.js';
 import { render } from './render.js';
 import { levelChoices, applyLevelChoice, altarChoices, applyAltarChoice, godOf } from './progress.js';
@@ -51,6 +51,7 @@ function toBase(tab) {
   restoreRandom();
   state.scene = 'base'; state.battle = null; if (tab) state.tab = tab; bgm('base');
   if (!view.pilotUnlocked(PILOTS.find(p => p.id === state.pilot))) state.pilot = 'chungnami';
+  if (!view.shipUnlocked(SHIPS.find(s => s.id === state.ship))) state.ship = 'byeolbit';
   ui.base({ tab: state.tab, pilot: state.pilot, ship: state.ship, hasRun: !!loadRun(), daily: dailyInfo() }, {
     tab: t => toBase(t), refresh: () => toBase(), title: toTitle,
     sortie: () => { state.sel = {}; toSelect('pilot'); }, cont: continueRun, daily: startDaily,
@@ -94,6 +95,7 @@ function continueRun() {
 
 function beginBattle(run) {
   state.scene = 'battle';
+  snap = unlockSnap();
   let b = null;
   b = new Battle(run, {
     hud: () => b && ui.updateHud(b, !isActive()),
@@ -150,8 +152,18 @@ function giveCard(b, id, list) {
   progress(s => { if (!s.cards.includes(id)) s.cards.push(id); });
   list.push(CARDS.find(c => c.id === id));
 }
+// 카드를 다 보여 준 뒤, 새로 열린 것(범주 완성·캐릭터·기체)이 있으면 축하 화면을 이어서 보여 준다
+let snap = null;
 function showCards(list, done) {
-  if (!list.length) return done();
+  if (!list.length) {
+    const news = snap ? unlockNews(snap) : [];
+    if (!news.length) return done();
+    snap = unlockSnap();
+    const b = state.battle;
+    if (b) b.unlocksThisRun = [...(b.unlocksThisRun || []), ...news.map(n => ui.newsName(n))];
+    if (b && news.some(n => n.type === 'set')) b.recalc();   // 범주 보너스를 이번 판에도 바로
+    return ui.celebrate(news, done);
+  }
   const c = list.shift();
   ui.cardReveal(c, () => showCards(list, done));
 }
@@ -187,15 +199,9 @@ function afterQuiz(b, id, isRegion) {
   const ri = b.run.region, rg = REGIONS[ri];
   const firstClear = !save.cleared.includes(ri);
   giveCard(b, 'r_' + rg.id, cards);
-  const unlocks = [];
-  if (firstClear) {
-    progress(s => { s.cleared.push(ri); });
-    for (const p of PILOTS) if (p.unlock && p.unlock.region === ri) unlocks.push(p.name);
-  }
+  if (firstClear) progress(s => { s.cleared.push(ri); });
   progress(s => { if (ri > s.best.region) s.best.region = ri; });
-  b.unlocksThisRun = [...(b.unlocksThisRun || []), ...unlocks];
   showCards(cards, () => {
-    if (unlocks.length) ui.toast(`새 파일럿 해금: ${unlocks.join(', ')}`);
     if (ri >= REGIONS.length - 1) return finish(b, true);
     openAltar(b);
   });
@@ -378,4 +384,4 @@ loadAssets(p => ui.loading(p)).then(() => { toTitle(); requestAnimationFrame(loo
 void persist; void godOf;
 
 // 개발 확인용: 주소 끝에 ?debug 를 붙이면 콘솔에서 window.__cg 로 상태를 볼 수 있다.
-if (location.search.includes('debug')) window.__cg = { state, save, openAltar, openLevelUp };
+if (location.search.includes('debug')) window.__cg = { state, save, openAltar, openLevelUp, giveCard, showCards };

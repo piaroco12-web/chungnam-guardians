@@ -5,9 +5,9 @@ export const PILOTS = [
   { id: 'chungnami', name: '충남이', hp: 100, tag: '기본탄 강화', color: '#5ab8ff', accent: '#2fd35b',
     desc: '기본 공격 발사 수 +1, 탄속 +20%', unlock: null },
   { id: 'centeri', name: '센터이', hp: 80, tag: '속성 피해 강화', color: '#a77bff', accent: '#3fe0c0',
-    desc: '가호 속성 피해 +30%, 상태이상 지속 +1초', unlock: { region: 1, text: '공주를 처음 깨면' } },
+    desc: '가호 속성 피해 +30%, 상태이상 지속 +1초', unlock: { text: 'SW·AI 개념 카드를 모두 모으면' } },
   { id: 'edui', name: '에듀이', hp: 120, tag: '보호막', color: '#8fd14f', accent: '#ff9a3c',
-    desc: '12초마다 적 탄 1발을 막는 방패 생성', unlock: { region: 3, text: '보령을 처음 깨면' } },
+    desc: '12초마다 적 탄 1발을 막는 방패 생성', unlock: { text: '지역 상식 카드를 모두 모으면' } },
 ];
 
 export const SHIPS = [

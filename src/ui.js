@@ -5,6 +5,7 @@ import { WEAPONS, UPGRADES, EVOLUTIONS, boonDef, godOf, MAX_SLOTS } from './prog
 import { ZODIAC } from '../data/zodiac.js';
 import { PATHS, QUIZ, CARD_QUIZ, PACTS, STORY } from '../data/extras.js';
 import { LUCK } from '../data/luck.js';
+import { SETS, SHIP_UNLOCK, BASE_COLOR } from '../data/unlocks.js';
 import { save, view, persist, TEACHER_CODE, totalCodex, totalCards, resetAll, resetForNextStudent } from './save.js';
 import { art, pic } from './assets.js';
 import { sfx, refreshBgm } from './audio.js';
@@ -13,7 +14,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.5.4';
+export const VERSION = '2.6.0';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -78,7 +79,7 @@ export function base(state, act) {
   const tabs = [['sortie', '🚀', '출격'], ['meta', '⬆️', '강화'], ['codex', '📖', '도감'], ['cards', '🃏', '카드첩'], ['settings', '⚙️', '설정']];
   const bg = pic.base();
   const r = show(`<div class="screen" style="background:${bg ? `url(${bg}) center/cover` : 'rgba(20,26,58,.55)'}">
-    <div class="base-top"><div class="ol" style="font-size:calc(var(--u)*26)">기지${save.teacher ? ' · 교사 모드' : save.settings.kiosk ? ' · 체험관' : ''}</div><div class="coinbox ol">${coinIcon}${save.coins}</div></div>
+    <div class="base-top"><div class="base-name"><div class="ol" style="font-size:calc(var(--u)*26)">기지${save.teacher ? ' · 교사 모드' : save.settings.kiosk ? ' · 체험관' : ''}</div>${view.title() ? `<span class="title-chip">🏅 ${esc(view.title())}</span>` : ''}</div><div class="coinbox ol">${coinIcon}${save.coins}</div></div>
     <div class="base-body ${['codex', 'cards'].includes(state.tab) ? 'collection' : ''} ${state.tab === 'cards' ? 'card-collection' : ''}" id="bb"></div>
     <nav class="tabs" aria-label="기지 메뉴">${tabs.map(([id, e, n]) => { const im = pic.nav(id); return `<button class="tab ${state.tab === id ? 'on' : ''}" data-t="${id}" aria-label="${n}" aria-current="${state.tab === id ? 'page' : 'false'}"><b>${im ? `<img src="${im}" alt="">` : e}</b><span>${n}</span></button>`; }).join('')}</nav>
   </div>`);
@@ -93,7 +94,7 @@ function sortie(bb, state, act) {
     <h2 class="ol">격납고</h2>
     <div style="display:flex;gap:calc(var(--u)*6);align-items:center">
       <div class="hangar-art" style="width:calc(var(--u)*200);height:calc(var(--u)*200)"><img src="${pic.pilot(p)}" alt="${esc(p.name)}"></div>
-      <div class="hangar-art" style="width:calc(var(--u)*240);height:calc(var(--u)*240)"><img src="${pic.hangar(s)}" alt="${esc(s.name)}"></div>
+      <div class="hangar-art" style="width:calc(var(--u)*240);height:calc(var(--u)*240)"><img src="${pic.hangar(s, view.shipColor().id)}" alt="${esc(s.name)}"></div>
     </div>
     <div class="ol" style="font-size:calc(var(--u)*26)">${esc(p.name)} + ${esc(s.name)}</div>
     <p class="note">파일럿과 기체는 출격할 때 바꿀 수 있어요.<br>최고 기록: ${REGIONS[save.best.region]?.name || '아산'}까지 · 처치 ${save.best.kills}</p>
@@ -164,7 +165,10 @@ const gridTitle = t => { const m = /^(.*?)\s*\((.+)\)$/.exec(t); return m ? `${e
 function cardsTab(bb) {
   const groups = ['지역 상식', 'SW·AI 개념', '예방 수칙', 'AI 역량'];
   const n = CARDS.filter(c => view.hasCard(c.id)).length;
-  bb.innerHTML = `<h2 class="ol">카드첩 ${n}/${totalCards()}</h2>${groups.map(gname => `<div class="sec-label">${gname}</div><div class="grid cards">${CARDS.filter(c => c.kind === gname).map(c => view.hasCard(c.id)
+  const setLine = set => { const [a, t] = view.setCount(set), done = a >= t;
+    return `<span class="set-prog ${done ? 'done' : ''}">${done ? '✓ 완성' : `${a}/${t}`} · ${esc(set.label)} · 🏅${esc(set.title)}</span>`; };
+  const all = SETS.find(s => !s.kind);
+  bb.innerHTML = `<h2 class="ol">카드첩 ${n}/${totalCards()}</h2><div class="set-all">${setLine(all)}<small>범주를 모두 모으면 영구 보너스·칭호·기체 색을 받아요</small></div>${groups.map(gname => `<div class="sec-label">${gname} ${setLine(SETS.find(s => s.kind === gname))}</div><div class="grid cards">${CARDS.filter(c => c.kind === gname).map(c => view.hasCard(c.id)
     ? `<div class="ccard got ${kindClass(c)}" data-c="${c.id}"><span class="e">${cardArt(c)}</span><b>${gridTitle(c.title)}</b></div>`
     : `<div class="ccard unopened" aria-label="미확인 카드 · ${esc(hintFor(c))}"><img class="unopened-art" src="${pic.unopened() || pic.cardBack()}" alt=""><span class="unopened-hint">${hintFor(c)}</span></div>`).join('')}</div>`).join('')}`;
   const opened = STORY.filter(st => save.teacher || save.story.includes(st.id));
@@ -235,8 +239,11 @@ export function select(step, sel, act) {
     return `<button class="pick ${ok ? '' : 'lock'}" data-v="${p.id}" ${ok ? '' : 'aria-disabled="true"'}><div class="pic"><img src="${pic.pilot(p)}" alt=""></div>
       <div class="tx"><b>${esc(p.name)}</b><span class="tag">${esc(p.tag)}</span><p>${ok ? `체력 ${p.hp} · ${esc(p.desc)}` : `🔒 ${esc(p.unlock.text)} 열려요`}</p></div></button>`;
   }).join('')}</div>`;
-  if (step === 'ship') body = head(2, '기체 선택') + `<div class="picks">${SHIPS.map(s => `<button class="pick" data-v="${s.id}"><div class="pic"><img src="${pic.hangar(s)}" alt=""></div>
-      <div class="tx"><b>${esc(s.name)}</b><span class="tag">${esc(s.tag)}</span><p>${esc(s.desc)}<br>필살기: ${esc(s.ult.name)}</p></div></button>`).join('')}
+  if (step === 'ship') body = head(2, '기체 선택') + `<div class="picks">${SHIPS.map(s => { const ok = view.shipUnlocked(s), u = SHIP_UNLOCK[s.id];
+      return `<button class="pick ${ok ? '' : 'lock'}" data-v="${s.id}" ${ok ? '' : 'aria-disabled="true"'}><div class="pic"><img src="${pic.hangar(s, view.shipColor().id)}" alt=""></div>
+      <div class="tx"><b>${esc(s.name)}</b><span class="tag">${esc(s.tag)}</span><p>${ok ? `${esc(s.desc)}<br>필살기: ${esc(s.ult.name)}` : `🔒 ${esc(u.text)} 열려요 (지금 ${save.bosses.length}종)`}</p></div></button>`; }).join('')}
+      <div class="colors"><b class="ol">기체 색</b><div class="chips">${[BASE_COLOR, ...SETS.map(s => s.color)].map(cl => { const set = SETS.find(s => s.color.id === cl.id), ok = !set || view.setDone(set);
+        return `<button class="chip-c c-${cl.id} ${view.shipColor().id === cl.id ? 'on' : ''} ${ok ? '' : 'locked'}" data-color="${cl.id}" aria-pressed="${view.shipColor().id === cl.id}" title="${ok ? esc(cl.name) : `${esc(set.kind || '카드 33장')} 모두 모으면 열려요`}"><i></i>${esc(cl.name)}${ok ? '' : ' 🔒'}</button>`; }).join('')}</div></div>
       <p class="note">추천 조합 · 충남이+번개호 보스 화력형 · 에듀이+드론호 생존형 · 센터이+별빛호 가호 조합형</p></div>`;
   if (step === 'diff') body = head(3, '난이도 선택') + `<div class="picks">${DIFFS.map(d => {
     const ok = !d.locked || view.hellUnlocked();
@@ -252,6 +259,10 @@ export function select(step, sel, act) {
   if (step === 'region') body = head(4, '시작 지역 (교사 모드)') + `<div class="picks">${REGIONS.map((rg, i) => `<button class="pick diff" data-v="${i}"><div class="tx"><b>${i + 1}. ${rg.name}</b><p>중간 보스 ${BOSSES[rg.mid].name} · 지역 보스 ${BOSSES[rg.boss].name}</p></div></button>`).join('')}</div>`;
   const r = show(`<div class="screen" style="background:rgba(20,26,58,.6);overflow-y:auto">${body}</div>`);
   click('#back', act.back);
+  on('[data-color]', 'click', (e, el) => {
+    if (el.classList.contains('locked')) { sfx.click(); nope(el); return toast(el.title); }
+    sfx.click(); save.shipColor = el.dataset.color; persist(); select(step, sel, act);
+  });
   on('.pick', 'click', (e, el) => {
     if (el.classList.contains('lock')) { sfx.click(); nope(el); return toast('아직 잠겨 있어요'); }
     if (step === 'pact') { sfx.click(); // 다시 그리지 않고 그 자리에서 켜고 끈다
@@ -399,6 +410,37 @@ export function altar(run, choices, onPick, onReroll) {
   dealChoices(r.querySelectorAll('.god')); dealChoices(r.querySelectorAll('.choicewrap'));
   on('.choice', 'click', (e, el) => confirmChoice(el, 'boon', () => onPick(choices[+el.dataset.i])));
   click('#rr', onReroll);
+}
+
+// ───────── 해금·범주 완성 축하 ─────────
+export function newsName(n) {
+  if (n.type === 'set') return `${n.set.kind || '카드 33장'} 완성 (${n.set.title})`;
+  if (n.type === 'pilot') return '파일럿 ' + PILOTS.find(p => p.id === n.id).name;
+  return '기체 ' + SHIPS.find(s => s.id === n.id).name;
+}
+export function celebrate(news, done) {
+  if (!news.length) return done();
+  const n = news[0], rest = news.slice(1);
+  sfx.levelup();
+  let k, art, ttl, body;
+  if (n.type === 'set') {
+    const s = n.set;
+    k = s.kind ? `${s.kind} 카드 완성!` : '카드 33장 모두 모았어요!';
+    art = `<span class="medal">🏅</span>`; ttl = s.title;
+    body = `<p>칭호 <strong>${esc(s.title)}</strong></p><p>영구 보너스 <strong>${esc(s.label)}</strong></p><p>새 기체 색 <span class="chip-c c-${s.color.id} on" style="pointer-events:none"><i></i>${esc(s.color.name)}</span></p>`;
+  } else if (n.type === 'pilot') {
+    const p = PILOTS.find(x => x.id === n.id);
+    k = '새 파일럿 해금!'; art = `<img src="${pic.pilot(p)}" alt="" class="news-art">`; ttl = p.name;
+    body = `<p>${esc(p.tag)} · ${esc(p.desc)}</p>`;
+  } else {
+    const s = SHIPS.find(x => x.id === n.id);
+    k = '새 기체 해금!'; art = `<img src="${pic.hangar(s, view.shipColor().id)}" alt="" class="news-art">`; ttl = s.name;
+    body = `<p>${esc(s.tag)} · ${esc(s.desc)}</p>`;
+  }
+  const r = show(`<div class="screen dim reward-screen"><div class="bigcard news-card"><span class="k">${k}</span><span class="e">${art}</span><b>${esc(ttl)}</b>${body}</div>
+    <button class="btn cardbtn" id="nn">확인</button></div>`);
+  unfold(r.querySelector('.bigcard'));
+  click('#nn', () => celebrate(rest, done));
 }
 
 // ───────── 카드 획득 ─────────

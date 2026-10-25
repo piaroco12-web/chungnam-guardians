@@ -464,3 +464,26 @@ h2.ol{font-size:calc(var(--u)*38);margin:calc(var(--u)*6) 0 calc(var(--u)*14);te
 .purification-message{font-weight:800;font-size:calc(var(--u)*18);color:#bdf9e6;margin:calc(var(--u)*8) 0 calc(var(--u)*18)}
 .purification-next{width:100%;border:calc(var(--u)*2) solid #7ab7c8;border-radius:calc(var(--u)*12);padding:calc(var(--u)*8) 0;background:linear-gradient(#284c68,#19344f);font-weight:800;font-size:calc(var(--u)*16);color:#edfaff;box-shadow:inset 0 2px 0 #ffffff25}
 .purification-next span{color:#ffe298;margin-left:calc(var(--u)*8);font-size:calc(var(--u)*24);line-height:.7}
+
+/* ───────── 해금·수집 보상 (data/unlocks.js) ───────── */
+.base-name{display:flex;flex-direction:column;gap:calc(var(--u)*4)}
+.title-chip{align-self:flex-start;font-weight:900;font-size:calc(var(--u)*15);color:#2a1d00;background:linear-gradient(#ffe27a,#ffb23d);border:calc(var(--u)*2) solid var(--ink);border-radius:999px;padding:calc(var(--u)*1) calc(var(--u)*12)}
+.set-prog{display:inline-block;margin-left:calc(var(--u)*6);font-family:var(--body);font-weight:800;font-size:calc(var(--u)*13);color:#c9cbe0;vertical-align:middle;text-shadow:none}
+.set-prog.done{color:#ffd23d}
+.set-all{background:rgba(12,20,48,.9);border:calc(var(--u)*2) solid #ffd23d;border-radius:calc(var(--u)*10);padding:calc(var(--u)*8) calc(var(--u)*12);margin-top:calc(var(--u)*10);display:grid;gap:calc(var(--u)*2)}
+.set-all .set-prog{margin:0;font-size:calc(var(--u)*15)}
+.set-all small{color:#c9cbe0;font-size:calc(var(--u)*13)}
+.colors{width:100%;margin-top:calc(var(--u)*6);display:grid;gap:calc(var(--u)*6)}
+.colors>b{font-size:calc(var(--u)*20)}
+.colors .chips{display:flex;flex-wrap:wrap;gap:calc(var(--u)*6)}
+.chip-c{display:inline-flex;align-items:center;gap:calc(var(--u)*6);font:inherit;font-weight:800;font-size:calc(var(--u)*15);color:#fff;background:var(--panel);border:calc(var(--u)*3) solid var(--ink);border-radius:999px;padding:calc(var(--u)*4) calc(var(--u)*12) calc(var(--u)*4) calc(var(--u)*6);cursor:pointer}
+.chip-c i{width:calc(var(--u)*20);height:calc(var(--u)*20);border-radius:50%;border:calc(var(--u)*2) solid var(--ink);background:#5ab8ff}
+.chip-c.on{border-color:#ffd23d;box-shadow:0 0 0 calc(var(--u)*2) #ffd23d}
+.chip-c.locked{filter:grayscale(1);opacity:.6}
+.c-sunset i{background:linear-gradient(135deg,#ffd23d,#ff8a3d)} .c-mint i{background:linear-gradient(135deg,#7af2d8,#1f9c8a)}
+.c-pink i{background:linear-gradient(135deg,#ffb3c9,#d9476f)} .c-violet i{background:linear-gradient(135deg,#c9b0ff,#7a52d9)}
+.c-rainbow i{background:conic-gradient(#ff5a5a,#ffd23d,#5ad16a,#5ab8ff,#a77bff,#ff5a5a)}
+.news-card .medal{font-size:calc(var(--u)*90)}
+.news-card .news-art{width:calc(var(--u)*180);height:calc(var(--u)*180);object-fit:contain}
+.news-card p{font-size:calc(var(--u)*19);text-align:center}
+.news-card p strong{font-weight:900;color:#b8650c}

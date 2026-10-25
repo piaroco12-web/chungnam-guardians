@@ -1,6 +1,7 @@
 // 기록 저장: 기기 localStorage. 저장이 막혀도 게임은 메모리로 계속 동작한다.
 import { CARDS } from '../data/content.js';
 import { BOONS, DUOS, LEGENDS } from '../data/boons.js';
+import { SHIP_UNLOCK, PILOT_UNLOCK, SETS, BASE_COLOR } from '../data/unlocks.js';
 
 const KEY = 'cnguard_v1';
 const RUN_KEY = 'cnguard_run_v1';
@@ -21,6 +22,9 @@ const fresh = () => ({
   bosses: [],          // 한 번이라도 정화한 보스
   story: [],           // 열린 이야기 조각
   daily: {},           // 날짜 → 그날 최고 기록 { region, kills }
+  grandPilots: [],     // 예전 규칙(지역 클리어)으로 이미 연 캐릭터 — 새 규칙과 상관없이 계속 열림
+  shipColor: 'base',   // 고른 기체 색 (범주 완성으로 열림)
+  // unlockRule 은 일부러 넣지 않는다: 예전 기록에 없을 때 아래 옮기기가 돌아야 해서
 });
 
 function read(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }
@@ -33,18 +37,26 @@ save.settings = Object.assign(fresh().settings, save.settings);
 save.stats = Object.assign(fresh().stats, save.stats);
 for (const k of ['bosses', 'story']) if (!Array.isArray(save[k])) save[k] = [];
 if (!save.daily || typeof save.daily !== 'object') save.daily = {};
+if (!Array.isArray(save.grandPilots)) save.grandPilots = [];
+// 해금 규칙 2 (2026-10): 예전에 공주·보령을 깨서 연 센터이·에듀이는 그대로 열어 둔다
+if (save.unlockRule !== 2) {
+  if (save.cleared.includes(1) && !save.grandPilots.includes('centeri')) save.grandPilots.push('centeri');
+  if (save.cleared.includes(3) && !save.grandPilots.includes('edui')) save.grandPilots.push('edui');
+  save.unlockRule = 2;
+  write(KEY, save);
+}
 
 export function persist() { write(KEY, save); }
 
 // 교사 모드에서는 학생 기록을 바꾸지 않는다
 export function progress(fn) { if (!save.teacher) { fn(save); persist(); } }
 
-export function resetAll() { Object.assign(save, fresh()); persist(); clearRun(); }
+export function resetAll() { Object.assign(save, fresh(), { unlockRule: 2 }); persist(); clearRun(); }
 
 // 체험관(공용 기기): 설정은 그대로 두고 학생 기록만 처음 상태로. 교사 모드는 끈다.
 export function resetForNextStudent() {
   const settings = { ...save.settings };
-  Object.assign(save, fresh(), { settings });
+  Object.assign(save, fresh(), { settings, unlockRule: 2 });
   persist(); clearRun();
 }
 // 체험관 모드 기기는 게임을 새로 열 때마다 처음 상태로 시작한다
@@ -54,8 +66,20 @@ try { swReload = sessionStorage.getItem('cnguard_sw_reload') === '1'; sessionSto
 if (save.settings.kiosk && !swReload) resetForNextStudent();
 
 // 교사 모드면 모두 열린 것으로 본다
+const cardsOf = kind => CARDS.filter(c => !kind || c.kind === kind);
 export const view = {
-  pilotUnlocked: p => save.teacher || !p.unlock || save.cleared.includes(p.unlock.region),
+  pilotUnlocked: p => { const u = PILOT_UNLOCK[p.id]; return save.teacher || !u || save.grandPilots.includes(p.id) || view.setDone({ kind: u.kind }); },
+  shipUnlocked: s => { const u = SHIP_UNLOCK[s.id]; return save.teacher || !u || save.bosses.length >= u.bosses; },
+  // 범주를 모두 모았나 (kind 가 없으면 33장 전부)
+  setDone: set => cardsOf(set.kind).every(c => view.hasCard(c.id)),
+  setCount: set => { const all = cardsOf(set.kind); return [all.filter(c => view.hasCard(c.id)).length, all.length]; },
+  doneSets: () => SETS.filter(s => view.setDone(s)),
+  // 범주 완성 영구 능력치 합계
+  bonus: () => { const b = { hp: 0, atk: 0, guard: 0, xp: 0, ult: 0 }; for (const s of view.doneSets()) b[s.stat] += s.val; return b; },
+  colors: () => [BASE_COLOR, ...view.doneSets().map(s => s.color)],
+  shipColor: () => view.colors().find(c => c.id === save.shipColor) || BASE_COLOR,
+  // 가장 높은 칭호 (33장 전부면 수호대장, 아니면 마지막으로 얻은 범주)
+  title: () => { const d = view.doneSets(); return d.length ? d[d.length - 1].title : ''; },
   hellUnlocked: () => save.teacher || save.beatLegend,
   hasCard: id => save.teacher || save.cards.includes(id),
   inCodex: id => save.teacher || save.codex.includes(id),
@@ -64,6 +88,19 @@ export const view = {
 
 export function totalCodex() { return BOONS.length + DUOS.length + LEGENDS.length; }
 export function totalCards() { return CARDS.length; }
+
+// 해금 알림: 무언가를 얻기 전 상태를 찍어 두고, 얻은 뒤 새로 열린 것을 알려 준다
+export function unlockSnap() {
+  return { pilots: new Set(PILOTS_IDS().filter(id => view.pilotUnlocked({ id }))), ships: new Set(Object.keys(SHIP_UNLOCK).filter(id => view.shipUnlocked({ id }))), sets: new Set(view.doneSets().map(s => s.id)) };
+}
+export function unlockNews(before) {
+  const now = unlockSnap(), news = [];
+  for (const s of SETS) if (now.sets.has(s.id) && !before.sets.has(s.id)) news.push({ type: 'set', set: s });
+  for (const id of now.pilots) if (!before.pilots.has(id)) news.push({ type: 'pilot', id });
+  for (const id of now.ships) if (!before.ships.has(id)) news.push({ type: 'ship', id });
+  return news;
+}
+const PILOTS_IDS = () => Object.keys(PILOT_UNLOCK);
 
 // 이어하기
 export function saveRun(run) { if (!save.teacher) write(RUN_KEY, run); }
