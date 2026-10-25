@@ -5,6 +5,7 @@
 //  · 동기화: 기지에 들어올 때·판이 끝날 때 자동. 서버 기록과 이 기기 기록은 '더 많이 모은 쪽'으로 합친다.
 import { LEADERBOARD_URL } from '../data/config.js';
 import { save, persist, refreshWallet, resetForNextStudent } from './save.js';
+import { quizHistoryMerge } from './daily-quiz.js';
 
 export const accountEnabled = () => !!LEADERBOARD_URL;
 
@@ -43,7 +44,8 @@ export function mergeInto(dst, src) {
   for (const [k, v] of Object.entries(src)) {
     if (SKIP.has(k)) continue;
     const cur = dst[k];
-    if (Array.isArray(v)) { const a = Array.isArray(cur) ? cur : []; const add = v.filter(x => !a.includes(x)); if (add.length) { dst[k] = [...a, ...add]; changed = true; } }
+    if (k === 'quizSeen') { const a = quizHistoryMerge(cur, v); if (JSON.stringify(cur) !== JSON.stringify(a)) { dst[k] = a; changed = true; } }
+    else if (Array.isArray(v)) { const a = Array.isArray(cur) ? cur : []; const add = v.filter(x => !a.includes(x)); if (add.length) { dst[k] = [...a, ...add]; changed = true; } }
     else if (typeof v === 'number') dst[k] = num(cur, v);
     else if (typeof v === 'boolean') { if (v && !cur) { dst[k] = true; changed = true; } }
     else if (k === 'home' && typeof v === 'string') { if (!cur) { dst.home = v; changed = true; } }   // 우리 고장은 한 번 정하면 그대로

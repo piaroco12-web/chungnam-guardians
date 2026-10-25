@@ -11,7 +11,7 @@ import { render } from './render.js';
 import { levelChoices, applyLevelChoice, altarChoices, applyAltarChoice, godOf } from './progress.js';
 import { PILOTS, SHIPS, DIFFS, BOSSES, CARDS } from '../data/content.js';
 import { ZONES, DEFAULT_ROUTE, regionAt, pickMid, sigunOf } from '../data/regions.js';
-import { PATHS, PACTS, STORY, QUIZ, CARD_QUIZ, QUIZ_RUSH } from '../data/extras.js';
+import { PATHS, PACTS, STORY, QUIZ_RUSH } from '../data/extras.js';
 import { BOONS, RARITY } from '../data/boons.js';
 import * as ui from './ui.js';
 import { LUCK, randIn } from '../data/luck.js';
@@ -19,6 +19,7 @@ import { luckOf } from './progress.js';
 import { lbEnabled, sendRecord } from './leaderboard.js';
 import { FlowArt } from './bgart.js';
 import { updateSide } from './side.js';
+import { quizDateKey, dailyQuizInfo, dailyQuizDeck, recordQuizAnswer } from './daily-quiz.js';
 
 const stage = document.getElementById('stage');
 const canvas = document.getElementById('game');
@@ -64,28 +65,28 @@ function toBase(tab) {
   if (!view.pilotUnlocked(PILOTS.find(p => p.id === state.pilot))) state.pilot = 'chungnami';
   if (!view.shipUnlocked(SHIPS.find(s => s.id === state.ship))) state.ship = 'byeolbit';
   if (!view.weaponUnlocked(MAIN_WEAPONS.find(w => w.id === state.weapon) || {})) state.weapon = 'gun';
-  ui.base({ tab: state.tab, pilot: state.pilot, ship: state.ship, hasRun: !!loadRun(), daily: dailyInfo(), quizLeft: quizLeft() }, {
+  ui.base({ tab: state.tab, pilot: state.pilot, ship: state.ship, hasRun: !!loadRun(), daily: dailyInfo(), quizLeft: quizLeft(), quizToday: dailyQuizInfo() }, {
     tab: t => toBase(t), refresh: () => toBase(), title: toTitle,
     sortie: () => { state.sel = {}; needHome() ? ui.homePick(setHome, () => toBase()) : toSelect('pilot'); }, cont: continueRun, daily: startDaily, quizRush: startQuizRush,
   });
 }
 
-// ───────── OX 퀴즈 러시 (2.11.0) ─────────
-function quizLeft() { const q = save.quizRush; return q.date === todayKey() ? Math.max(0, QUIZ_RUSH.perDay - q.count) : QUIZ_RUSH.perDay; }
+// ───────── 날짜별 주제 OX 퀴즈 러시 ─────────
+function quizLeft() { const q = save.quizRush; return q.date === quizDateKey() ? Math.max(0, QUIZ_RUSH.perDay - q.count) : QUIZ_RUSH.perDay; }
 function startQuizRush() {
+  const topic = dailyQuizInfo(); // 한 판 도중 자정이 지나도 출제 주제·이용일은 시작 시점으로 고정
   if (!save.teacher && quizLeft() <= 0) return ui.toast(`오늘은 ${QUIZ_RUSH.perDay}판을 모두 했어요. 내일 또 만나요!`);
-  // 모은 카드·정화한 보스 문제를 먼저, 그다음 나머지를 섞어서
-  const mix = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-  const tagOf = id => { const c = CARDS.find(x => x.id === id); return c ? `${c.e} ${c.title}` : ''; };
-  const all = [...Object.entries(CARD_QUIZ).map(([id, q]) => ({ ...q, tag: tagOf(id), mine: save.cards.includes(id) })),
-    ...Object.entries(QUIZ).flatMap(([boss, qs]) => qs.map(q => ({ ...q, tag: `${BOSSES[boss].name}`, mine: save.bosses.includes(boss) })))];
-  const pool = [...mix(all.filter(q => q.mine)), ...mix(all.filter(q => !q.mine))];
+  const pool = dailyQuizDeck(topic.id, save.quizSeen);
+  if (!pool.length) return ui.toast('문제를 준비하지 못했어요. 잠시 뒤 다시 시작해 주세요.');
+  // 시작할 때 횟수를 차감해 새로고침·중도 종료로 하루 제한을 건너뛰지 않게 한다.
+  progress(s => { if (s.quizRush.date !== topic.key) s.quizRush = { date: topic.key, count: 0 }; s.quizRush.count++; });
   state.scene = 'quiz'; bgm('altar');
-  ui.quizRush(pool, ok => {
-    if (save.teacher) return;
-    progress(s => { if (s.quizRush.date !== todayKey()) s.quizRush = { date: todayKey(), count: 0 }; s.quizRush.count++; earnCoins(ok * QUIZ_RUSH.coin); });
-  }, () => toBase('sortie'));
+  ui.quizRush(pool, ok => { progress(() => earnCoins(ok * QUIZ_RUSH.coin)); }, () => toBase('sortie'), {
+    topic,
+    onAnswer: q => progress(s => { s.quizSeen = recordQuizAnswer(s.quizSeen, q.id); }),
+  });
 }
+
 function usePurge(b) {
   if (!save.teacher && !(save.items.purge > 0)) return;
   if (!b.usePurge()) return;

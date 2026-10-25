@@ -4,6 +4,7 @@ import { ZONES, sigunOf } from '../data/regions.js';
 import { BOONS, DUOS, LEGENDS } from '../data/boons.js';
 import { SHIP_UNLOCK, PILOT_UNLOCK, SETS, BASE_COLOR, CURRENT_UNLOCK_RULE } from '../data/unlocks.js';
 import { MW } from '../data/weapons.js';
+import { quizHistoryMerge } from './daily-quiz.js';
 
 const KEY = 'cnguard_v1';
 const RUN_KEY = 'cnguard_run_v1';
@@ -36,6 +37,7 @@ const fresh = () => ({
   combos: [],          // 조합으로 정화한 기록 'pilot|ship|boss' (번개호 해금)
   mastery: {},         // 메인 무기 숙련도: 무기 id → 그 무기로 정화한 수 (무기 사슬 해금)
   items: { purge: 0 }, // 정화 대폭발 (상점 300코인, 최대 1개)
+  quizSeen: [],          // OX 문제 ID: 안 푼 문제 우선, 최근 문제는 뒤로
   quizRush: { date: '', count: 0 },   // OX 퀴즈 러시: 하루 3판
   shipColor: 'base',   // 고른 기체 색 (범주 완성으로 열림)
   account: null,       // 학생 계정 { key, school, cls, num, nick, hash } (src/account.js) — 다음 학생 준비 때 지워진다
@@ -62,6 +64,7 @@ if (!save.daily || typeof save.daily !== 'object') save.daily = {};
 if (!Array.isArray(save.combos)) save.combos = [];
 if (!save.mastery || typeof save.mastery !== 'object') save.mastery = {};
 save.items = Object.assign({ purge: 0 }, save.items);
+save.quizSeen = quizHistoryMerge(save.quizSeen);
 if (!save.quizRush || typeof save.quizRush !== 'object') save.quizRush = { date: '', count: 0 };
 // 장부가 없던 예전 기록: 지금 코인·대폭발을 이 기기 장부로 옮긴다
 if (!save.dev) save.dev = Math.random().toString(36).slice(2, 10);

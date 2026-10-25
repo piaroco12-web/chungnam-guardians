@@ -7,6 +7,7 @@ import { WEAPONS, UPGRADES, EVOLUTIONS, boonDef, godOf, MAX_SLOTS } from './prog
 import { ZODIAC } from '../data/zodiac.js';
 import { PATHS, QUIZ, CARD_QUIZ, PACTS, STORY, QUIZ_RUSH, PURGE } from '../data/extras.js';
 import { LUCK } from '../data/luck.js';
+import { QUIZ_SOURCES } from '../data/quiz-bank.js';
 import { SETS, SHIP_UNLOCK, PILOT_UNLOCK, BASE_COLOR } from '../data/unlocks.js';
 import { lbEnabled, loadBoard } from './leaderboard.js';
 import { login, logout, normSchool, normCls } from './account.js';
@@ -19,7 +20,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.13.3';
+export const VERSION = '2.14.0';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -127,7 +128,7 @@ function sortie(bb, state, act) {
     ${state.daily ? `<div class="row daily" style="width:100%"><div class="ic">📅</div><div class="tx"><b>오늘의 도전 · ${esc(state.daily.label)}</b>
       <p>${esc(state.daily.regionName)}에서 출발 · ${esc(state.daily.pilotName)} + ${esc(state.daily.shipName)} + ${esc(state.daily.weaponName)} · 도전 난이도<br>오늘 내 최고: ${state.daily.best ? `${esc(ZONES[state.daily.best.region - 1]?.name || state.daily.best.region + '권역')}까지 · 처치 ${state.daily.best.kills}` : '아직 없음'}</p></div>
       <button class="btn blue sm" id="daily">도전</button></div>` : ''}
-    <div class="row daily" style="width:100%"><div class="ic">${featureIcon('quiz_rush') || '🪙'}</div><div class="tx"><b>OX 퀴즈 러시</b>
+    <div class="row daily" style="width:100%"><div class="ic">${featureIcon('quiz_rush') || '🪙'}</div><div class="tx"><b>OX 퀴즈 러시</b><p class="quiz-today">${esc(state.quizToday.icon)} 오늘: ${esc(state.quizToday.name)} · ${state.quizToday.count}문항</p>
       <p>${QUIZ_RUSH.seconds}초 동안 맞힐 때마다 코인 +${QUIZ_RUSH.coin} · ${save.teacher ? '교사 모드: 횟수 제한 없음' : `오늘 남은 판 ${state.quizLeft}/${QUIZ_RUSH.perDay}`}</p></div>
       <button class="btn blue sm ${state.quizLeft > 0 || save.teacher ? '' : 'gray'}" id="qrush">시작</button></div>
     <button class="btn gray sm" id="home">타이틀로</button>
@@ -700,34 +701,42 @@ export function quiz(bossId, onDone) {
     art: cleaned ? `<img class="cleansed-art" src="${cleaned}" alt="정화된 ${esc(BOSSES[bossId].name)}">` : '' }, onDone);
 }
 
-// OX 퀴즈 러시 (2.11.0): 제한 시간 동안 OX 문제를 연달아. 끝나면 onEnd(정답 수)
-export function quizRush(pool, onEnd, onExit) {
+// 일일 주제 OX: 한 판 중복 없이 출제, 답변마다 이력 저장, 종료 후 해설·출처 복습
+export function quizRush(pool, onEnd, onExit, { topic, onAnswer = () => {} } = {}) {
+  if (!pool.length) return onExit();
   const total = QUIZ_RUSH.seconds * 1000, t0 = performance.now();
   let i = 0, ok = 0, tried = 0, locked = false, over = false;
+  const answers = [];
   const r = show(`<div class="screen dim qrush"><div class="upttl ol" style="margin-top:calc(var(--u)*40)">OX 퀴즈 러시</div>
+    ${topic ? `<div class="qr-topic">${esc(topic.icon)} ${esc(topic.name)}<small>${esc(topic.key)} · 내일은 ${esc(topic.next)}</small></div>` : ''}
     <div class="qr-top"><div class="qr-time"><i id="qrt"></i></div><b class="ol" id="qrs">정답 0 · 🪙 0</b></div>
     ${pic.quizHost() ? `<img class="quiz-rush-host" src="${pic.quizHost()}" alt="O·X 팻말을 든 센터이">` : ''}
     <div class="bigcard qr-card" style="margin-top:calc(var(--u)*24);min-height:0"><span class="k" id="qrk"></span><p id="qrq" style="text-align:center;font-size:calc(var(--u)*24)"></p></div>
     <div style="display:flex;gap:calc(var(--u)*30);margin-top:calc(var(--u)*30)"><button class="btn blue" id="qo" style="font-size:calc(var(--u)*56);width:calc(var(--u)*150)">O</button><button class="btn red" id="qx" style="font-size:calc(var(--u)*56);width:calc(var(--u)*150)">X</button></div>
     <div id="qa" class="qr-ans"></div></div>`);
   const $ = s => r.querySelector(s);
-  const next = () => { const q = pool[i % pool.length]; $('#qrk').textContent = q.tag || ''; $('#qrq').textContent = q.q; $('#qa').innerHTML = ''; locked = false; };
+  const next = () => { if (i >= pool.length) return end(); const q = pool[i]; $('#qrk').textContent = q.tag || ''; $('#qrq').textContent = q.q; $('#qa').innerHTML = ''; locked = false; };
   const end = () => {
     if (over) return; over = true;
     const coin = ok * QUIZ_RUSH.coin;
     onEnd(ok);
-    show(`<div class="screen dim"><div class="upttl ol" style="margin-top:calc(var(--u)*120)">시간 끝!</div>
+    show(`<div class="screen dim qr-result"><div class="upttl ol" style="margin-top:calc(var(--u)*45)">${i >= pool.length ? '오늘의 문제 완주!' : '시간 끝!'}</div>
       <div class="bigcard" style="margin-top:calc(var(--u)*40);min-height:0"><span class="k">OX 퀴즈 러시</span><b style="font-size:calc(var(--u)*34)">${tried}문제 중 ${ok}문제 정답</b><p style="text-align:center">${save.teacher ? '교사 모드라 코인은 저장되지 않아요' : `코인 +${coin}`}</p></div>
-      <button class="btn" id="qrd" style="margin-top:calc(var(--u)*30)">기지로</button></div>`);
+      <button class="btn" id="qrd" style="margin-top:calc(var(--u)*30)">기지로</button>
+      <div class="qr-review"><h3>이번 판 해설 · 출처 확인</h3>${answers.length ? answers.map(({ q, good }) => {
+        const src = QUIZ_SOURCES[q.source];
+        return `<details><summary>${good ? '✅' : '🔎'} ${esc(q.q)}</summary><p><b>정답 ${q.a ? 'O' : 'X'}</b> · ${esc(q.why)}</p>${src ? `<a href="${esc(src.url)}" target="_blank" rel="noopener noreferrer">출처: ${esc(src.title)}</a>` : ''}</details>`;
+      }).join('') : '<p>이번 판에는 푼 문제가 없어요.</p>'}</div></div>`);
     click('#qrd', onExit);
   };
   const tick = () => { if (over) return; const left = Math.max(0, total - (performance.now() - t0)); const bar = $('#qrt'); if (bar) bar.style.width = (left / total * 100) + '%'; if (left <= 0) return end(); requestAnimationFrame(tick); };
   const answer = (ans, el) => {
     if (locked || over) return; locked = true; tried++;
-    const q = pool[i % pool.length], good = ans === q.a;
+    const q = pool[i], good = ans === q.a;
+    answers.push({ q, good }); onAnswer(q);
     if (good) { ok++; sfx.coin(); } else { sfx.hurt(); nope(el); }
     $('#qrs').textContent = `정답 ${ok} · 🪙 ${ok * QUIZ_RUSH.coin}`;
-    $('#qa').innerHTML = `<div class="bigcard" style="margin-top:calc(var(--u)*16);min-height:0"><b style="color:${good ? '#1f8a5b' : '#e0344f'}">${good ? `정답! +${QUIZ_RUSH.coin}` : `정답은 ${q.a ? 'O' : 'X'}`}</b>${good ? '' : `<p>${esc(q.why)}</p>`}</div>`;
+    $('#qa').innerHTML = `<div class="bigcard" style="margin-top:calc(var(--u)*16);min-height:0"><b style="color:${good ? '#1f8a5b' : '#e0344f'}">${good ? `정답! +${QUIZ_RUSH.coin}` : `정답은 ${q.a ? 'O' : 'X'}`}</b><p>${esc(q.why)}</p></div>`;
     i++; setTimeout(() => { if (!over) next(); }, (good ? QUIZ_RUSH.rightPause : QUIZ_RUSH.wrongPause) * 1000);
   };
   click('#qo', (e, el) => answer(true, el)); click('#qx', (e, el) => answer(false, el));
