@@ -16,7 +16,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.10.4';
+export const VERSION = '2.10.5';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -204,8 +204,8 @@ function settings(bb, state, act) {
     ${row('bgm', '배경음', '타이틀·기지·전투·보스·제단 음악')}
     ${row('vibe', '진동', '맞았을 때 진동 (지원 기기만)')}
     ${row('calm', '섬광 줄이기', '번쩍임·화면 흔들림·깜빡임을 약하게 해요. 빛에 예민한 친구에게 권해요.')}
-    ${save.teacher ? `<div class="row"><div class="tx"><b>수업 시간 모드</b><p>정한 시간이 지나면 판을 마무리하고 오늘 얻은 카드를 보여 줘요.</p></div>
-      <div style="display:flex;gap:calc(var(--u)*4)">${[0, 10, 15, 20, 30].map(m => `<button class="btn sm ${save.settings.classMin === m ? '' : 'gray'}" data-cm="${m}" style="padding:calc(var(--u)*6) calc(var(--u)*8)">${m ? m + '분' : '끔'}</button>`).join('')}</div></div>` : ''}
+    ${save.teacher ? `<div class="row" style="flex-wrap:wrap"><div class="tx" style="flex-basis:100%"><b>수업 시간 모드</b><p>정한 시간이 지나면 판을 마무리하고 오늘 얻은 카드를 보여 줘요.</p></div>
+      <div style="display:flex;flex-wrap:wrap;gap:calc(var(--u)*6)">${[0, 5, 10, 15, 20, 30].map(m => `<button class="btn sm ${save.settings.classMin === m ? '' : 'gray'}" data-cm="${m}" style="padding:calc(var(--u)*6) calc(var(--u)*8)">${m ? m + '분' : '끔'}</button>`).join('')}</div></div>` : ''}
     ${lbEnabled() && !save.teacher ? `<div class="row"><div class="tx"><b>오늘의 도전 기록 보내기</b><p>${save.student ? `${esc(save.student.cls)}반 ${save.student.num}번으로 선생님께 보내요.` : '반·번호를 넣으면 오늘의 도전 기록이 선생님 순위표로 가요.'}</p></div><button class="btn blue sm" id="stu">${save.student ? '바꾸기' : '넣기'}</button></div>` : ''}
     ${lbEnabled() && save.teacher ? `<div class="row"><div class="tx"><b>오늘의 도전 순위표</b><p>학생들이 보낸 기록을 날짜별로 봐요.${save.settings.lbKey ? '' : ' 먼저 읽기 열쇠를 넣어 주세요.'}</p></div><div style="display:flex;gap:calc(var(--u)*6)"><button class="btn gray sm" id="lbkey">열쇠</button><button class="btn blue sm" id="lbopen">보기</button></div></div>` : ''}
     <div class="row"><div class="tx"><b>최신 버전 받기</b><p>지금 버전 ${VERSION}. 화면이 예전 그대로면 눌러 주세요. 기록은 지워지지 않아요.</p></div><button class="btn blue sm" id="upd">받기</button></div>
