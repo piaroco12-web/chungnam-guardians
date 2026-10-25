@@ -8,7 +8,7 @@ const KEY = 'cnguard_v1';
 const RUN_KEY = 'cnguard_run_v1';
 // 교사 모드 비밀번호는 코드에 그대로 두지 않고 암호(SHA-256)로만 둔다. 바꾸려면: 새 비밀번호로
 //   python3 -c "import hashlib;print(hashlib.sha256('cnguard-teacher|새비밀번호'.encode()).hexdigest())"  결과를 아래에 넣는다
-export const TEACHER_HASH = 'e0b37417514182f917b3cf4b275b76d94f3b5fd5350338a1901e9eaaa7e486df';
+export const TEACHER_HASH = 'c353a64339b8820663d2495a396ef24b4d57934b67b026ebfc53f7ef441dba5b';
 export async function checkTeacher(code) {
   try {
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('cnguard-teacher|' + code));
