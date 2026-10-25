@@ -241,7 +241,7 @@ export function render(g, b, scale) {
   // 플레이어
   const p = b.p;
   if (!(p.inv > 0 && Math.floor(b.t * 20) % 2) || b.over) {
-    sprite(g, art.ship(b.ship.id), p.x, p.y, 92);
+    sprite(g, art.ship(b.ship.id, b.pilot.id), p.x, p.y, 92);
   }
   if (p.shields > 0 || p.iceShell > 0) { g.strokeStyle = p.iceShell > 0 ? '#bfefff' : '#8fd4ff'; g.lineWidth = 3; g.globalAlpha = 0.7; g.beginPath(); g.arc(p.x, p.y, 50, 0, 7); g.stroke(); g.globalAlpha = 1; }
   if (p.bubble > 0) { g.fillStyle = 'rgba(120,200,255,.25)'; g.beginPath(); g.arc(p.x, p.y, 56, 0, 7); g.fill(); }

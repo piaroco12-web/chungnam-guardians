@@ -15,6 +15,7 @@ const ENEMY_ORDER = ['spam', 'notify', 'troll', 'link', 'popup', 'bug'];
 const ITEM_ORDER = ['ebullet', 'ebullet2', 'coin', 'xp', 'heart', 'orb'];
 
 const NAMES = [
+  'pilot_cockpit_sheet',
   'boon_duo_3d_sheet', 'boon_legend_3d_sheet', 'boon_fx_sheet', 'region_landmarks_sheet', 'menu_nav_3d_sheet',
   'title_keyart', 'title_logo', 'bg_base', 'ui_card_back', 'ui_ultimate_sheet', 'enemy_sheet', 'fx_items_sheet', 'unit_drone', 'frame_duo_legend',
   ...PILOTS.map(p => 'pilot_' + p.id),
@@ -183,9 +184,35 @@ function roundedBug(elite) {
   }));
 }
 
+// 기체와 파일럿을 따로 합성하고 완성된 9개 조합을 캐시한다.
+function occupiedShip(shipId, pilotId) {
+  const base = get('ship_' + shipId), index = PILOTS.findIndex(p => p.id === pilotId);
+  if (!base || index < 0) return null;
+  const bust = iconCell('pilot_cockpit_sheet', index, 3);
+  if (!bust) return null;
+  const cockpit = { byeolbit: [256, 244, 118, 142], drone: [256, 244, 108, 140], beongae: [256, 282, 106, 138] }[shipId];
+  if (!cockpit) return null;
+  return once('occupied:' + shipId + ':' + pilotId, () => canvas(512, 512, g => {
+    g.drawImage(base, 0, 0, 512, 512);
+    const [x, y, w, h] = cockpit;
+    g.save();
+    g.beginPath(); g.ellipse(x, y, w / 2, h / 2, 0, 0, Math.PI * 2); g.clip();
+    const shade = g.createLinearGradient(x, y - h / 2, x, y + h / 2);
+    shade.addColorStop(0, '#16384f'); shade.addColorStop(1, '#07192e');
+    g.fillStyle = shade; g.fillRect(x - w / 2, y - h / 2, w, h);
+    g.drawImage(bust, x - w * .59, y - h * .49, w * 1.18, h * .98);
+    g.restore();
+    // 앞 테두리로 가슴 부분을 가려 조종석 안에 앉아 보이게 한다.
+    g.beginPath(); g.moveTo(x - w * .43, y + h * .37);
+    g.quadraticCurveTo(x, y + h * .56, x + w * .43, y + h * .37);
+    g.strokeStyle = '#10243b'; g.lineWidth = 7; g.lineCap = 'round'; g.stroke();
+    g.strokeStyle = '#a6e5ef'; g.lineWidth = 2; g.stroke();
+  }));
+}
+
 // 전투에 쓰는 그림 (Image 또는 Canvas)
 export const art = {
-  ship: id => get('ship_' + id) || once('ship' + id, () => shipTop(SHIPS.find(s => s.id === id))),
+  ship: (id, pilotId) => (pilotId && occupiedShip(id, pilotId)) || get('ship_' + id) || once('ship' + id, () => shipTop(SHIPS.find(s => s.id === id))),
   enemy: (t, elite = false) => (t === 'bug' && roundedBug(elite)) || cell('enemy_sheet', ENEMY_ORDER.indexOf(t), 3, 2) || once('en' + t, () => enemyArt(t)),
   boss: id => get(bossFile(id)) || once('boss' + id, () => bossArt(id)),
   drone: () => get('unit_drone'),
