@@ -1,0 +1,10 @@
+# 게임 실행 파일만 공개 사이트에 배포. 저장소 공개 여부는 별도 설정이다.
+exclude:
+  - README.md
+  - docs
+  - tools
+  - art-src
+  - reports
+  - legacy
+  - start_game.py
+  - start_game.bat
