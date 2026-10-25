@@ -450,3 +450,17 @@ h2.ol{font-size:calc(var(--u)*38);margin:calc(var(--u)*6) 0 calc(var(--u)*14);te
 .card-collection .ccard.unopened{position:relative;isolation:isolate;padding:0;overflow:hidden;filter:none;background:#172342;border-color:#879bc1;box-shadow:inset 0 2px 0 #e3f3ff88,0 calc(var(--u)*5) 0 #111b31;cursor:default}
 .ccard.unopened .unopened-art{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:-1}
 .ccard.unopened .unopened-hint{position:absolute;left:6%;right:6%;bottom:7%;border:calc(var(--u)*1.5) solid #c8d9f4;border-radius:calc(var(--u)*8);padding:calc(var(--u)*6) calc(var(--u)*3);background:#172744f0;color:#fff3c9;font-family:var(--display);font-size:calc(var(--u)*15);line-height:1.25;text-shadow:0 calc(var(--u)*2) #101829;box-shadow:0 calc(var(--u)*2) 0 #0c162b}
+
+/* 정화 성공: 게임의 메달·금속 테두리와 맞춘 축하 패널 */
+.purification-overlay{background:radial-gradient(ellipse at 50% 42%,#194657b8,#080f29d9);backdrop-filter:blur(calc(var(--u)*3));z-index:12}
+.purification-panel{position:relative;width:calc(var(--u)*420);max-height:90%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;padding:calc(var(--u)*20) calc(var(--u)*20) calc(var(--u)*22);border:calc(var(--u)*4) solid #fff0b6;border-radius:calc(var(--u)*30);background:radial-gradient(ellipse at 50% 30%,#367d8e88,transparent 65%),linear-gradient(150deg,#28496a,#142b49 65%,#203f57);box-shadow:0 0 0 calc(var(--u)*4) #c29953,0 calc(var(--u)*12) 0 #07172b,0 0 calc(var(--u)*45) #6eeac844,inset 0 calc(var(--u)*5) 0 #ffffff35;text-align:center}
+.purification-seal{width:calc(var(--u)*160);height:calc(var(--u)*140);display:grid;place-items:center;margin-top:calc(var(--u)*-4)}
+.purification-seal img{width:100%;height:100%;object-fit:contain}
+.purification-seal span{font-size:calc(var(--u)*80);color:#8ff5d2}
+.purification-title{margin:calc(var(--u)*2) 0 calc(var(--u)*12);font-family:var(--display);font-size:calc(var(--u)*46);line-height:1.2;color:#fff0b5;-webkit-text-stroke:calc(var(--u)*1) #18314c;paint-order:stroke fill;text-shadow:0 calc(var(--u)*4) 0 #061a30,0 0 calc(var(--u)*16) #81ffe233}
+.purification-portrait{width:calc(var(--u)*176);height:calc(var(--u)*176);display:grid;place-items:center;border-radius:50%;border:calc(var(--u)*3) solid #a6f8dd;background:radial-gradient(#e6fff0,#9ddedc 65%,#4d91a1);box-shadow:0 calc(var(--u)*6) 0 #08273d,inset 0 0 calc(var(--u)*20) #ffffffaa}
+.purification-portrait img{width:94%;height:94%;object-fit:contain}
+.purification-name{max-width:100%;font-family:var(--display);font-size:calc(var(--u)*25);line-height:1.25;color:#fff;margin-top:calc(var(--u)*16);text-shadow:0 calc(var(--u)*3) #081a30;word-break:keep-all}
+.purification-message{font-weight:800;font-size:calc(var(--u)*18);color:#bdf9e6;margin:calc(var(--u)*8) 0 calc(var(--u)*18)}
+.purification-next{width:100%;border:calc(var(--u)*2) solid #7ab7c8;border-radius:calc(var(--u)*12);padding:calc(var(--u)*8) 0;background:linear-gradient(#284c68,#19344f);font-weight:800;font-size:calc(var(--u)*16);color:#edfaff;box-shadow:inset 0 2px 0 #ffffff25}
+.purification-next span{color:#ffe298;margin-left:calc(var(--u)*8);font-size:calc(var(--u)*24);line-height:.7}
