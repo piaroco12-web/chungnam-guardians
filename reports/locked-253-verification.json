@@ -1,0 +1,15 @@
+{
+  "version": "2.5.3",
+  "widths": [
+    540,
+    390,
+    320
+  ],
+  "lockedBoons": 46,
+  "lockedCards": 33,
+  "loadedImages": true,
+  "overflow": false,
+  "lockedHelpModal": "passed",
+  "mixedCollection": "passed",
+  "pageErrors": []
+}
