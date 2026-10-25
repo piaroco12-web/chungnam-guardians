@@ -3,7 +3,7 @@ import { W, H, fitStage } from './view.js';
 import { initInput, input, isActive } from './input.js';
 import { loadAssets } from './assets.js';
 import { sfx, bgm, unlockAudio } from './audio.js';
-import { save, persist, progress, saveRun, loadRun, clearRun, view, resetForNextStudent, unlockSnap, unlockNews, recordCombo, creditMastery, earnCoins, usePurgeItem } from './save.js';
+import { save, persist, progress, saveRun, loadRun, clearRun, view, resetForNextStudent, unlockSnap, unlockNews, recordCombo, creditMastery, earnCoins, usePurgeItem, metaNow } from './save.js';
 import { MAIN_WEAPONS } from '../data/weapons.js';
 import { sync } from './account.js';
 import { Battle, newRun } from './battle.js';
@@ -314,7 +314,7 @@ function finish(b, win, reason = '') {
   clearRun();
   const d = DIFFS.find(x => x.id === b.run.diff);
   const pactBonus = PACTS.filter(p => (b.run.pacts || []).includes(p.id)).reduce((a, p) => a + p.bonus, 0);
-  const earned = Math.floor(b.run.coins * d.coin * (1 + save.meta.bonus * 0.05 + pactBonus)) + (win ? 100 : 0);
+  const earned = Math.floor(b.run.coins * d.coin * (1 + metaNow().bonus * 0.05 + pactBonus)) + (win ? 100 : 0);
   if (keep) { progress(() => creditMastery(b.run)); saveRun({ ...keep, coins: 0, credited: keep.kills }); }
   const unlocks = [...(b.unlocksThisRun || [])];
   const wBefore = MAIN_WEAPONS.filter(w => view.weaponUnlocked(w)).map(w => w.id);

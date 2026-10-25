@@ -101,6 +101,20 @@ export function usePurgeItem() { if (save.items.purge > 0) { myLedger().po++; re
 
 export function persist() { write(KEY, save); }
 
+// ───────── 교사 모드 지갑 (2.12.4) ─────────
+// 교사 모드는 코인이 늘 9999이고 영구 강화를 마음대로 해 볼 수 있다. 학생 기록과 따로 저장해 학생 기록은 바뀌지 않는다.
+export const TEACHER_COINS = 9999;
+const TKEY = 'cnguard_teacher_v1';
+const teacherBox = Object.assign({ meta: fresh().meta }, read(TKEY) || {});
+teacherBox.meta = Object.assign(fresh().meta, teacherBox.meta);
+export const metaNow = () => (save.teacher ? teacherBox.meta : save.meta);          // 전투·상점이 쓰는 강화 단계
+export const coinsNow = () => (save.teacher ? TEACHER_COINS : save.coins);          // 화면에 보이는 코인
+export function buyMeta(id, cost) {
+  if (save.teacher) { teacherBox.meta[id]++; write(TKEY, teacherBox); return true; }  // 교사 모드: 코인은 그대로 9999
+  if (!spendCoins(cost)) return false;
+  save.meta[id]++; persist(); return true;
+}
+
 // 교사 모드에서는 학생 기록을 바꾸지 않는다
 export function progress(fn) { if (!save.teacher) { fn(save); persist(); } }
 

@@ -9,7 +9,7 @@ import { SETS, SHIP_UNLOCK, BASE_COLOR } from '../data/unlocks.js';
 import { lbEnabled, loadBoard } from './leaderboard.js';
 import { login, logout, normSchool, normCls } from './account.js';
 import { MAIN_WEAPONS, mainOf, SHIP_WEAPON, BAR_NAMES } from '../data/weapons.js';
-import { save, view, persist, checkTeacher, totalCodex, totalCards, resetAll, resetForNextStudent, spendCoins, addPurge } from './save.js';
+import { save, view, persist, checkTeacher, metaNow, coinsNow, buyMeta, totalCodex, totalCards, resetAll, resetForNextStudent, spendCoins, addPurge } from './save.js';
 import { art, pic } from './assets.js';
 import { sfx, refreshBgm } from './audio.js';
 import { scatterText, stagger, stamp as stampFx, unfold, highlight, countUp, bouncy, jelly, nope, dealChoices, chooseCard } from './motion.js';
@@ -17,7 +17,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.12.3';
+export const VERSION = '2.12.4';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -99,7 +99,7 @@ export function base(state, act) {
   const tabs = [['sortie', '🚀', '출격'], ['meta', '⬆️', '강화'], ['codex', '📖', '도감'], ['cards', '🃏', '카드첩'], ['settings', '⚙️', '설정']];
   const bg = pic.base();
   const r = show(`<div class="screen" style="background:${bg ? `url(${bg}) center/cover` : 'rgba(20,26,58,.55)'}">
-    <div class="base-top"><div class="base-name"><div class="ol" style="font-size:calc(var(--u)*26)">기지${save.teacher ? ' · 교사 모드' : save.settings.kiosk ? ' · 체험관' : ''}</div>${view.title() ? `<span class="title-chip">🏅 ${esc(view.title())}</span>` : ''}</div><div class="coinbox ol">${coinIcon}${save.coins}</div></div>
+    <div class="base-top"><div class="base-name"><div class="ol" style="font-size:calc(var(--u)*26)">기지${save.teacher ? ' · 교사 모드' : save.settings.kiosk ? ' · 체험관' : ''}</div>${view.title() ? `<span class="title-chip">🏅 ${esc(view.title())}</span>` : ''}</div><div class="coinbox ol">${coinIcon}${coinsNow()}</div></div>
     <div class="base-body ${['codex', 'cards'].includes(state.tab) ? 'collection' : ''} ${state.tab === 'cards' ? 'card-collection' : ''}" id="bb"></div>
     <nav class="tabs" aria-label="기지 메뉴">${tabs.map(([id, e, n]) => { const im = pic.nav(id); return `<button class="tab ${state.tab === id ? 'on' : ''}" data-t="${id}" aria-label="${n}" aria-current="${state.tab === id ? 'page' : 'false'}"><b>${im ? `<img src="${im}" alt="">` : e}</b><span>${n}</span></button>`; }).join('')}</nav>
   </div>`);
@@ -140,12 +140,12 @@ function metaTab(bb, state, act) {
       <div class="meta-progress"><span class="meta-level">가진 개수 ${have}/${PURGE.max}</span></div></div>
       <button class="btn sm meta-cost ${save.coins < PURGE.cost && !full ? 'gray' : ''}" id="buypurge" aria-label="정화 대폭발 ${full ? '가득' : `${PURGE.cost}코인으로 사기`}" ${full ? 'disabled' : ''}>${full ? '보유' : coinArt + '<span>' + PURGE.cost + '</span>'}</button></div>`;
   bb.innerHTML = `<h2 class="ol">영구 강화</h2><div class="rows meta-rows">${purgeRow}${META_UPGRADES.map(m => {
-    const lv = save.meta[m.id], max = lv >= m.max, cost = m.cost(lv);
+    const lv = metaNow()[m.id], max = lv >= m.max, cost = m.cost(lv);
     const im = pic.meta(m.id);
     return `<div class="row meta-row meta-${m.id}"><div class="ic">${im ? `<img src="${im}" alt="">` : m.icon}</div><div class="tx"><b>${m.name}</b><p>${m.desc(Math.max(lv, 1))}${lv ? '' : ' (다음 단계)'}</p>
       <div class="meta-progress"><div class="pips">${Array.from({ length: m.max }, (_, i) => `<i class="${i < lv ? 'on' : ''}"></i>`).join('')}</div><span class="meta-level">${lv}/${m.max}</span></div></div>
-      <button class="btn sm meta-cost ${save.coins < cost && !max ? 'gray' : ''}" aria-label="${m.name} ${max ? '최대 단계' : `${cost}코인으로 강화`}" data-m="${m.id}" ${max ? 'disabled' : ''}>${max ? 'MAX' : coinArt + '<span>' + cost + '</span>'}</button></div>`;
-  }).join('')}</div>${save.teacher ? '<p class="note" style="margin-top:calc(var(--u)*12)">교사 모드에서는 강화가 저장되지 않아요.</p>' : ''}`;
+      <button class="btn sm meta-cost ${coinsNow() < cost && !max ? 'gray' : ''}" aria-label="${m.name} ${max ? '최대 단계' : `${cost}코인으로 강화`}" data-m="${m.id}" ${max ? 'disabled' : ''}>${max ? 'MAX' : coinArt + '<span>' + cost + '</span>'}</button></div>`;
+  }).join('')}</div>${save.teacher ? '<p class="note" style="margin-top:calc(var(--u)*12)">교사 모드: 코인 9999로 고정, 강화는 교사 모드에만 따로 저장돼요(학생 기록은 그대로).</p>' : ''}`;
   click('#buypurge', (e, el) => {
     if ((save.items.purge || 0) >= PURGE.max) return;
     if (save.teacher) return toast('교사 모드에서는 전투마다 1개가 저절로 있어요');
@@ -153,11 +153,10 @@ function metaTab(bb, state, act) {
     spendCoins(PURGE.cost); addPurge(); persist(); sfx.levelup(); act.refresh();
   }, bb);
   click('[data-m]', (e, el) => {
-    const m = META_UPGRADES.find(x => x.id === el.dataset.m), lv = save.meta[m.id], cost = m.cost(lv);
+    const m = META_UPGRADES.find(x => x.id === el.dataset.m), lv = metaNow()[m.id], cost = m.cost(lv);
     if (lv >= m.max) return;
-    if (save.teacher) return toast('교사 모드에서는 강화가 저장되지 않아요');
-    if (save.coins < cost) { nope(el.closest('.row')); return toast(`코인이 ${cost - save.coins}개 모자라요`); }
-    spendCoins(cost); save.meta[m.id]++; persist(); sfx.levelup(); act.refresh();
+    if (coinsNow() < cost) { nope(el.closest('.row')); return toast(`코인이 ${cost - save.coins}개 모자라요`); }
+    if (buyMeta(m.id, cost)) { sfx.levelup(); act.refresh(); }
   }, bb);
 }
 

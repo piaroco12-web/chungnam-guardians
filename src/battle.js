@@ -11,7 +11,7 @@ import { BOSS_LINES, WORD_SHOTS } from '../data/boss_lines.js';
 import { PURGE } from '../data/extras.js';
 import { art } from './assets.js';
 import { sfx } from './audio.js';
-import { save, view } from './save.js';
+import { save, view, metaNow } from './save.js';
 
 export const STAGES = ['wave', 'wave', 'mid', 'wave', 'boss'];
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -27,7 +27,7 @@ export function newRun({ pilot, ship, diff, region = 0, pacts = [], daily = null
     hp: null, level: 1, xp: 0, coins: 0, kills: 0,
     weapons: { main: 1 }, upgrades: {}, evolved: [],
     boons: {}, duos: [], legend: null, gauge: 0,
-    rerolls: save.meta.reroll, reviveLeft: save.meta.revive, pacts, daily,
+    rerolls: metaNow().reroll, reviveLeft: metaNow().revive, pacts, daily,
     cardsGained: [], bossesBeaten: [],
     threat: 1, threatMax: 1,          // 위협도: 빨리 쓰러뜨릴수록 오른다 (data/content.js THREAT)
     companion: null, oxUsed: false,   // AI 12지신 동료 (지역마다 새로 고름)
@@ -64,7 +64,7 @@ export class Battle {
 
   recalc() {
     // 고른 메인 무기의 짝 강화는 효과 +25% (data/weapons.js)
-    const pairs = pairUps(this.run), u = id => this.up(id) * (pairs.includes(id) ? 1 + WEAPON_RULES.pairBonus : 1), m = save.meta;
+    const pairs = pairUps(this.run), u = id => this.up(id) * (pairs.includes(id) ? 1 + WEAPON_RULES.pairBonus : 1), m = metaNow();
     this.bonus = view.bonus();   // 카드 범주 완성 보너스 (data/unlocks.js)
     this.st = {
       atk: (1 + u('atk') * 0.1 + m.atk * 0.03) * (this.run.companion === 'tiger' ? 1.25 : 1) * (1 + this.bonus.atk),
