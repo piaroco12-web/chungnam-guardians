@@ -1,0 +1,109 @@
+{
+  "version": "2.5.2",
+  "layouts": [
+    [
+      540,
+      "upgrade"
+    ],
+    [
+      540,
+      "path"
+    ],
+    [
+      540,
+      "path2"
+    ],
+    [
+      540,
+      "zodiac"
+    ],
+    [
+      540,
+      "altar"
+    ],
+    [
+      540,
+      "reward"
+    ],
+    [
+      540,
+      "gamble"
+    ],
+    [
+      540,
+      "mystery"
+    ],
+    [
+      390,
+      "upgrade"
+    ],
+    [
+      390,
+      "path"
+    ],
+    [
+      390,
+      "path2"
+    ],
+    [
+      390,
+      "zodiac"
+    ],
+    [
+      390,
+      "altar"
+    ],
+    [
+      390,
+      "reward"
+    ],
+    [
+      390,
+      "gamble"
+    ],
+    [
+      390,
+      "mystery"
+    ],
+    [
+      320,
+      "upgrade"
+    ],
+    [
+      320,
+      "path"
+    ],
+    [
+      320,
+      "path2"
+    ],
+    [
+      320,
+      "zodiac"
+    ],
+    [
+      320,
+      "altar"
+    ],
+    [
+      320,
+      "reward"
+    ],
+    [
+      320,
+      "gamble"
+    ],
+    [
+      320,
+      "mystery"
+    ]
+  ],
+  "duplicateClick": "one selection and one confirmation sound",
+  "keyboard": "passed",
+  "staleCallback": "discarded",
+  "reducedMotion": "passed",
+  "calmMode": "passed",
+  "mute": "no oscillator created",
+  "pageErrors": [],
+  "failedResponses": []
+}
