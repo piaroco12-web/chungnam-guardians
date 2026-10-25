@@ -15,7 +15,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.8.1';
+export const VERSION = '2.9.0';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -292,39 +292,58 @@ export function select(step, sel, act) {
 
 // ───────── 전투 HUD ─────────
 let hudEls = null;
+// 전투 HUD (2.9.0, 사용자 선택 A안 '충남 지도 길'): 위쪽 지도 띠(지역 5곳) + 단계 칩, 왼쪽 아래 파일럿 얼굴(경험치 고리)·코인·정화, 오른쪽 아래 필살기.
+// 메뉴 바탕은 80% 투명(--hudA)이라 뒤의 적·비행기가 비친다. 글자·아이콘은 외곽선으로 읽히게.
+const STAGE_PIPS = ['wave', 'wave', 'mid', 'wave', 'boss'];
 export function hud(act) {
+  const nodes = REGIONS.map((rg, i) => `<div class="mnode" data-i="${i}"><i class="${i === REGIONS.length - 1 ? 'fin' : ''}">${i === REGIONS.length - 1 ? '<svg viewBox="0 0 18 18" aria-hidden="true"><path d="M9 1.5l2.3 4.7 5.2.8-3.8 3.7.9 5.2L9 13.4l-4.6 2.5.9-5.2L1.5 7l5.2-.8z"/></svg>' : i + 1}</i><b class="ol">${esc(rg.name)}</b></div>`).join('');
+  const pips = STAGE_PIPS.map((k, i) => `<i class="pip ${k}" data-i="${i}"></i>`).join('');
   const r = show(`<div class="hud pass">
     <button class="btn blue pause act" id="pz" aria-label="일시정지">⏸</button>
-    <div class="wavebar"><div class="wavetag" id="hw"></div><div class="lvl"><span class="n" id="hl">Lv.1</span><div class="xp"><i id="hx"></i></div></div></div>
-    <div class="counters"><div class="counter"><span class="coin"></span><span id="hc">0</span></div><div class="counter"><b class="skull">💀</b><span id="hk">0</span></div></div>
+    <div class="maptrail hpanel"><div class="mline"><i id="hml"></i></div>${nodes}</div>
+    <div class="stagechip hpanel"><span class="ol" id="hw"></span>${pips}</div>
+    <div class="pilotbox"><div class="xpring" id="hx"><div class="face"><img id="hface" alt=""></div></div><span class="lvbadge ol" id="hl">Lv.1</span></div>
+    <div class="pills"><div class="pill hpanel"><span class="coin"></span><b class="ol" id="hc">0</b></div><div class="pill hpanel"><img class="medal" id="hmedal" alt=""><b class="ol">정화 <span id="hk">0</span></b></div></div>
     <button class="ult act" id="ult" aria-label="필살기"><span class="fill" id="uf"></span><span class="lab ol" id="ul">필살기</span></button>
     <div class="slowtag ol" id="hs" hidden>슬로우 모션</div>
-    <div class="ol" id="ht" hidden style="position:absolute;left:calc(var(--u)*24);top:calc(var(--u)*118);font-size:calc(var(--u)*18)"></div>
+    <div class="ol htimer" id="ht" hidden></div>
     <div class="tut ol" id="tut" hidden><div class="arrows">⬅️➡️</div>화면을 드래그해서 전투기를 조종하세요.<br><span style="font-size:calc(var(--u)*22)">손을 떼면 시간이 느려져요!</span></div>
   </div>`);
-  hudEls = { w: r.querySelector('#hw'), l: r.querySelector('#hl'), x: r.querySelector('#hx'), c: r.querySelector('#hc'), k: r.querySelector('#hk'), u: r.querySelector('#ult'), uf: r.querySelector('#uf'), ul: r.querySelector('#ul'), s: r.querySelector('#hs'), tut: r.querySelector('#tut'), t: r.querySelector('#ht') };
+  hudEls = { w: r.querySelector('#hw'), l: r.querySelector('#hl'), x: r.querySelector('#hx'), c: r.querySelector('#hc'), k: r.querySelector('#hk'), u: r.querySelector('#ult'), uf: r.querySelector('#uf'), ul: r.querySelector('#ul'), s: r.querySelector('#hs'), tut: r.querySelector('#tut'), t: r.querySelector('#ht'),
+    nodes: [...r.querySelectorAll('.mnode')], pips: [...r.querySelectorAll('.pip')], line: r.querySelector('#hml'), face: r.querySelector('#hface'), key: '' };
+  const medal = pic.purified(); if (medal) r.querySelector('#hmedal').src = medal; else r.querySelector('#hmedal').remove();
   r.querySelector('#pz').addEventListener('click', () => { sfx.click(); act.pause(); });
   r.querySelector('#ult').addEventListener('pointerdown', e => { e.preventDefault(); act.ult(); });
 }
 export function updateHud(b, slow) {
   if (!hudEls) return;
-  const run = b.run, rg = REGIONS[run.region];
-  const stageText = { wave: `웨이브 ${b.waveNo || 1}/3`, mid: '중간 보스', boss: '지역 보스' }[b.stageKind];
+  const run = b.run;
   if (hudEls.u.dataset.ship !== b.ship.id) {
     hudEls.u.dataset.ship = b.ship.id;
     const icon = pic.ultimate(b.ship.id);
     if (icon) { const im = document.createElement('img'); im.src = icon; im.alt = ''; im.className = 'ult-art'; hudEls.u.prepend(im); }
   }
-  hudEls.w.innerHTML = `제 <em>${run.region + 1}</em>/5 ${rg.name} · ${stageText}`;
+  if (hudEls.face.dataset.p !== run.pilot) { hudEls.face.dataset.p = run.pilot; const p = PILOTS.find(x => x.id === run.pilot); if (p) hudEls.face.src = pic.pilot(p); }
+  // 지역·단계가 바뀔 때만 지도 띠를 다시 칠한다
+  const key = run.region + ':' + run.stage + ':' + b.stageKind + ':' + (b.waveNo || 1);
+  if (hudEls.key !== key) {
+    hudEls.key = key;
+    const st = run.startRegion || 0;   // 오늘의 도전은 중간 지역에서 출발할 수 있다: 건너뛴 지역은 흐리게
+    hudEls.nodes.forEach((n, i) => { n.classList.toggle('done', i >= st && i < run.region); n.classList.toggle('cur', i === run.region); n.classList.toggle('skip', i < st); });
+    hudEls.line.style.width = (run.region / (REGIONS.length - 1) * 100) + '%';
+    hudEls.pips.forEach((p, i) => { p.classList.toggle('done', i < run.stage); p.classList.toggle('cur', i === run.stage); });
+    hudEls.w.textContent = { wave: `웨이브 ${b.waveNo || 1}`, mid: '중간 보스', boss: '지역 보스' }[b.stageKind] || '';
+  }
   hudEls.l.textContent = 'Lv.' + run.level;
-  hudEls.x.style.width = Math.min(100, run.xp / b.xpNeed() * 100) + '%';
+  const xp = Math.min(100, run.xp / b.xpNeed() * 100);
+  hudEls.x.style.background = `conic-gradient(var(--mint) 0 ${xp}%, rgba(43,47,85,.8) ${xp}% 100%)`;
   hudEls.c.textContent = run.coins; hudEls.k.textContent = run.kills;
   hudEls.uf.style.height = run.gauge + '%';
   hudEls.u.classList.toggle('ready', run.gauge >= 100);
   hudEls.ul.innerHTML = run.gauge >= 100 ? b.ship.ult.name.replace(' ', '<br>') : Math.floor(run.gauge) + '%';
   hudEls.s.hidden = !slow;
   if (b.classLeft != null) { const m = Math.max(0, Math.ceil(b.classLeft)); hudEls.t.hidden = false; hudEls.t.textContent = `⏰ ${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`; }
-  else if (b.run.daily) { hudEls.t.hidden = false; hudEls.t.textContent = '📅 오늘의 도전'; }
+  else if (b.run.daily) { hudEls.t.hidden = false; hudEls.t.textContent = '📅 도전'; }
 }
 export function tutorial(showIt) { if (hudEls) hudEls.tut.hidden = !showIt; }
 

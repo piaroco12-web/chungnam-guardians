@@ -280,7 +280,7 @@ export function render(g, b, scale) {
 
   // 보스 체력바
   if (boss && !boss.dying) {
-    const bw = 440, bx = (W - bw) / 2, by = 132;
+    const bw = 440, bx = (W - bw) / 2, by = 148;   // HUD 단계 칩 아래
     g.fillStyle = 'rgba(20,20,26,.85)'; g.fillRect(bx - 4, by - 4, bw + 8, 30);
     g.fillStyle = '#ff3d5a'; g.fillRect(bx, by, bw * Math.max(0, boss.hp / boss.maxHp), 22);
     g.font = '18px "Black Han Sans", sans-serif'; g.lineWidth = 4; g.strokeStyle = '#141414';
