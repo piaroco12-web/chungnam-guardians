@@ -19,7 +19,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.13.0';
+export const VERSION = '2.13.1';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -170,7 +170,7 @@ function codex(bb) {
   const cell = (id, cls = '') => `<div class="cell ${got(id) ? 'got ' + cls : 'unseen ' + cls}" data-b="${id}">${got(id) ? boonIcon(id) : sealed()}</div>`;
   const n = [...BOONS, ...DUOS, ...LEGENDS].filter(b => got(b.id)).length;
   bb.innerHTML = `<h2 class="ol">가호 도감 ${n}/${totalCodex()}</h2>
-    <p class="note">제단에서 가호 등급이 나올 확률: ${RARITY.map(r => `${r.name} ${r.w}%`).join(' · ')}</p>
+    <p class="note backed">제단에서 가호 등급이 나올 확률: ${RARITY.map(r => `${r.name} ${r.w}%`).join(' · ')}</p>
     ${GODS.map(g => `<div class="sec-label">${g.e} ${g.name} · ${g.elem}</div><div class="grid">${BOONS.filter(b => b.god === g.id).map(b => cell(b.id)).join('')}</div>`).join('')}
     <div class="sec-label">듀오 가호</div><div class="grid">${DUOS.map(d => cell(d.id, 'duo')).join('')}</div>
     <div class="sec-label">전설 가호</div><div class="grid">${LEGENDS.map(l => cell(l.id, 'legend')).join('')}</div>`;

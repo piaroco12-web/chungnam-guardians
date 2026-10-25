@@ -604,3 +604,4 @@ table.lb tr.top1 td{background:#ffd23d22} table.lb tr.top2 td{background:#c9cbe0
   background:linear-gradient(#fff3bd 0 52%,var(--amber) 52%);box-shadow:0 calc(var(--u)*4) 0 var(--ink);cursor:pointer;white-space:nowrap}
 .cnpin:active{transform:translate(-50%,-40%);box-shadow:0 calc(var(--u)*1) 0 var(--ink)}
 .cnpin:focus-visible{outline:calc(var(--u)*4) solid var(--mint);outline-offset:calc(var(--u)*2)}
+.note.backed{color:#fff;font-weight:700;background:rgba(20,26,58,.85);border:calc(var(--u)*2) solid var(--ink);border-radius:999px;padding:calc(var(--u)*4) calc(var(--u)*14);margin:calc(var(--u)*6) auto;width:fit-content;max-width:100%}   /* 밝은 기지 배경 위에서도 읽히게 */
