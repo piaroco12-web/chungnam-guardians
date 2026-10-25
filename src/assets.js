@@ -18,6 +18,7 @@ const ENEMY_ORDER = ['spam', 'notify', 'troll', 'link', 'popup', 'bug'];
 const ITEM_ORDER = ['ebullet', 'ebullet2', 'coin', 'xp', 'heart', 'orb'];
 
 const NAMES = [
+  'feature_icons_sheet', 'purge_burst', 'quiz_rush_host',
   'support_units_sheet', 'wave_projectile_sheet',
   'weapon_main_sheet', 'weapon_evo_sheet', 'weapon_sub_sheet', 'enemy_region_sheet',
   'pilot_cockpit_sheet', 'choice_routes_sheet', 'ui_sealed_boon', 'ui_unopened_card', 'ui_purified_medal',
@@ -75,6 +76,14 @@ function iconCell(name, index, cols, rows = 1, rect = null) {
   if (left > right || top > bottom) return source;
   const sw = right - left + 1, sh = bottom - top + 1, scale = 232 / Math.max(sw, sh);
   return cache[key] = canvas(256, 256, g => g.drawImage(source, left, top, sw, sh, (256 - sw * scale) / 2, (256 - sh * scale) / 2, sw * scale, sh * scale));
+}
+
+// 생성 원본의 칸 경계에 걸친 이웃 장식을 제외하고 각 본체를 일정 크기로 표시한다.
+function featureCell(i) {
+  const im = get('feature_icons_sheet'); if (!im) return null;
+  const rects = [[18,95,534,510],[550,60,513,590],[1080,90,548,550],[1636,105,530,540]];
+  const [x,y,w,h] = rects[i];
+  return iconCell('feature_icons_sheet', i, 4, 1, [x*im.width/2173,y*im.height/724,w*im.width/2173,h*im.height/724]);
 }
 
 // ───────── 임시 그림 ─────────
@@ -258,6 +267,8 @@ function waveCell(i){
 
 // 전투에 쓰는 그림 (Image 또는 Canvas)
 export const art = {
+  feature: id => { const i = typeof id === 'number' ? id : ['purge', 'purge_locked', 'quiz_rush', 'autosave'].indexOf(id); return Number.isInteger(i) && i >= 0 && i < 4 ? featureCell(i) : null; },
+  purgeBurst: () => get('purge_burst'),
   support: id => { const i=['satellite','evo_satellite','turret','evo_turret','drone','emitter'].indexOf(id); return i<0 ? null : supportCell(i); },
   wave: branch => waveCell(['','a','b','u'].indexOf(branch || '')),
   ship: (id, pilotId, colorId) => (pilotId && occupiedShip(id, pilotId, colorId)) || tinted(get('ship_' + id), colorId) || once('ship' + id, () => shipTop(SHIPS.find(s => s.id === id))),
@@ -290,6 +301,8 @@ const SUB_RECTS = [[15,60,495,590],[510,70,530,550],[1040,30,530,670],[1610,60,5
 // 화면(DOM)용 그림 주소
 const url = c => (c.toDataURL ? c.toDataURL() : c.src);
 export const pic = {
+  feature: id => { const c = art.feature(id); return c ? url(c) : null; },
+  quizHost: () => (get('quiz_rush_host') || get('pilot_centeri'))?.src || null,
   purified: () => get('ui_purified_medal')?.src || null,
   sealed: () => get('ui_sealed_boon')?.src || null,
   unopened: () => get('ui_unopened_card')?.src || null,
@@ -317,7 +330,6 @@ export const pic = {
   mainWeapon: id => { const i = MAIN_WEAPONS.findIndex(w => w.id === id); const c = i >= 0 && iconCell('weapon_main_sheet', i, 5, 1, MAIN_RECTS[i]); return c ? c.toDataURL() : null; },
   mainEvo: (id, k) => { const i = MAIN_WEAPONS.findIndex(w => w.id === id), j = ['a', 'b', 'u'].indexOf(k); const c = i >= 0 && j >= 0 && iconCell('weapon_evo_sheet', j * 5 + i, 5, 3, EVO_RECTS[j * 5 + i]); return c ? c.toDataURL() : null; },
   // 추가 기능 아이콘 (docs/NEXT_FEATURES_IMAGES_FOR_GPT.md): 0 정화 대폭발 · 1 쓸 수 없음 · 2 퀴즈 러시 · 3 자동 저장. 시트가 없으면 null
-  feature: i => { const c = cell('feature_icons_sheet', i, 4); return c ? c.toDataURL() : null; },
   pilot: p => url(get('pilot_' + p.id) || once('pi' + p.id, () => pilotArt(p))),
   hangar: (s, colorId) => url(tinted(get('ship_' + s.id + '_hangar'), colorId) || once('hg' + s.id, () => hangarArt(s))),
   god: gd => url(get(gd.img) || once('god' + gd.id, () => godArt(gd))),

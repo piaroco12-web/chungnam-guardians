@@ -295,7 +295,7 @@ export function render(g, b, scale) {
   for (const f of b.fx) {
     if (f.kind === 'p') { g.globalAlpha = Math.min(1, f.t * 3); g.fillStyle = f.c; g.beginPath(); g.arc(f.x, f.y, f.r, 0, 7); g.fill(); g.globalAlpha = 1; }
     else if (f.kind === 'ring') drawImpact(g, f);
-    else if (f.kind === 'purge') drawPurge(g, f, W, H);
+    else if (f.kind === 'purge') drawPurge(g, f, W, H, calm());
     else if (f.kind === 'weaponHit') drawHit(g, f);
     else if (f.kind === 'skill') drawSkillFx(g, f);
     else if (f.kind === 'bolt') { g.strokeStyle = '#fff27a'; g.lineWidth = calm() ? 4 : 5; g.shadowColor = '#fff27a'; g.shadowBlur = calm() ? 0 : 16; g.beginPath(); let x = f.x + jit(f.x, 0) * 40, y = 0; g.moveTo(x, y); while (y < f.y) { y += 40; x = f.x + jit(f.x, y) * 40 * (1 - y / f.y); g.lineTo(x, Math.min(y, f.y)); } g.stroke(); g.shadowBlur = 0; }

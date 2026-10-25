@@ -16,7 +16,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.11.0';
+export const VERSION = '2.11.1';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -27,8 +27,18 @@ const confirmChoice = (el, kind, fn) => {
   sfx.choose(kind); chooseCard(el, fn);
 };
 // 자동 저장 표시: 오른쪽 아래에 잠깐
-export function saveTag() { const t = document.createElement('div'); t.className = 'savetag ol'; t.textContent = '💾 저장됨'; root().appendChild(t); setTimeout(() => t.remove(), 1600); }
+export function saveTag() { savedNotice(); }
 export function toast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; root().appendChild(t); setTimeout(() => t.remove(), 2300); }
+// 텍스트와 잠금/잔여 횟수는 기능 코드에서 따로 표시한다.
+export function featureIcon(id, label = '') {
+  const im = pic.feature(id);
+  return im ? `<img class="feature-icon" src="${im}" alt="${esc(label)}">` : '';
+}
+export function savedNotice() {
+  const t = document.createElement('div'); t.className = 'feature-save-notice'; t.setAttribute('role', 'status');
+  t.innerHTML = `${featureIcon('autosave')}<span>진행 기록 저장</span>`;
+  root().querySelector('.feature-save-notice')?.remove(); root().appendChild(t); setTimeout(() => t.remove(), 1700);
+}
 
 // 아이콘: 가호 시트 그림이 있으면 그 칸, 없으면 수호신 기호
 function boonIcon(id) {
@@ -112,7 +122,7 @@ function sortie(bb, state, act) {
     ${state.daily ? `<div class="row daily" style="width:100%"><div class="ic">📅</div><div class="tx"><b>오늘의 도전 · ${esc(state.daily.label)}</b>
       <p>${esc(state.daily.regionName)}에서 출발 · ${esc(state.daily.pilotName)} + ${esc(state.daily.shipName)} + ${esc(state.daily.weaponName)} · 도전 난이도<br>오늘 내 최고: ${state.daily.best ? `${esc(REGIONS[state.daily.best.region - 1]?.name || state.daily.best.region + '지역')}까지 · 처치 ${state.daily.best.kills}` : '아직 없음'}</p></div>
       <button class="btn blue sm" id="daily">도전</button></div>` : ''}
-    <div class="row daily" style="width:100%"><div class="ic">🪙</div><div class="tx"><b>OX 퀴즈 러시</b>
+    <div class="row daily" style="width:100%"><div class="ic">${featureIcon('quiz_rush') || '🪙'}</div><div class="tx"><b>OX 퀴즈 러시</b>
       <p>${QUIZ_RUSH.seconds}초 동안 맞힐 때마다 코인 +${QUIZ_RUSH.coin} · ${save.teacher ? '교사 모드: 횟수 제한 없음' : `오늘 남은 판 ${state.quizLeft}/${QUIZ_RUSH.perDay}`}</p></div>
       <button class="btn blue sm ${state.quizLeft > 0 || save.teacher ? '' : 'gray'}" id="qrush">시작</button></div>
     <button class="btn gray sm" id="home">타이틀로</button>
@@ -379,6 +389,13 @@ export function updateHud(b, slow) {
   hudEls.s.hidden = !slow;
   const purgeHave = !run.purgeUsed && (save.teacher || (save.items.purge || 0) > 0);
   hudEls.pg.hidden = !purgeHave; hudEls.pg.classList.toggle('off', !!run.daily);
+  const purgeArtState = run.daily ? 'purge_locked' : 'purge';
+  if (hudEls.pg.dataset.artState !== purgeArtState) {
+    hudEls.pg.dataset.artState = purgeArtState;
+    hudEls.pg.innerHTML = featureIcon(purgeArtState) || '🌟';
+    hudEls.pg.setAttribute('aria-label', run.daily ? '정화 대폭발: 오늘의 도전에서는 사용 불가' : '정화 대폭발');
+    hudEls.pg.setAttribute('aria-disabled', String(!!run.daily));
+  }
   if (b.classLeft != null) { const m = Math.max(0, Math.ceil(b.classLeft)); hudEls.t.hidden = false; hudEls.t.textContent = `⏰ ${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`; }
   else if (b.run.daily) { hudEls.t.hidden = false; hudEls.t.textContent = '📅 도전'; }
 }
@@ -662,6 +679,7 @@ export function quizRush(pool, onEnd, onExit) {
   let i = 0, ok = 0, tried = 0, locked = false, over = false;
   const r = show(`<div class="screen dim qrush"><div class="upttl ol" style="margin-top:calc(var(--u)*40)">OX 퀴즈 러시</div>
     <div class="qr-top"><div class="qr-time"><i id="qrt"></i></div><b class="ol" id="qrs">정답 0 · 🪙 0</b></div>
+    ${pic.quizHost() ? `<img class="quiz-rush-host" src="${pic.quizHost()}" alt="O·X 팻말을 든 센터이">` : ''}
     <div class="bigcard qr-card" style="margin-top:calc(var(--u)*24);min-height:0"><span class="k" id="qrk"></span><p id="qrq" style="text-align:center;font-size:calc(var(--u)*24)"></p></div>
     <div style="display:flex;gap:calc(var(--u)*30);margin-top:calc(var(--u)*30)"><button class="btn blue" id="qo" style="font-size:calc(var(--u)*56);width:calc(var(--u)*150)">O</button><button class="btn red" id="qx" style="font-size:calc(var(--u)*56);width:calc(var(--u)*150)">X</button></div>
     <div id="qa" class="qr-ans"></div></div>`);

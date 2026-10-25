@@ -3,6 +3,18 @@ import { art } from './assets.js';
 const TAU = Math.PI * 2;
 const reducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)');
 const ink = '#142847';
+// 시각 전용: 정화 대폭발의 피해·탄 소거와 독립적이다. elapsed: 실제 경과 초(0~1).
+export function drawPurgeBurst(g, x, y, elapsed, quiet = false) {
+  if (!Number.isFinite(elapsed) || elapsed < 0 || elapsed >= 1) return;
+  const still = quiet || !!reducedMotion?.matches, t = Math.min(1, elapsed);
+  const size = still ? 280 : 100 + 660 * (1 - Math.pow(1 - t, 3));
+  g.save(); g.translate(x, y);
+  g.globalAlpha *= (still ? .32 : .72) * Math.pow(1 - t, .75);
+  const im = art.purgeBurst();
+  if (im) g.drawImage(im, -size / 2, -size / 2, size, size);
+  else { g.strokeStyle = '#ffdf9b'; g.lineWidth = 6; g.beginPath(); g.arc(0, 0, size / 2, 0, TAU); g.stroke(); }
+  g.restore();
+}
 const rank = p => p.evolved ? 6 : Math.max(1, Math.min(5, p.visualLevel || 1));
 function ellipse(g,x,y,rx,ry,c){g.fillStyle=c;g.beginPath();g.ellipse(x,y,rx,ry,0,0,TAU);g.fill();}
 function line(g,pts,c,w){g.strokeStyle=c;g.lineWidth=w;g.lineCap='round';g.lineJoin='round';g.beginPath();pts.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.stroke();}
@@ -234,14 +246,6 @@ export function drawUltimateBeam(g,b,quiet=false){
 }
 
 // 정화 대폭발 (2.11.0): 기체에서 하얀·금빛 고리가 화면 전체로 퍼지고 하트·별이 흩날림
-export function drawPurge(g,f,W,H){
-  const k=Math.max(0,Math.min(1,1-f.t/f.max)),R=Math.hypot(W,H)*(.1+.95*k);
-  g.save();g.translate(f.x,f.y);
-  g.globalAlpha=(1-k)*.55;g.fillStyle='#ffffff';g.beginPath();g.arc(0,0,R,0,TAU);g.fill();
-  g.globalAlpha=1-k;
-  for(const [w,c] of [[16,'#fff2b5'],[7,'#ffffff']]){g.strokeStyle=c;g.lineWidth=w;g.beginPath();g.arc(0,0,R,0,TAU);g.stroke();}
-  g.strokeStyle='#ffc53d';g.lineWidth=4;g.beginPath();g.arc(0,0,R*.82,0,TAU);g.stroke();
-  for(let i=0;i<14;i++){const a=i*TAU/14+k*1.5,x=Math.cos(a)*R*.9,y=Math.sin(a)*R*.9;
-    if(i%2){star(g,x,y,7*(1-k)+3,'#fff2b5',a);}else{g.fillStyle='#ff8acb';g.beginPath();g.moveTo(x,y+5);g.bezierCurveTo(x-9,y-3,x-4,y-10,x,y-4);g.bezierCurveTo(x+4,y-10,x+9,y-3,x,y+5);g.fill();}}
-  g.restore();
+export function drawPurge(g,f,W,H,quiet=false){
+  drawPurgeBurst(g,f.x,f.y,1-f.t/f.max,quiet);
 }
