@@ -2,10 +2,13 @@
 import { WEAPONS, UPGRADES, EVOLUTIONS } from '../data/build.js';
 import { GODS, BOONS, DUOS, LEGENDS, RARITY } from '../data/boons.js';
 import { LUCK } from '../data/luck.js';
+import { mainOf, WEAPON_RULES } from '../data/weapons.js';
 
 // 이번 판 운 기록 (결과 화면에 확률과 함께 보여 준다)
 export const luckOf = run => (run.luck ||= { gamble: 0, gambleWin: 0, mystery: 0, events: 0, rage: 0 });
 
+// 가중치(w)대로 n개를 겹치지 않게 뽑는다
+function weightedPick(list, n) { const a = [...list], out = []; while (out.length < n && a.length) { let x = Math.random() * a.reduce((t, o) => t + (o.w || 1), 0), i = 0; for (; i < a.length - 1; i++) { x -= a[i].w || 1; if (x <= 0) break; } out.push(a.splice(i, 1)[0]); } return out; }
 const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 export const MAX_SLOTS = 5, MAX_LV = 5;
 
@@ -13,25 +16,35 @@ export const MAX_SLOTS = 5, MAX_LV = 5;
 export function levelChoices(run) {
   const opts = [];
   const wCount = Object.keys(run.weapons).length, uCount = Object.keys(run.upgrades).length;
+  // 메인 무기 진화: Lv.5 + 짝 강화 → 2갈래 중 하나(둘 다 조건이면 둘 다 보여 주고 하나만 고른다)
+  const mw = mainOf(run), got = id => run.evolved.includes(id);
+  const hasA = got(mw.pairs[0].evo.id), hasB = got(mw.pairs[1].evo.id);
+  if ((run.weapons.main || 0) >= MAX_LV) {
+    if (!hasA && !hasB) for (const p of mw.pairs) if (run.upgrades[p.up]) opts.push({ type: 'mwevo', id: p.evo.id, def: p.evo, weapon: mw, pair: p.up });
+    // 궁극: 진화를 하나 받은 뒤 짝 강화 둘 다 Lv.5
+    if ((hasA || hasB) && !got(mw.ult.id) && mw.pairs.every(p => (run.upgrades[p.up] || 0) >= MAX_LV)) opts.push({ type: 'mwevo', id: mw.ult.id, def: mw.ult, weapon: mw, ult: true });
+  }
   for (const ev of EVOLUTIONS) {
     if (run.evolved.includes(ev.id)) continue;
     if ((run.weapons[ev.from] || 0) >= MAX_LV && run.upgrades[ev.need]) opts.push({ type: 'evo', id: ev.id, ev });
   }
-  const evoFirst = opts.slice(0, 1);
+  const evoFirst = opts.slice(0, 2);
   const pool = [];
   for (const w of WEAPONS) {
     const lv = run.weapons[w.id] || 0;
     if (lv >= MAX_LV) continue;
     if (!lv && wCount >= MAX_SLOTS) continue;
-    pool.push({ type: 'weapon', id: w.id, def: w, lv });
+    pool.push({ type: 'weapon', id: w.id, def: w, lv, w: 1 });
   }
+  const pairs = mw.pairs.map(p => p.up);
   for (const u of UPGRADES) {
     const lv = run.upgrades[u.id] || 0;
     if (lv >= MAX_LV) continue;
     if (!lv && uCount >= MAX_SLOTS) continue;
-    pool.push({ type: 'upgrade', id: u.id, def: u, lv });
+    const pair = pairs.includes(u.id);
+    pool.push({ type: 'upgrade', id: u.id, def: u, lv, pair, w: pair ? WEAPON_RULES.pairWeight : 1 });   // 짝 강화는 1.5배 자주
   }
-  const picks = [...evoFirst, ...shuffle(pool)].slice(0, 3);
+  const picks = [...evoFirst, ...weightedPick(pool, 3)].slice(0, 3);
   while (picks.length < 3) picks.push(picks.length % 2 ? { type: 'heal', id: 'heal' } : { type: 'coin', id: 'coin' });
   // 도전 강화: 2단계를 올릴 여유가 있는 무기·강화 하나가 가끔 '도전'으로 바뀐다
   const can = picks.filter(c => (c.type === 'weapon' || c.type === 'upgrade') && c.lv <= MAX_LV - 2);
@@ -53,7 +66,7 @@ export function applyLevelChoice(run, c) {
   }
   if (c.type === 'weapon') run.weapons[c.id] = (run.weapons[c.id] || 0) + 1;
   else if (c.type === 'upgrade') { run.upgrades[c.id] = (run.upgrades[c.id] || 0) + 1; if (c.id === 'hp') run._healUp = 15; }
-  else if (c.type === 'evo') run.evolved.push(c.id);
+  else if (c.type === 'evo' || c.type === 'mwevo') run.evolved.push(c.id);
   else if (c.type === 'coin') run.coins += 20;
   else if (c.type === 'heal') run._healPct = 0.3;
   return null;

@@ -6,6 +6,7 @@ import { PILOTS, SHIPS, DIFFS, REGIONS, ENEMIES, BOSSES, HP_MULT, FINAL_BOSS, TH
 import { LUCK, EVENTS } from '../data/luck.js';
 import { luckOf } from './progress.js';
 import { BOONS, RARITY } from '../data/boons.js';
+import { mainOf, pairUps, SHIP_WEAPON, WEAPON_RULES } from '../data/weapons.js';
 import { art } from './assets.js';
 import { sfx } from './audio.js';
 import { save, view } from './save.js';
@@ -18,9 +19,9 @@ const pick = a => a[Math.floor(Math.random() * a.length)];
 const BOON = Object.fromEntries(BOONS.map(b => [b.id, b]));
 const NO_ELITE = new Set(['notify', 'likebee', 'phishfish']);   // 정예로 나오지 않는 적
 
-export function newRun({ pilot, ship, diff, region = 0, pacts = [], daily = null }) {
+export function newRun({ pilot, ship, diff, region = 0, pacts = [], daily = null, mainWeapon = null }) {
   return {
-    pilot, ship, diff, region, stage: 0, startRegion: region,
+    pilot, ship, diff, mainWeapon: mainWeapon || SHIP_WEAPON[ship]?.legacy || 'gun', region, stage: 0, startRegion: region,
     hp: null, level: 1, xp: 0, coins: 0, kills: 0,
     weapons: { main: 1 }, upgrades: {}, evolved: [],
     boons: {}, duos: [], legend: null, gauge: 0,
@@ -60,7 +61,8 @@ export class Battle {
   duo(id) { return this.run.duos.includes(id); }
 
   recalc() {
-    const u = id => this.up(id), m = save.meta;
+    // 고른 메인 무기의 짝 강화는 효과 +25% (data/weapons.js)
+    const pairs = pairUps(this.run), u = id => this.up(id) * (pairs.includes(id) ? 1 + WEAPON_RULES.pairBonus : 1), m = save.meta;
     this.bonus = view.bonus();   // 카드 범주 완성 보너스 (data/unlocks.js)
     this.st = {
       atk: (1 + u('atk') * 0.1 + m.atk * 0.03) * (this.run.companion === 'tiger' ? 1.25 : 1) * (1 + this.bonus.atk),
@@ -299,17 +301,22 @@ export class Battle {
     }
   }
 
-  // ───────── 플레이어 공격 ─────────
+  // ───────── 플레이어 공격 (메인 무기 5종: data/weapons.js) ─────────
+  get mw() { return mainOf(this.run); }
+  mwEvo() { const w = this.mw, u = this.evo(w.ult.id); return { a: u || this.evo(w.pairs[0].evo.id), b: u || this.evo(w.pairs[1].evo.id), u }; }
+  shipW() { return SHIP_WEAPON[this.ship.id] || { rate: 1, dmg: 1, fits: [] }; }
+  fitsMain() { return this.shipW().fits.includes(this.mw.id); }
+
   fireInterval() {
-    const f = this.ship.fire;
-    let rate = f.rate * this.st.rate;
+    const f = this.mw.fire, e = this.mwEvo();
+    let rate = f.rate * this.st.rate * this.shipW().rate;
     if (this.has('cg_bullet')) rate *= 1 + 0.2 * this.rr('cg_bullet');
     if (this.p.galeT > 0) rate *= 2;
-    if (this.evo('evo_main') && this.ship.id === 'byeolbit') rate *= 1.3;
+    if (this.mw.id === 'gun' && e.a) rate *= e.u ? 1.4 : 1.3;
     return 1 / rate;
   }
 
-  baseDmg() { return this.ship.fire.dmg * (1 + (this.wl('main') - 1) * 0.2) * this.st.atk; }
+  baseDmg() { return this.mw.fire.dmg * (1 + (this.wl('main') - 1) * 0.2) * this.st.atk * this.shipW().dmg * (this.fitsMain() ? 1 + WEAPON_RULES.fitBonus : 1); }
 
   playerFire(dt) {
     const p = this.p;
@@ -318,39 +325,62 @@ export class Battle {
     const iv = this.fireInterval();
     if (this.fireT < iv) return;
     this.fireT = 0;
-    const f = this.ship.fire, laser = f.kind === 'laser';
-    let count = f.count + (this.run.pilot === 'chungnami' ? 1 : 0);
-    const speed = f.speed * this.st.speed * (this.run.pilot === 'chungnami' ? 1.2 : 1);
-    let size = this.st.size * (this.slowBoon === 'sh_slow' && !isActive() ? 1 + 0.5 * this.rr('sh_slow') : 1);
-    const dmg = this.baseDmg() * (laser && this.evo('evo_main') ? 1.5 : 1);
+    const w = this.mw, f = w.fire, e = this.mwEvo(), chn = this.run.pilot === 'chungnami';
+    const speed = f.speed * this.st.speed * (chn ? 1.2 : 1);
+    const size = this.st.size * (this.slowBoon === 'sh_slow' && !isActive() ? 1 + 0.5 * this.rr('sh_slow') : 1);
+    const dmg = this.baseDmg();
     const pierce = f.pierce + (this.has('sh_bullet') ? (this.rr('sh_bullet') >= 2 ? 2 : 1) : 0);
-    const angles = [];
-    const spacing = laser ? 16 : 14;
-    for (let i = 0; i < count; i++) angles.push({ a: 0, ox: (i - (count - 1) / 2) * spacing });
-    if (this.has('cg_bullet')) angles.push({ a: -0.14, ox: -8 }, { a: 0.14, ox: 8 });
-    if (this.run.companion === 'rabbit') angles.push({ a: -0.3, ox: -6 }, { a: 0.3, ox: 6 });
-    if (this.evo('evo_main') && this.ship.id === 'byeolbit') angles.push({ a: -0.22, ox: -10 }, { a: 0.22, ox: 10 });
+    const look = { elem: this.bulletElem, main: true, visualLevel: this.wl('main'), evolved: !!(e.a || e.b) };
+    const push = (ox, a, sp, o = {}) => this.pb.push({ x: p.x + ox, y: p.y - 30, vx: Math.sin(a) * sp, vy: -Math.cos(a) * sp, dmg, r: 6 * size, pierce, kind: f.kind, ...look, hit: new Set(), ...o });
+    const lanes = (n, gap) => Array.from({ length: n }, (_, i) => (i - (n - 1) / 2) * gap);
     p.shotN++;
-    const beam = this.has('ta_bullet') && p.shotN % 5 === 0;
-    for (const s of angles) {
-      this.pb.push({ x: p.x + s.ox, y: p.y - 30, vx: Math.sin(s.a) * speed, vy: -Math.cos(s.a) * speed, dmg: beam ? dmg * 3 * this.rr('ta_bullet') : dmg,
-        r: (laser ? 7 : 6) * size * (laser && this.evo('evo_main') ? 2 : 1), pierce: beam ? 99 : pierce, kind: beam ? 'beam' : laser ? 'laser' : 'bullet',
-        elem: this.bulletElem, hit: new Set(), main: true, visualLevel: this.wl('main'), evolved: this.evo('evo_main') });
+    switch (w.id) {
+      case 'gun': {   // 기관포: 진화 A 3갈래(궁극 5갈래), 진화 B 치명타 3배
+        const ways = e.u ? 5 : e.a ? 3 : 1, crit = e.b ? { critMul: 3, critAdd: 0.1 } : {};
+        for (const ox of lanes(f.count + (chn ? 1 : 0), 14)) for (let k = 0; k < ways; k++) push(ox, (k - (ways - 1) / 2) * 0.2, speed, crit);
+        break;
+      }
+      case 'spread': {   // 산탄: 짧은 사거리 부채꼴. A 맞으면 폭발, B 가까울수록 강함
+        const n = f.count + (chn ? 1 : 0) + (e.u ? 4 : 0), gap = f.angle * (e.u ? 0.75 : 1);
+        for (let i = 0; i < n; i++) push(0, (i - (n - 1) / 2) * gap, speed * (0.92 + Math.random() * 0.16), { life: f.life, explode: e.a ? 40 : 0, explodeDmg: dmg * 0.6, near: e.b });
+        break;
+      }
+      case 'laser': {   // 레이저: A 굵기 2배·피해 +50%, B 두 줄·두 배 빠름, 궁극 굵은 세 줄
+        const lines = (e.u ? 3 : e.b ? 2 : 1) + (chn ? 1 : 0), thick = e.a ? 2 : 1;
+        const mul = e.u ? 1.6 : e.a ? 1.5 : e.b ? 1.2 : 1;
+        for (const ox of lanes(lines, 16 * thick)) push(ox, 0, speed * (e.b ? 2 : 1), { dmg: dmg * mul, r: 7 * size * thick, pierce: 99 });
+        break;
+      }
+      case 'homing': {   // 유도탄: A 수 2배, B 맞혀도 다음 적을 쫓아감, 궁극 폭발까지
+        const n = (f.count + (chn ? 1 : 0)) * (e.a ? 2 : 1);
+        for (let i = 0; i < n; i++) { const a = (i - (n - 1) / 2) * 0.35; this.pb.push({ x: p.x + Math.sin(a) * 14, y: p.y - 20, vx: Math.sin(a) * speed, vy: -Math.cos(a) * speed, dmg, r: 6 * size, pierce: pierce + (e.u ? 3 : e.b ? 2 : 0), kind: 'homing', homing: true, retarget: e.b, explode: e.u ? 40 : 0, explodeDmg: dmg * 0.5, ...look, hit: new Set() }); }
+        break;
+      }
+      case 'wave': {   // 파동포: 앞쪽으로 퍼지는 고리. 적 탄을 지우고 밀어냄. A 크게, B 탄 지우면 회복
+        const big = e.a;
+        this.objs.push({ kind: 'pwave', x: p.x, y: p.y - 24, r: 24, speed: speed, reach: f.reach * (big ? 1.15 : 1) * this.st.area, arc: f.arc + (big ? 0.7 : 0) + (chn ? 0.35 : 0),
+          band: f.band * (big ? 1.5 : 1) * size, dmg: dmg * (e.u ? 1.4 : big ? 1.2 : 1), heal: e.b, hit: new Set(), ...look });
+        break;
+      }
     }
+    // 가호·동료가 더해 주는 옆 탄 (모든 무기 공통)
+    const side = [];
+    if (this.has('cg_bullet')) side.push(-0.14, 0.14);
+    if (this.run.companion === 'rabbit') side.push(-0.3, 0.3);
+    for (const a of side) push(0, a, Math.max(speed, 700), { kind: 'bullet', pierce: 0, r: 6 * size });
+    if (this.has('ta_bullet') && p.shotN % 5 === 0) push(0, 0, 1300, { kind: 'beam', dmg: dmg * 3 * this.rr('ta_bullet'), pierce: 99, r: 7 * size });
     sfx.shoot();
-    // 드론호 드론
   }
 
-  nearestEnemy(x, y, maxD = 1e9) {
+  nearestEnemy(x, y, maxD = 1e9, skip = null) {
     let best = null, bd = maxD * maxD;
-    for (const e of this.enemies) { if (e.decoy || e.dying) continue; const d = (e.x - x) ** 2 + (e.y - y) ** 2; if (d < bd && e.y > -20) { bd = d; best = e; } }
+    for (const e of this.enemies) { if (e.decoy || e.dying || (skip && skip.has(e))) continue; const d = (e.x - x) ** 2 + (e.y - y) ** 2; if (d < bd && e.y > -20) { bd = d; best = e; } }
     return best;
   }
 
   homing(x, y, dmg, opts = {}) {
     const a = -Math.PI / 2 + rnd(-0.5, 0.5);
-    const weapon = opts.kind === 'missile' ? 'missile' : 'main';
-    this.pb.push({ x, y, vx: Math.cos(a) * 420, vy: Math.sin(a) * 420, dmg, r: opts.r || 6, pierce: 0, kind: opts.kind || 'homing', homing: true, elem: opts.elem || null, hit: new Set(), explode: opts.explode, color: opts.color, visualLevel: this.wl(weapon), evolved: this.evo('evo_' + weapon) });
+    this.pb.push({ x, y, vx: Math.cos(a) * 420, vy: Math.sin(a) * 420, dmg, r: opts.r || 6, pierce: 0, kind: opts.kind || 'homing', homing: true, elem: opts.elem || null, hit: new Set(), explode: opts.explode, color: opts.color, visualLevel: this.wl('main'), evolved: false });
   }
 
   updateWeapons(dt) {
@@ -358,18 +388,23 @@ export class Battle {
     const tick = (k, iv) => { T[k] = (T[k] || 0) + dt; if (T[k] >= iv) { T[k] = 0; return true; } return false; };
     // 드론호 드론
     if (this.ship.drones) {
-      const n = this.ship.drones + (this.evo('evo_main') ? 2 : 0);
+      const n = this.ship.drones;
       if (tick('drone', 1 / (this.ship.droneRate * st.rate))) {
         for (let i = 0; i < n; i++) { const pos = this.dronePos(i, n); this.homing(pos.x, pos.y, this.ship.droneDmg * st.atk * (1 + (this.wl('main') - 1) * 0.2), { kind: 'drone' }); }
       }
     }
-    if (this.wl('missile') && tick('missile', (2 - this.wl('missile') * 0.15) * st.cd)) {
-      const n = this.wl('missile') * (this.evo('evo_missile') ? 2 : 1);
-      for (let i = 0; i < n; i++) this.homing(p.x + (i - (n - 1) / 2) * 12, p.y - 10, 20 * st.atk, { kind: 'missile', r: 7, explode: this.evo('evo_missile') ? 50 : 0 });
+    if (this.wl('mine') && tick('mine', Math.max(0.5, 1.4 - this.wl('mine') * 0.1) * st.cd)) {   // 지뢰 투하: 지나간 자리에
+      const ev = this.evo('evo_mine'), max = (3 + this.wl('mine')) * (ev ? 2 : 1), mines = this.objs.filter(o => o.kind === 'mine');
+      if (mines.length >= max) mines[0].t = 0;
+      this.objs.push({ kind: 'mine', x: p.x, y: p.y + 14, t: 9, arm: 0.4, r: 14 * st.size, blast: (60 + this.wl('mine') * 8) * st.area, dmg: (26 + this.wl('mine') * 6) * st.atk, chain: ev, visualLevel: this.wl('mine'), evolved: ev });
     }
-    if (this.wl('shotgun') && tick('shotgun', 1.6 * st.cd)) {
-      const ev = this.evo('evo_shotgun'), n = ev ? 12 : 4 + this.wl('shotgun');
-      for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + (i - (n - 1) / 2) * (ev ? 0.09 : 0.16); this.pb.push({ x: p.x, y: p.y - 20, vx: Math.cos(a) * 700 * st.speed, vy: Math.sin(a) * 700 * st.speed, dmg: 9 * st.atk, r: 6 * st.size, pierce: ev ? 1 : 0, kind: 'pellet', hit: new Set(), elem: null, visualLevel: this.wl('shotgun'), evolved: ev }); }
+    if (this.wl('turret') && tick('turret', Math.max(0.4, 1.2 - this.wl('turret') * 0.1) * st.cd)) {   // 보조 레이저 포탑: 가까운 적 조준
+      const ev = this.evo('evo_turret'), n = ev ? 4 : 2;
+      for (let i = 0; i < n; i++) {
+        const pos = this.turretPos(i, n), t = this.nearestEnemy(pos.x, pos.y, 560); if (!t) continue;
+        const a = Math.atan2(t.y - pos.y, t.x - pos.x);
+        this.pb.push({ x: pos.x, y: pos.y, vx: Math.cos(a) * 1100 * st.speed, vy: Math.sin(a) * 1100 * st.speed, dmg: (8 + this.wl('turret') * 3) * st.atk, r: 4 * st.size, pierce: ev ? 3 : 0, kind: 'turret', hit: new Set(), elem: null, visualLevel: this.wl('turret'), evolved: ev });
+      }
     }
     if (this.wl('bomb') && tick('bomb', 2.5 * st.cd)) {
       this.objs.push({ kind: 'bomb', x: p.x, y: p.y - 30, t: 0.8, vy: -320, r: (70 + this.wl('bomb') * 10) * st.area, dmg: (30 + this.wl('bomb') * 5) * st.atk, cluster: this.evo('evo_bomb'), visualLevel: this.wl('bomb'), evolved: this.evo('evo_bomb') });
@@ -379,6 +414,8 @@ export class Battle {
       for (let i = 0; i < n; i++) this.objs.push({ kind: 'boomerang', x: p.x, y: p.y, vx: (i - (n - 1) / 2) * 160, vy: -650 * st.speed, t: 0, r: 18 * (ev ? 2 : 1) * st.size, dmg: (18 + this.wl('boomerang') * 6) * st.atk, hitCd: new Map(), visualLevel: this.wl('boomerang'), evolved: ev });
     }
   }
+
+  turretPos(i, n) { const side = i % 2 ? 1 : -1, row = Math.floor(i / 2); return { x: this.p.x + side * (34 + row * 22), y: this.p.y - 4 + row * 18 }; }
 
   dronePos(i, n) {
     const side = i % 2 ? 1 : -1, row = Math.floor(i / 2);
@@ -479,6 +516,25 @@ export class Battle {
       let alive = true;
       switch (o.kind) {
         case 'spawnLater': case 'later': o.t -= dt; if (o.t <= 0) { o.fn(); alive = false; } break;
+        case 'pwave': {   // 파동포 고리: 띠 안에 든 적은 한 번 맞고 밀려나고, 적 탄은 지워진다
+          o.r += o.speed * dt; const half = o.arc / 2, inBand = (x, y, extra) => { const dx = x - o.x, dy = y - o.y, d = Math.hypot(dx, dy); return Math.abs(d - o.r) <= o.band + extra && Math.abs(Math.atan2(dx, -dy)) <= half; };
+          for (const e of [...this.enemies]) { if (e.decoy || e.dying || o.hit.has(e) || !inBand(e.x, e.y, e.r)) continue; o.hit.add(e); this.damage(e, o.dmg, { elem: o.elem, src: 'main' }); this.knock(e, 18); }
+          const before = this.eb.length; this.eb = this.eb.filter(b => !inBand(b.x, b.y, 0));
+          const cleared = before - this.eb.length;
+          if (cleared && o.heal) this.heal(cleared * 0.5, false);
+          if (o.r > o.reach) alive = false;
+          break;
+        }
+        case 'mine': {
+          o.t -= dt; o.arm -= dt;
+          const hit = o.arm <= 0 && this.enemies.find(e => !e.decoy && !e.dying && dist2(e, o) < (o.r + e.r + 8) ** 2);
+          if (hit) {
+            this.explode(o.x, o.y, o.blast, o.dmg, { color: '#7ad1ff', visualLevel: o.visualLevel, evolved: o.evolved });
+            if (o.chain) for (let i = 0; i < 3; i++) { const a = i / 3 * Math.PI * 2 + Math.random(); this.objs.push({ kind: 'later', t: 0.15 + i * 0.1, fn: () => this.explode(o.x + Math.cos(a) * 60, o.y + Math.sin(a) * 60, o.blast * 0.5, o.dmg * 0.5, { color: '#bfefff', silent: true }) }); }
+            alive = false;
+          } else if (o.t <= 0) alive = false;
+          break;
+        }
         case 'bomb': o.y += o.vy * dt; o.vy *= 0.97; o.t -= dt;
           if (o.t <= 0) { this.explode(o.x, o.y, o.r, o.dmg, { color: '#ffb23d', visualLevel: o.visualLevel, evolved: o.evolved }); if (o.cluster) for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2; this.objs.push({ kind: 'later', t: 0.2, fn: () => this.explode(o.x + Math.cos(a) * 70, o.y + Math.sin(a) * 70, 40, o.dmg * 0.5, { color: '#ffd27a', silent: true }) }); } alive = false; }
           break;
@@ -532,8 +588,9 @@ export class Battle {
   updatePB(dt) {
     const keep = [];
     for (const b of this.pb) {
+      if (b.life) { b.age = (b.age || 0) + dt; if (b.age > b.life) continue; }
       if (b.homing) {
-        const t = this.nearestEnemy(b.x, b.y, 600);
+        const t = this.nearestEnemy(b.x, b.y, 600, b.retarget ? b.hit : null);
         if (t) { const a = Math.atan2(t.y - b.y, t.x - b.x), sp = 520; b.vx += (Math.cos(a) * sp - b.vx) * Math.min(1, dt * 5); b.vy += (Math.sin(a) * sp - b.vy) * Math.min(1, dt * 5); }
       }
       b.x += b.vx * dt; b.y += b.vy * dt;
@@ -545,9 +602,10 @@ export class Battle {
         if (!hitIt) continue;
         b.hit.add(e);
         if (e.decoy) { this.spark(b.x, b.y, '#fff', 3); alive = false; break; }
-        this.damage(e, b.dmg, { elem: b.elem, src: b.main ? 'main' : b.kind, kb: b.main && this.has('sh_bullet') });
+        const near = b.near ? 1 + Math.max(0, Math.min(1, 1 - Math.sqrt(dist2(this.p, e)) / 320)) : 1;   // 근접 포화
+        this.damage(e, b.dmg * near, { elem: b.elem, src: b.main ? 'main' : b.kind, kb: b.main && this.has('sh_bullet'), critMul: b.critMul, critAdd: b.critAdd });
         if (this.fx.length < 160) this.fx.push({kind:'weaponHit',x:b.x,y:b.y,t:.18,max:.18,visualKind:b.kind,visualLevel:b.visualLevel,evolved:b.evolved});
-        if (b.explode) this.explode(b.x, b.y, b.explode * this.st.area, 15 * this.st.atk, { color: '#ffb23d', silent: true });
+        if (b.explode) this.explode(b.x, b.y, b.explode * this.st.area, b.explodeDmg || 15 * this.st.atk, { color: '#ffb23d', silent: true });
         if (b.pierce-- <= 0) { alive = false; break; }
       }
       if (alive) keep.push(b);
@@ -563,7 +621,8 @@ export class Battle {
     if (elemental && (o.always || o.src !== 'main')) dmg *= this.st.elem;
     if (e.armor && !o.elem) dmg *= 0.8;
     let crit = false;
-    if (this.st.crit && Math.random() < this.st.crit) { dmg *= 2; crit = true; }
+    const cc = this.st.crit + (o.critAdd || 0);
+    if (cc && Math.random() < cc) { dmg *= o.critMul || 2; crit = true; }
     if (e.frozen > 0 && o.elem === 'shock' && this.duo('duo_icebolt')) dmg *= 2;
     e.hp -= dmg; e.flash = 0.08;
     if (e.isBoss) this.addGauge(0.03);

@@ -519,3 +519,19 @@ table.lb{width:100%;border-collapse:collapse;font-size:calc(var(--u)*16);font-va
 table.lb th{color:var(--amber);font-weight:900;padding:calc(var(--u)*6);border-bottom:calc(var(--u)*2) solid #ffffff40}
 table.lb td{padding:calc(var(--u)*6);border-bottom:1px solid #ffffff20;text-align:center}
 table.lb tr.top1 td{background:#ffd23d22} table.lb tr.top2 td{background:#c9cbe022} table.lb tr.top3 td{background:#ff9a3c22}
+
+/* 메인 무기 선택 (2.10.0) */
+.wpick{align-items:flex-start}
+.wpick .pic{display:grid;place-items:center;background:linear-gradient(#3a4a8a,#1b2550)}
+.wpick .pic img{width:88%;height:88%;object-fit:contain}
+.mw-emoji{font-size:calc(var(--u)*44);line-height:1}
+.wpick .fit{display:inline-block;margin-left:calc(var(--u)*6);padding:0 calc(var(--u)*6);border:calc(var(--u)*2) solid var(--ink);border-radius:calc(var(--u)*8);background:linear-gradient(#ffe27a 0 52%,var(--amber) 52%);color:var(--ink);font-size:calc(var(--u)*13);vertical-align:middle}
+.wbars{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:calc(var(--u)*4);margin-top:calc(var(--u)*6)}
+.wbar{display:flex;flex-direction:column;gap:calc(var(--u)*2)}
+.wbar em{font-style:normal;font-size:calc(var(--u)*11);color:var(--muted)}
+.wbar i{display:block;height:calc(var(--u)*8);border:calc(var(--u)*2) solid var(--ink);border-radius:calc(var(--u)*4);background:linear-gradient(90deg,var(--mint) 0 var(--v),#2b2f55 var(--v) 100%)}
+.wpick .wpair{font-size:calc(var(--u)*12);margin-top:calc(var(--u)*6)}
+.wpick .wpair b{color:var(--amber)}
+.choice .art .mw-emoji{font-size:calc(var(--u)*54)}
+.o .mw-emoji,.slot .mw-emoji{font-size:calc(var(--u)*26)}
+.wpick .wpair b{font-size:inherit;display:inline;font-family:var(--display);font-weight:400}

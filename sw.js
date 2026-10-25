@@ -3,12 +3,12 @@
 // · 인터넷이 안 되면 저장본으로 실행한다. 그림·음악은 처음 접속 뒤 뒤에서 조금씩 저장(warm)한다.
 // · 새 버전 설치는 코드 파일만 받으면 끝나서 빠르고, 파일 하나가 실패해도 설치가 막히지 않는다.
 // 파일 목록이 바뀌면 VERSION을 올린다 (src/ui.js 의 VERSION 과 같은 번호).
-const VERSION = 'cnguard-v2.9.0';
+const VERSION = 'cnguard-v2.10.0';
 const CORE = [
   './', 'index.html', 'style.css', 'manifest.webmanifest',
   'src/main.js', 'src/assets.js', 'src/audio.js', 'src/battle.js', 'src/bgart.js', 'src/bullet-art.js', 'src/boss-fx.js', 'src/enemy-art.js', 'src/input.js', 'src/motion.js',
   'src/progress.js', 'src/render.js', 'src/combat-vfx.js', 'src/save.js', 'src/side.js', 'src/leaderboard.js', 'src/ui.js', 'src/view.js',
-  'data/boons.js', 'data/build.js', 'data/content.js', 'data/extras.js', 'data/luck.js', 'data/unlocks.js', 'data/config.js', 'data/zodiac.js',
+  'data/boons.js', 'data/build.js', 'data/content.js', 'data/extras.js', 'data/luck.js', 'data/unlocks.js', 'data/config.js', 'data/zodiac.js', 'data/weapons.js',
   'assets/credits.json', 'assets/precache.json', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png',
 ];
 const TIMEOUT = 4000;

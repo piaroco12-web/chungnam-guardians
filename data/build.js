@@ -1,13 +1,14 @@
-// 레벨업 선택지: 무기 6종, 강화 10종, 진화 6종
-// 무기 Lv.5 + 짝 강화를 가지고 있으면 진화가 선택지에 나온다.
+// 레벨업 선택지: 메인 무기 강화 + 서브 무기 5종, 강화 10종, 서브 진화 5종
+// 서브 무기 Lv.5 + 짝 강화를 가지고 있으면 진화가 선택지에 나온다.
+// 메인 무기의 짝·진화 2갈래·궁극은 data/weapons.js (2.10.0부터).
 
 export const WEAPONS = [
-  { id: 'main', name: '기본 무기 강화', icon: '🔫', elem: '물리', pair: 'rate',
-    desc: l => `기본 공격 피해 +${l * 20}%` },
-  { id: 'missile', name: '유도 미사일', icon: '🚀', elem: '물리', pair: 'cd',
-    desc: l => `${(2 - l * 0.15).toFixed(2)}초마다 유도 미사일 ${l}발` },
-  { id: 'shotgun', name: '산탄포', icon: '🎇', elem: '물리', pair: 'size',
-    desc: l => `1.6초마다 부채꼴로 ${4 + l}발 발사` },
+  { id: 'main', name: '메인 무기 강화', icon: '🔫', elem: '물리', main: true,
+    desc: l => `메인 무기 피해 +${(l - 1) * 20}%` },
+  { id: 'mine', name: '지뢰 투하', icon: '💠', elem: '물리', pair: 'size',
+    desc: l => `지나간 자리에 지뢰 (최대 ${3 + l}개, 닿으면 폭발)` },
+  { id: 'turret', name: '보조 레이저 포탑', icon: '🔭', elem: '물리', pair: 'cd',
+    desc: l => `양옆 포탑이 가까운 적을 ${(1.2 - l * 0.1).toFixed(1)}초마다 조준 사격` },
   { id: 'satellite', name: '궤도 위성', icon: '🛰️', elem: '물리', pair: 'dur',
     desc: l => `기체 주위를 도는 위성 ${l}개` },
   { id: 'bomb', name: '폭탄 투하', icon: '💣', elem: '물리', pair: 'area',
@@ -30,11 +31,8 @@ export const UPGRADES = [
 ];
 
 export const EVOLUTIONS = [
-  { id: 'evo_main', from: 'main', need: 'rate', icon: '🌟',
-    name: { byeolbit: '별빛 폭풍', drone: '드론 군단', beongae: '플라스마 창' },
-    desc: { byeolbit: '기관포가 3갈래로 퍼지고 연사 +30%', drone: '유도 드론 +2대', beongae: '레이저 굵기 2배, 피해 +50%' } },
-  { id: 'evo_missile', from: 'missile', need: 'cd', icon: '🎆', name: '군집 미사일', desc: '미사일 수 2배, 맞으면 작은 폭발' },
-  { id: 'evo_shotgun', from: 'shotgun', need: 'size', icon: '🐝', name: '벌집 산탄', desc: '12발 발사, 1회 관통' },
+  { id: 'evo_mine', from: 'mine', need: 'size', icon: '💥', name: '연쇄 지뢰', desc: '지뢰 수 2배, 터지면 주변에 작은 폭발 3번' },
+  { id: 'evo_turret', from: 'turret', need: 'cd', icon: '🎯', name: '쌍둥이 포탑', desc: '포탑 4개, 관통하는 광선' },
   { id: 'evo_satellite', from: 'satellite', need: 'dur', icon: '🪐', name: '위성 고리', desc: '위성 6개, 피해 +50%' },
   { id: 'evo_bomb', from: 'bomb', need: 'area', icon: '🧨', name: '집속 폭탄', desc: '터질 때 작은 폭탄 5개로 갈라짐' },
   { id: 'evo_boomerang', from: 'boomerang', need: 'speed', icon: '🌀', name: '회오리 부메랑', desc: '칼날 3개, 크기 2배' },

@@ -4,7 +4,7 @@ import { art } from './assets.js';
 import { isActive } from './input.js';
 import { REGIONS, ENEMIES } from '../data/content.js';
 import { ZODIAC } from '../data/zodiac.js';
-import { drawProjectile, drawBomb, drawBoomerang, drawSatellite, drawImpact, drawHit } from './combat-vfx.js';
+import { drawProjectile, drawBomb, drawBoomerang, drawSatellite, drawImpact, drawHit, drawPWave, drawMine, drawTurret } from './combat-vfx.js';
 import { save, view } from './save.js';
 import { drawEnemyBullet } from './bullet-art.js';
 import { drawBeam, drawVine, drawFakeGift, drawOverlay, drawArm, drawEdgeMark } from './boss-fx.js';
@@ -205,6 +205,8 @@ export function render(g, b, scale) {
   for (const p of b.pb) drawProjectile(g, p, b.t);
   for (const o of b.objs) {
     if (o.kind === 'bomb') drawBomb(g, o, b.t);
+    if (o.kind === 'pwave') drawPWave(g, o, b.t);
+    if (o.kind === 'mine') drawMine(g, o, b.t);
     if (o.kind === 'boomerang') drawBoomerang(g, o, b.t);
     if (o.kind === 'horse') {
       // 말이 지나간 세로줄: 아래쪽으로 흩어지는 흙먼지 띠와 속도선
@@ -229,7 +231,8 @@ export function render(g, b, scale) {
 
   // 회전체·드론
   for (const o of b.orbits()) orbit(g, o, b.t, b.p);
-  if (b.ship.drones) { const n = b.ship.drones + (b.evo('evo_main') ? 2 : 0); for (let i = 0; i < n; i++) { const p = b.dronePos(i, n); if (!sprite(g, art.drone(), p.x, p.y, 30)) { g.fillStyle = '#3fe0c0'; g.beginPath(); g.arc(p.x, p.y, 10, 0, 7); g.fill(); g.strokeStyle = '#141414'; g.lineWidth = 3; g.stroke(); g.fillStyle = '#141414'; g.beginPath(); g.arc(p.x, p.y, 3, 0, 7); g.fill(); } } }
+  if (b.wl('turret')) { const n = b.evo('evo_turret') ? 4 : 2; for (let i = 0; i < n; i++) { const tp = b.turretPos(i, n); drawTurret(g, tp.x, tp.y, b.evo('evo_turret'), b.t); } }
+  if (b.ship.drones) { const n = b.ship.drones; for (let i = 0; i < n; i++) { const p = b.dronePos(i, n); if (!sprite(g, art.drone(), p.x, p.y, 30)) { g.fillStyle = '#3fe0c0'; g.beginPath(); g.arc(p.x, p.y, 10, 0, 7); g.fill(); g.strokeStyle = '#141414'; g.lineWidth = 3; g.stroke(); g.fillStyle = '#141414'; g.beginPath(); g.arc(p.x, p.y, 3, 0, 7); g.fill(); } } }
   if (b.ultKind === 'drones') for (let i = 0; i < 6; i++) { const a = b.t * 3 + i * Math.PI / 3; const x = b.p.x + Math.cos(a) * 80, y = b.p.y + Math.sin(a) * 50; g.fillStyle = '#3fe0c0'; g.beginPath(); g.arc(x, y, 9, 0, 7); g.fill(); }
   if (b.ultKind === 'beam') { const w = calm() ? 90 : 90 + Math.sin(b.t * 40) * 8; g.fillStyle = 'rgba(217,255,154,.55)'; g.fillRect(b.p.x - w / 2, 0, w, b.p.y - 20); g.fillStyle = calm() ? 'rgba(255,255,255,.45)' : 'rgba(255,255,255,.85)'; g.fillRect(b.p.x - w / 6, 0, w / 3, b.p.y - 20); }
 

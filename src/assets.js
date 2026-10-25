@@ -7,6 +7,7 @@ import { GODS, DUOS, LEGENDS } from '../data/boons.js';
 import { ZODIAC } from '../data/zodiac.js';
 import { STORY, PACTS } from '../data/extras.js';
 import { SETS } from '../data/unlocks.js';
+import { MAIN_WEAPONS } from '../data/weapons.js';
 
 const img = {};          // 이름 → 불러온 Image
 const cache = {};        // 임시 그림 캐시
@@ -279,13 +280,17 @@ export const pic = {
   nav: id => { const i = ['sortie', 'meta', 'codex', 'cards', 'settings'].indexOf(id); const c = i >= 0 && iconCell('menu_nav_3d_sheet', i, 5); return c ? url(c) : null; },
   meta: id => { const i = ['atk', 'hp', 'magnet', 'bonus', 'reroll', 'revive'].indexOf(id); const c = i >= 0 && cell('meta_upgrade_sheet', i, 3, 2); return c ? c.toDataURL() : null; },
   skill: id => {
-    if (id === 'missile') { const im = cell('missile_refined_sheet', 1, 3); if (im) return im.toDataURL(); }
+    const ns = ['mine', 'turret', 'evo_mine', 'evo_turret'].indexOf(id);   // 새 서브 무기 (시트가 생기면)
+    if (ns >= 0) { const c = cell('weapon_sub_sheet', ns, 4); return c ? c.toDataURL() : null; }
     const index = ['main', 'missile', 'shotgun', 'satellite', 'bomb', 'rate', 'speed', 'cd', 'size', 'dur'].indexOf(id);
     const m = ['atk', 'hp', 'magnet', 'bonus', 'reroll', 'revive'].indexOf(id);
     const i = ['boomerang', 'area', 'crit'].indexOf(id);
     const c = index >= 0 ? cell('upgrade_full_sheet', index, 5, 2) : m >= 0 ? cell('meta_upgrade_sheet', m, 3, 2) : i >= 0 ? cell('upgrade_icons_sheet', i, 3) : null;
     return c ? c.toDataURL() : null;
   },
+  // 메인 무기·진화·새 서브 무기 그림 (docs/WEAPON_IMAGES_FOR_GPT.md). 시트가 아직 없으면 null → 이모지로 대신
+  mainWeapon: id => { const i = MAIN_WEAPONS.findIndex(w => w.id === id); const c = i >= 0 && cell('weapon_main_sheet', i, 5); return c ? c.toDataURL() : null; },
+  mainEvo: (id, k) => { const i = MAIN_WEAPONS.findIndex(w => w.id === id), j = ['a', 'b', 'u'].indexOf(k); const c = i >= 0 && j >= 0 && cell('weapon_evo_sheet', j * 5 + i, 5, 3); return c ? c.toDataURL() : null; },
   pilot: p => url(get('pilot_' + p.id) || once('pi' + p.id, () => pilotArt(p))),
   hangar: (s, colorId) => url(tinted(get('ship_' + s.id + '_hangar'), colorId) || once('hg' + s.id, () => hangarArt(s))),
   god: gd => url(get(gd.img) || once('god' + gd.id, () => godArt(gd))),

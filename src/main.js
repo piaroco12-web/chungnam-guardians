@@ -3,7 +3,8 @@ import { W, H, fitStage } from './view.js';
 import { initInput, input, isActive } from './input.js';
 import { loadAssets } from './assets.js';
 import { sfx, bgm, unlockAudio } from './audio.js';
-import { save, persist, progress, saveRun, loadRun, clearRun, view, resetForNextStudent, unlockSnap, unlockNews, recordCombo } from './save.js';
+import { save, persist, progress, saveRun, loadRun, clearRun, view, resetForNextStudent, unlockSnap, unlockNews, recordCombo, creditMastery } from './save.js';
+import { MAIN_WEAPONS } from '../data/weapons.js';
 import { Battle, newRun } from './battle.js';
 import { render } from './render.js';
 import { levelChoices, applyLevelChoice, altarChoices, applyAltarChoice, godOf } from './progress.js';
@@ -25,7 +26,7 @@ window.addEventListener('resize', () => { scale = fitStage(stage, canvas); });
 initInput(stage);
 ui.initUi();
 
-const state = { scene: 'loading', tab: 'sortie', pilot: 'chungnami', ship: 'byeolbit', diff: 'sprout', battle: null, sel: {} };
+const state = { scene: 'loading', tab: 'sortie', pilot: 'chungnami', ship: 'byeolbit', weapon: 'gun', diff: 'sprout', battle: null, sel: {} };
 let menuBg = null;
 
 // ───────── 오늘의 도전: 날짜로 정해지는 같은 판 ─────────
@@ -38,7 +39,8 @@ function dailyInfo() {
   const pilot = PILOTS[Math.floor(r() * PILOTS.length)], ship = SHIPS[Math.floor(r() * SHIPS.length)];
   const d = new Date();
   const region = Math.floor(r() * REGIONS.length);   // 그날의 출발 지역도 날짜로 정한다 (모두 같은 지역)
-  return { key, seed, pilot: pilot.id, ship: ship.id, region, regionName: REGIONS[region].name, pilotName: pilot.name, shipName: ship.name, label: `${d.getMonth() + 1}월 ${d.getDate()}일`, best: save.daily[key] || null };
+  const weapon = MAIN_WEAPONS[Math.floor(r() * MAIN_WEAPONS.length)];   // 메인 무기도 날짜로 (해금과 상관없이 그날은 누구나)
+  return { key, seed, pilot: pilot.id, ship: ship.id, weapon: weapon.id, weaponName: weapon.name, region, regionName: REGIONS[region].name, pilotName: pilot.name, shipName: ship.name, label: `${d.getMonth() + 1}월 ${d.getDate()}일`, best: save.daily[key] || null };
 }
 function restoreRandom() { Math.random = realRandom; }
 
@@ -54,6 +56,7 @@ function toBase(tab) {
   state.scene = 'base'; state.battle = null; if (tab) state.tab = tab; bgm('base');
   if (!view.pilotUnlocked(PILOTS.find(p => p.id === state.pilot))) state.pilot = 'chungnami';
   if (!view.shipUnlocked(SHIPS.find(s => s.id === state.ship))) state.ship = 'byeolbit';
+  if (!view.weaponUnlocked(MAIN_WEAPONS.find(w => w.id === state.weapon) || {})) state.weapon = 'gun';
   ui.base({ tab: state.tab, pilot: state.pilot, ship: state.ship, hasRun: !!loadRun(), daily: dailyInfo() }, {
     tab: t => toBase(t), refresh: () => toBase(), title: toTitle,
     sortie: () => { state.sel = {}; toSelect('pilot'); }, cont: continueRun, daily: startDaily,
@@ -64,12 +67,13 @@ function toSelect(step) {
   state.scene = 'select';
   ui.select(step, state.sel, {
     back: () => {
-      const order = ['pilot', 'ship', 'diff', 'pact', 'region'].filter(x => x !== 'pact' || view.pactsUnlocked());
+      const order = ['pilot', 'ship', 'weapon', 'diff', 'pact', 'region'].filter(x => x !== 'pact' || view.pactsUnlocked());
       const i = order.indexOf(step); i <= 0 ? toBase() : toSelect(order[i - 1]);
     },
     pick: (st, v) => {
       if (st === 'pilot') { state.pilot = v; toSelect('ship'); }
-      else if (st === 'ship') { state.ship = v; toSelect('diff'); }
+      else if (st === 'ship') { state.ship = v; state.sel.ship = v; toSelect('weapon'); }
+      else if (st === 'weapon') { state.weapon = v; toSelect('diff'); }
       else if (st === 'diff') { state.diff = v; view.pactsUnlocked() ? toSelect('pact') : save.teacher ? toSelect('region') : startRun(0); }
       else if (st === 'pactgo') { save.teacher ? toSelect('region') : startRun(0); }
       else startRun(+v);
@@ -80,7 +84,7 @@ function toSelect(step) {
 // ───────── 판 시작·이어하기 ─────────
 function startRun(region) {
   clearRun();
-  const run = newRun({ pilot: state.pilot, ship: state.ship, diff: state.diff, region, pacts: [...(state.sel.pacts || [])] });
+  const run = newRun({ pilot: state.pilot, ship: state.ship, mainWeapon: state.weapon, diff: state.diff, region, pacts: [...(state.sel.pacts || [])] });
   beginBattle(run);
 }
 let askedStudent = false;
@@ -93,11 +97,11 @@ function startDaily() {
   clearRun();
   const d = dailyInfo();
   Math.random = seeded(d.seed);   // 오늘 하루는 모두 같은 하늘
-  beginBattle(newRun({ pilot: d.pilot, ship: d.ship, diff: 'chall', daily: d.key, region: d.region }));
+  beginBattle(newRun({ pilot: d.pilot, ship: d.ship, mainWeapon: d.weapon, diff: 'chall', daily: d.key, region: d.region }));
 }
 function continueRun() {
   const run = loadRun(); if (!run) return toBase();
-  state.pilot = run.pilot; state.ship = run.ship; state.diff = run.diff;
+  state.pilot = run.pilot; state.ship = run.ship; state.diff = run.diff; if (run.mainWeapon) state.weapon = run.mainWeapon;
   beginBattle(run);
 }
 
@@ -135,7 +139,7 @@ function resumeBattle(b) {
 function openPause(b) {
   if (b.paused || b.over) return;
   b.paused = true;
-  ui.pause(b.run, { resume: () => resumeBattle(b), home: () => toBase('sortie'), stats: () => ui.statsModal(b) });
+  ui.pause(b.run, { resume: () => resumeBattle(b), home: () => { progress(() => creditMastery(b.run)); toBase('sortie'); }, stats: () => ui.statsModal(b) });
 }
 
 // ───────── 레벨업 ─────────
@@ -230,6 +234,7 @@ function openAltar(b) {
     if (c.type === 'boon' && !before.has(c.god.id)) giveCard(b, CARDS.find(x => x.god === c.god.id)?.id, cards);
     showCards(cards, () => {
       b.nextRegion();
+      progress(() => creditMastery(b.run));
       if (!b.run.daily) saveRun(b.run);
       resumeBattle(b); bgm('battle');
       if (c.mystery) ui.toast(`흔들리는 제단: ${c.def.name} (${RARITY[c.rarity].name})`);
@@ -274,6 +279,9 @@ function finish(b, win, reason = '') {
   const pactBonus = PACTS.filter(p => (b.run.pacts || []).includes(p.id)).reduce((a, p) => a + p.bonus, 0);
   const earned = Math.floor(b.run.coins * d.coin * (1 + save.meta.bonus * 0.05 + pactBonus)) + (win ? 100 : 0);
   const unlocks = [...(b.unlocksThisRun || [])];
+  const wBefore = MAIN_WEAPONS.filter(w => view.weaponUnlocked(w)).map(w => w.id);
+  progress(() => creditMastery(b.run));
+  for (const w of MAIN_WEAPONS) if (view.weaponUnlocked(w) && !wBefore.includes(w.id)) unlocks.push('메인 무기 ' + w.name);
   progress(s => {
     s.coins += earned;
     if (b.run.kills > s.best.kills) s.best.kills = b.run.kills;
@@ -302,7 +310,7 @@ function finish(b, win, reason = '') {
       date: b.run.daily, cls: save.student.cls, num: save.student.num,
       start: b.run.startRegion, startName: REGIONS[b.run.startRegion]?.name, region: b.run.region, regionName: REGIONS[b.run.region].name,
       stage: win ? 5 : b.run.stage, stageName: win ? '완주' : STAGE[b.run.stage] || '', kills: b.run.kills, level: b.run.level, win: !!win,
-      pilot: PILOTS.find(p => p.id === b.run.pilot)?.name, ship: SHIPS.find(s => s.id === b.run.ship)?.name, version: ui.VERSION,
+      pilot: PILOTS.find(p => p.id === b.run.pilot)?.name, ship: SHIPS.find(s => s.id === b.run.ship)?.name, weapon: MAIN_WEAPONS.find(w => w.id === b.run.mainWeapon)?.name, version: ui.VERSION,
     });
   }
   const showResult = reviewScore => ui.result({
@@ -338,7 +346,7 @@ function runReview(cards, done) {
 // ───────── 체험관: 다음 학생 준비 ─────────
 function nextStudent() {
   resetForNextStudent();
-  state.pilot = 'chungnami'; state.ship = 'byeolbit'; state.diff = 'sprout'; state.tab = 'sortie';
+  state.pilot = 'chungnami'; state.ship = 'byeolbit'; state.weapon = 'gun'; state.diff = 'sprout'; state.tab = 'sortie';
   toTitle();
   ui.toast('다음 친구가 처음부터 시작할 수 있어요');
 }

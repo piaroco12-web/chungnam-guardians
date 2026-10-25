@@ -34,8 +34,8 @@ function botMove(b, skill) {
   p.x = best.x; p.y = best.y;
 }
 
-export function simulate({ pilot = 'chungnami', ship = 'byeolbit', diff = 'sprout', skill = 1, maxMinutes = 25, seedMeta = 0 } = {}) {
-  const run = newRun({ pilot, ship, diff });
+export function simulate({ pilot = 'chungnami', ship = 'byeolbit', weapon = null, diff = 'sprout', skill = 1, maxMinutes = 25, seedMeta = 0 } = {}) {
+  const run = newRun({ pilot, ship, diff, mainWeapon: weapon });
   let state = 'play', result = null;
   const log = [];
   const b = new Battle(run, {

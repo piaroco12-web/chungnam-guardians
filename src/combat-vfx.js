@@ -28,7 +28,7 @@ export function drawProjectile(g,p,t=0){
   const lv=rank(p), r=p.r||6, evolved=lv===6;
   g.save();g.translate(p.x,p.y);g.rotate(Math.atan2(p.vx||0,-(p.vy||-1)));
   const s=Math.min(12,r)*(.82+lv*.045), length=16+lv*6;
-  let hue=({laser:'#6ceeff',beam:'#ffb5f8',drone:'#4ff6cc',homing:'#4ff6cc',missile:'#ff995b',pellet:'#ce8dff'})[p.kind]||'#ffce55';
+  let hue=({laser:'#6ceeff',beam:'#ffb5f8',drone:'#4ff6cc',homing:'#4ff6cc',missile:'#ff995b',pellet:'#ce8dff',turret:'#ff6ad5'})[p.kind]||'#ffce55';
   if(evolved&&p.kind==='bullet')hue='#70e8ff';
   if(!evolved&&p.kind==='bullet'&&lv===4)hue='#70d8ff';
   if(p.kind==='missile')hue=evolved?'#c6a0ff':'#61e4ff';
@@ -136,5 +136,36 @@ export function drawHit(g,f){
   }else{
     for(let i=0;i<6;i++){const a=i*TAU/6;line(g,[[Math.cos(a)*r*.5,Math.sin(a)*r*.5],[Math.cos(a)*r,Math.sin(a)*r]],color,2);}star(g,0,0,5,'#fff9da');
   }
+  g.restore();
+}
+
+// ───────── 메인 무기 파동포·새 서브 무기 (2.10.0) ─────────
+export function drawPWave(g,o,t){
+  const half=o.arc/2,fade=Math.max(0,1-o.r/o.reach*0.8),big=o.evolved;
+  g.save();g.translate(o.x,o.y);g.rotate(-Math.PI/2);
+  g.globalAlpha=.85*fade;g.shadowColor=o.heal?'#9dffb8':'#82e7ff';g.shadowBlur=12;
+  const band=o.band;
+  const gr=g.createRadialGradient(0,0,Math.max(1,o.r-band),0,0,o.r+band);
+  gr.addColorStop(0,'rgba(130,231,255,0)');gr.addColorStop(.45,o.heal?'rgba(160,255,190,.55)':'rgba(130,231,255,.6)');gr.addColorStop(.75,'rgba(255,255,255,.95)');gr.addColorStop(1,'rgba(130,231,255,0)');
+  g.fillStyle=gr;g.beginPath();g.arc(0,0,o.r+band,-half,half);g.arc(0,0,Math.max(1,o.r-band),half,-half,true);g.closePath();g.fill();
+  g.shadowBlur=0;g.strokeStyle=ink;g.lineWidth=2;g.globalAlpha=.5*fade;g.beginPath();g.arc(0,0,o.r+band*.55,-half,half);g.stroke();
+  g.globalAlpha=fade;const n=big?9:6;for(let i=0;i<n;i++){const a=-half+(i+.5)*o.arc/n;star(g,Math.cos(a)*o.r,Math.sin(a)*o.r,3+Math.sin(t*20+i)*1.2,'#ffffff',t*4+i);}
+  g.restore();
+}
+export function drawMine(g,o,t){
+  const r=o.r,armed=o.arm<=0,blink=armed&&Math.sin(t*10+o.x)>0;
+  g.save();g.translate(o.x,o.y);
+  g.fillStyle='rgba(6,8,34,.3)';g.beginPath();g.ellipse(2,r*.6,r,r*.35,0,0,TAU);g.fill();
+  for(let i=0;i<6;i++){const a=i*TAU/6+.3;g.strokeStyle=ink;g.lineWidth=4;g.beginPath();g.moveTo(Math.cos(a)*r*.7,Math.sin(a)*r*.7);g.lineTo(Math.cos(a)*r*1.25,Math.sin(a)*r*1.25);g.stroke();g.strokeStyle=o.evolved?'#c99cff':'#7ad1ff';g.lineWidth=2;g.stroke();}
+  g.fillStyle=gradient(g,-r,-r,r,r,'#9fb4dd','#2a3a6a');g.beginPath();g.arc(0,0,r,0,TAU);g.fill();g.strokeStyle=ink;g.lineWidth=2.5;g.stroke();
+  ellipse(g,-r*.3,-r*.35,r*.28,r*.16,'rgba(255,255,255,.6)');
+  g.fillStyle=blink?'#ff4d5e':armed?'#7a2030':'#ffd23d';g.beginPath();g.arc(0,0,r*.32,0,TAU);g.fill();g.strokeStyle=ink;g.lineWidth=1.5;g.stroke();
+  g.restore();
+}
+export function drawTurret(g,x,y,evolved,t){
+  g.save();g.translate(x,y);
+  g.fillStyle=gradient(g,-9,-9,9,9,'#f2f6ff','#8a95b8');g.beginPath();g.arc(0,0,9,0,TAU);g.fill();g.strokeStyle=ink;g.lineWidth=2.5;g.stroke();
+  g.fillStyle=evolved?'#c99cff':'#ff6ad5';g.beginPath();g.roundRect(-2.5,-15,5,10,2);g.fill();g.strokeStyle=ink;g.lineWidth=1.5;g.stroke();
+  g.fillStyle='#fff';g.beginPath();g.arc(-2.5,-2.5,2.4,0,TAU);g.fill();
   g.restore();
 }

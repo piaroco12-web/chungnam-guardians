@@ -2,6 +2,7 @@
 import { CARDS, REGIONS } from '../data/content.js';
 import { BOONS, DUOS, LEGENDS } from '../data/boons.js';
 import { SHIP_UNLOCK, PILOT_UNLOCK, SETS, BASE_COLOR } from '../data/unlocks.js';
+import { MW } from '../data/weapons.js';
 
 const KEY = 'cnguard_v1';
 const RUN_KEY = 'cnguard_run_v1';
@@ -25,6 +26,7 @@ const fresh = () => ({
   grandPilots: [],     // 예전 규칙(지역 클리어)으로 이미 연 캐릭터 — 새 규칙과 상관없이 계속 열림
   grandShips: [],      // 예전 규칙으로 이미 연 기체 — 계속 열림
   combos: [],          // 조합으로 정화한 기록 'pilot|ship|boss' (번개호 해금)
+  mastery: {},         // 메인 무기 숙련도: 무기 id → 그 무기로 정화한 수 (무기 사슬 해금)
   shipColor: 'base',   // 고른 기체 색 (범주 완성으로 열림)
   student: null,       // 오늘의 도전 기록을 보낼 반·번호 { cls: '5-2', num: 13 } — 다음 학생 준비 때 지워진다
   // unlockRule 은 일부러 넣지 않는다: 예전 기록에 없을 때 아래 옮기기가 돌아야 해서
@@ -51,6 +53,7 @@ if (!(save.unlockRule >= 2)) {
 // 해금 규칙 3 (2026-10-25): 번개호가 '에듀이+드론호로 내포 클리어'로 바뀜. 예전 규칙(지역 보스 5종)으로 이미 연 학생은 그대로
 if (!Array.isArray(save.grandShips)) save.grandShips = [];
 if (!Array.isArray(save.combos)) save.combos = [];
+if (!save.mastery || typeof save.mastery !== 'object') save.mastery = {};
 if (save.unlockRule !== 3) {
   const oldBeongae = REGIONS.map(r => r.boss);
   if (oldBeongae.every(id => save.bosses.includes(id)) && !save.grandShips.includes('beongae')) save.grandShips.push('beongae');
@@ -58,6 +61,11 @@ if (save.unlockRule !== 3) {
   write(KEY, save);
 }
 const comboKey = c => `${c.pilot}|${c.ship}|${c.boss}`;
+// 메인 무기 숙련도: 이번 판 정화 수 중 아직 안 더한 만큼만 더한다 (제단 저장·판 끝·중간에 나가기 때 부른다)
+export function creditMastery(run) {
+  const add = (run.kills || 0) - (run.credited || 0); if (add <= 0 || !run.mainWeapon) return;
+  save.mastery[run.mainWeapon] = (save.mastery[run.mainWeapon] || 0) + add; run.credited = run.kills;
+}
 export function recordCombo(run, bossId) { const k = `${run.pilot}|${run.ship}|${bossId}`; if (!save.combos.includes(k)) save.combos.push(k); }
 
 export function persist() { write(KEY, save); }
@@ -83,6 +91,8 @@ if (save.settings.kiosk && !swReload) resetForNextStudent();
 const cardsOf = kind => CARDS.filter(c => !kind || c.kind === kind);
 export const view = {
   pilotUnlocked: p => { const u = PILOT_UNLOCK[p.id]; return save.teacher || !u || save.grandPilots.includes(p.id) || view.setDone({ kind: u.kind }); },
+  weaponUnlocked: w => { const u = MW[w.id]?.unlock; return save.teacher || !u || u.need.every(([id, n]) => (save.mastery[id] || 0) >= n); },
+  weaponProgress: w => { const u = MW[w.id]?.unlock; return u ? u.need.map(([id, n]) => ({ id, name: MW[id].name, have: Math.min(n, save.mastery[id] || 0), need: n })) : []; },
   shipUnlocked: s => { const u = SHIP_UNLOCK[s.id]; return save.teacher || !u || save.grandShips.includes(s.id) || (u.combo ? save.combos.includes(comboKey(u.combo)) : u.bosses.every(id => save.bosses.includes(id))); },
   shipProgress: s => { const u = SHIP_UNLOCK[s.id]; return !u || u.combo ? null : [u.bosses.filter(id => save.bosses.includes(id)).length, u.bosses.length]; },
   // 범주를 모두 모았나 (kind 가 없으면 33장 전부)
@@ -119,5 +129,13 @@ const PILOTS_IDS = () => Object.keys(PILOT_UNLOCK);
 
 // 이어하기
 export function saveRun(run) { if (!save.teacher) write(RUN_KEY, run); }
-export function loadRun() { return save.teacher ? null : read(RUN_KEY); }
+// 2.10.0 이전 이어하기 저장본: 서브 무기 산탄포→지뢰, 유도 미사일→포탑, 기체 진화(evo_main)는 없앰
+const OLD_SUB = { missile: 'turret', shotgun: 'mine' };
+export function loadRun() {
+  if (save.teacher) return null;
+  const run = read(RUN_KEY); if (!run) return null;
+  if (run.weapons) for (const [o, n] of Object.entries(OLD_SUB)) if (o in run.weapons) { run.weapons[n] = run.weapons[o]; delete run.weapons[o]; }
+  if (Array.isArray(run.evolved)) run.evolved = run.evolved.filter(id => id !== 'evo_main').map(id => ({ evo_missile: 'evo_turret', evo_shotgun: 'evo_mine' })[id] || id);
+  return run;
+}
 export function clearRun() { remove(RUN_KEY); }
