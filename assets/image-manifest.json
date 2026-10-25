@@ -1,6 +1,6 @@
 {
-  "version": "2.5.3",
-  "count": 97,
+  "version": "2.5.4",
+  "count": 98,
   "images": [
     {
       "path": "assets/img/bg_asan.webp",
@@ -1161,6 +1161,18 @@
       "width": 1086,
       "height": 1448,
       "bytes": 242056,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/ui_purified_medal.webp",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 174916,
       "grid": [
         1,
         1
