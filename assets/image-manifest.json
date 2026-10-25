@@ -1,6 +1,6 @@
 {
-  "version": "2.5.4",
-  "count": 98,
+  "version": "2.10.1",
+  "count": 102,
   "images": [
     {
       "path": "assets/img/bg_asan.webp",
@@ -1176,6 +1176,54 @@
       "grid": [
         1,
         1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/weapon_main_sheet.webp",
+      "width": 2172,
+      "height": 724,
+      "bytes": 200692,
+      "grid": [
+        5,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/weapon_evo_sheet.webp",
+      "width": 1619,
+      "height": 972,
+      "bytes": 649236,
+      "grid": [
+        5,
+        3
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/weapon_sub_sheet.webp",
+      "width": 2172,
+      "height": 724,
+      "bytes": 298462,
+      "grid": [
+        4,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/enemy_region_sheet.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 235088,
+      "grid": [
+        3,
+        2
       ],
       "hasTransparency": true,
       "format": "webp"
