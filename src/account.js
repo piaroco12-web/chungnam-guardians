@@ -32,12 +32,12 @@ async function call(body) {
 }
 
 // 서버로 보내는 기록: 기기 설정·교사 모드·계정 정보·이어하기는 빼고 진행 기록만
-const SKIP = new Set(['settings', 'teacher', 'student', 'account', 'unlockRule', 'shipColor', 'dev', 'coins', 'items', '__proto__', 'prototype', 'constructor']);   // coins·items 는 wallet 장부에서 다시 계산
-export function snapshot() { const o = {}; for (const [k, v] of Object.entries(save)) if (!SKIP.has(k)) o[k] = v; return o; }
+const SKIP = new Set(['settings', 'teacher', 'student', 'account', 'unlockRule', 'grandPilots', 'grandShips', 'grandSets', 'shipColor', 'dev', 'coins', 'items', '__proto__', 'prototype', 'constructor']);   // coins·items 는 wallet 장부에서 다시 계산
+export function snapshot() { const o = { unlockRule: save.unlockRule }; for (const [k, v] of Object.entries(save)) if (!SKIP.has(k)) o[k] = v; return o; }
 
 // 두 기록 합치기: 목록은 합집합, 숫자는 큰 값, 날짜별 기록은 날마다 더 좋은 것 → 기록이 줄어드는 일이 없다
 export function mergeInto(dst, src) {
-  if (!src || typeof src !== 'object') return false;
+  if (!src || typeof src !== 'object' || Array.isArray(src)) return false;
   let changed = false;
   const num = (a, b) => (typeof b === 'number' && !(a >= b) ? (changed = true, b) : a);
   for (const [k, v] of Object.entries(src)) {

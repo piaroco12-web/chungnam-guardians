@@ -7,7 +7,7 @@ import { WEAPONS, UPGRADES, EVOLUTIONS, boonDef, godOf, MAX_SLOTS } from './prog
 import { ZODIAC } from '../data/zodiac.js';
 import { PATHS, QUIZ, CARD_QUIZ, PACTS, STORY, QUIZ_RUSH, PURGE } from '../data/extras.js';
 import { LUCK } from '../data/luck.js';
-import { SETS, SHIP_UNLOCK, BASE_COLOR } from '../data/unlocks.js';
+import { SETS, SHIP_UNLOCK, PILOT_UNLOCK, BASE_COLOR } from '../data/unlocks.js';
 import { lbEnabled, loadBoard } from './leaderboard.js';
 import { login, logout, normSchool, normCls } from './account.js';
 import { MAIN_WEAPONS, mainOf, SHIP_WEAPON, BAR_NAMES } from '../data/weapons.js';
@@ -19,7 +19,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.13.2';
+export const VERSION = '2.13.3';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -286,7 +286,7 @@ export function select(step, sel, act) {
   if (step === 'pilot') body = head(1, '파일럿 선택') + `<div class="picks">${PILOTS.map(p => {
     const ok = view.pilotUnlocked(p);
     return `<button class="pick ${ok ? '' : 'lock'}" data-v="${p.id}" ${ok ? '' : 'aria-disabled="true"'}><div class="pic"><img src="${pic.pilot(p)}" alt=""></div>
-      <div class="tx"><b>${esc(p.name)}</b><span class="tag">${esc(p.tag)}</span><p>${ok ? `체력 ${p.hp} · ${esc(p.desc)}` : `🔒 ${esc(p.unlock.text)} 열려요`}</p></div></button>`;
+      <div class="tx"><b>${esc(p.name)}</b><span class="tag">${esc(p.tag)}</span><p>${ok ? `체력 ${p.hp} · ${esc(p.desc)}` : `🔒 ${esc(PILOT_UNLOCK[p.id].text)} 열려요`}</p></div></button>`;
   }).join('')}</div>`;
   if (step === 'ship') body = head(2, '기체 선택') + `<div class="picks">${SHIPS.map(s => { const ok = view.shipUnlocked(s), u = SHIP_UNLOCK[s.id];
       return `<button class="pick ${ok ? '' : 'lock'}" data-v="${s.id}" ${ok ? '' : 'aria-disabled="true"'}><div class="pic"><img src="${pic.hangar(s, view.shipColor().id)}" alt=""></div>

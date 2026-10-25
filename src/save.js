@@ -2,7 +2,7 @@
 import { CARDS, REGIONS } from '../data/content.js';
 import { ZONES, sigunOf } from '../data/regions.js';
 import { BOONS, DUOS, LEGENDS } from '../data/boons.js';
-import { SHIP_UNLOCK, PILOT_UNLOCK, SETS, BASE_COLOR } from '../data/unlocks.js';
+import { SHIP_UNLOCK, PILOT_UNLOCK, SETS, BASE_COLOR, CURRENT_UNLOCK_RULE } from '../data/unlocks.js';
 import { MW } from '../data/weapons.js';
 
 const KEY = 'cnguard_v1';
@@ -22,7 +22,6 @@ const fresh = () => ({
   meta: { atk: 0, hp: 0, magnet: 0, bonus: 0, reroll: 0, revive: 0 },
   cleared: [],          // 처음 클리어한 권역 index (0~4)
   home: null,           // 우리 고장 시군 id (2.13.0, 처음 출격 때 한 번 고른다)
-  grandSets: [],        // 예전 규칙(카드 33장)으로 이미 완성한 범주 — 카드가 늘어도 계속 완성으로 본다
   beatLegend: false,    // 전설 난이도 최종 클리어 → 극한 난이도 해금
   codex: [],            // 얻어 본 가호·듀오·전설 id
   cards: [],
@@ -34,8 +33,6 @@ const fresh = () => ({
   bosses: [],          // 한 번이라도 정화한 보스
   story: [],           // 열린 이야기 조각
   daily: {},           // 날짜 → 그날 최고 기록 { region, kills }
-  grandPilots: [],     // 예전 규칙(지역 클리어)으로 이미 연 캐릭터 — 새 규칙과 상관없이 계속 열림
-  grandShips: [],      // 예전 규칙으로 이미 연 기체 — 계속 열림
   combos: [],          // 조합으로 정화한 기록 'pilot|ship|boss' (번개호 해금)
   mastery: {},         // 메인 무기 숙련도: 무기 id → 그 무기로 정화한 수 (무기 사슬 해금)
   items: { purge: 0 }, // 정화 대폭발 (상점 300코인, 최대 1개)
@@ -44,29 +41,24 @@ const fresh = () => ({
   account: null,       // 학생 계정 { key, school, cls, num, nick, hash } (src/account.js) — 다음 학생 준비 때 지워진다
   dev: Math.random().toString(36).slice(2, 10),   // 이 기기(저장본) 표시: 여러 기기 기록을 합칠 때 코인 장부를 기기마다 따로 센다
   wallet: {},          // 코인·대폭발 장부 { 기기: { ci 번 코인, co 쓴 코인, pi 산 대폭발, po 쓴 대폭발 } } → coins·items 는 이 장부의 합
-  // unlockRule 은 일부러 넣지 않는다: 예전 기록에 없을 때 아래 옮기기가 돌아야 해서
+  unlockRule: CURRENT_UNLOCK_RULE, // 새 기록에 구버전 보호 규칙을 적용하지 않는다.
 });
 
 function read(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }
 function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* 저장 불가 환경 */ } }
 function remove(k) { try { localStorage.removeItem(k); } catch { /* 무시 */ } }
 
-export const save = Object.assign(fresh(), read(KEY) || {});
+const stored = read(KEY);
+export const save = Object.assign(fresh(), stored || {});
+// 구버전 보호로 잘못 열린 기록까지 현재 카드·보스·조합 조건으로 다시 판정한다.
+for (const key of ['grandPilots', 'grandShips', 'grandSets']) delete save[key];
+save.unlockRule = CURRENT_UNLOCK_RULE;
 save.meta = Object.assign(fresh().meta, save.meta);
 save.settings = Object.assign(fresh().settings, save.settings);
 save.stats = Object.assign(fresh().stats, save.stats);
 for (const k of ['bosses', 'story']) if (!Array.isArray(save[k])) save[k] = [];
 if (!save.daily || typeof save.daily !== 'object') save.daily = {};
-if (!Array.isArray(save.grandPilots)) save.grandPilots = [];
-// 해금 규칙 2 (2026-10): 예전에 공주·보령을 깨서 연 센터이·에듀이는 그대로 열어 둔다
-if (!(save.unlockRule >= 2)) {
-  if (save.cleared.includes(1) && !save.grandPilots.includes('centeri')) save.grandPilots.push('centeri');
-  if (save.cleared.includes(3) && !save.grandPilots.includes('edui')) save.grandPilots.push('edui');
-  save.unlockRule = 2;
-  write(KEY, save);
-}
-// 해금 규칙 3 (2026-10-25): 번개호가 '에듀이+드론호로 내포 클리어'로 바뀜. 예전 규칙(지역 보스 5종)으로 이미 연 학생은 그대로
-if (!Array.isArray(save.grandShips)) save.grandShips = [];
+// 번개호는 실제 에듀이+드론호 최종 보스 정화 조합 기록으로 판정한다.
 if (!Array.isArray(save.combos)) save.combos = [];
 if (!save.mastery || typeof save.mastery !== 'object') save.mastery = {};
 save.items = Object.assign({ purge: 0 }, save.items);
@@ -75,21 +67,7 @@ if (!save.quizRush || typeof save.quizRush !== 'object') save.quizRush = { date:
 if (!save.dev) save.dev = Math.random().toString(36).slice(2, 10);
 if (!save.wallet || typeof save.wallet !== 'object' || !Object.keys(save.wallet).length) { save.wallet = { [save.dev]: { ci: save.coins || 0, co: 0, pi: save.items.purge || 0, po: 0 } }; write(KEY, save); }
 if (save.student && !save.account) delete save.student;   // 예전 반·번호만 있던 기록은 계정으로 다시 넣는다
-if (save.unlockRule !== 3) {
-  const oldBeongae = REGIONS.map(r => r.boss);
-  if (oldBeongae.every(id => save.bosses.includes(id)) && !save.grandShips.includes('beongae')) save.grandShips.push('beongae');
-  save.unlockRule = 3;
-  write(KEY, save);
-}
-// 해금 규칙 4 (2.13.0, 15개 시군): 카드가 33장 → 64장. 예전 카드로 이미 완성한 범주·캐릭터는 그대로
-if (!Array.isArray(save.grandSets)) save.grandSets = [];
-if (save.unlockRule !== 4) {
-  const oldDone = kind => CARDS.filter(c => !c.v2 && (!kind || c.kind === kind)).every(c => save.cards.includes(c.id));
-  for (const set of SETS) if (oldDone(set.kind) && !save.grandSets.includes(set.id)) save.grandSets.push(set.id);
-  for (const [id, u] of Object.entries(PILOT_UNLOCK)) if (u && oldDone(u.kind) && !save.grandPilots.includes(id)) save.grandPilots.push(id);
-  save.unlockRule = 4;
-  write(KEY, save);
-}
+if (stored && (stored.unlockRule !== CURRENT_UNLOCK_RULE || ['grandPilots', 'grandShips', 'grandSets'].some(key => Object.hasOwn(stored, key)))) write(KEY, save);
 const comboKey = c => `${c.pilot}|${c.ship}|${c.boss}`;
 // 메인 무기 숙련도: 이번 판 정화 수 중 아직 안 더한 만큼만 더한다 (제단 저장·판 끝·중간에 나가기 때 부른다)
 export function creditMastery(run) {
@@ -130,12 +108,12 @@ export function buyMeta(id, cost) {
 // 교사 모드에서는 학생 기록을 바꾸지 않는다
 export function progress(fn) { if (!save.teacher) { fn(save); persist(); } }
 
-export function resetAll() { Object.assign(save, fresh(), { unlockRule: 4 }); persist(); clearRun(); }
+export function resetAll() { Object.assign(save, fresh(), { unlockRule: CURRENT_UNLOCK_RULE }); persist(); clearRun(); }
 
 // 체험관(공용 기기): 설정은 그대로 두고 학생 기록만 처음 상태로. 교사 모드는 끈다.
 export function resetForNextStudent() {
   const settings = { ...save.settings };
-  Object.assign(save, fresh(), { settings, unlockRule: 4 });
+  Object.assign(save, fresh(), { settings, unlockRule: CURRENT_UNLOCK_RULE });
   persist(); clearRun();
 }
 // 체험관 모드 기기는 게임을 새로 열 때마다 처음 상태로 시작한다
@@ -147,20 +125,20 @@ if (save.settings.kiosk && !swReload) resetForNextStudent();
 // 교사 모드면 모두 열린 것으로 본다
 const cardsOf = kind => CARDS.filter(c => !kind || c.kind === kind);
 export const view = {
-  pilotUnlocked: p => { const u = PILOT_UNLOCK[p.id]; return save.teacher || !u || save.grandPilots.includes(p.id) || (u.n ? view.setCount({ kind: u.kind })[0] >= u.n : view.setDone({ kind: u.kind })); },
+  pilotUnlocked: p => { const u = PILOT_UNLOCK[p.id]; return save.teacher || !u || (u.n ? view.setCount({ kind: u.kind })[0] >= u.n : view.setDone({ kind: u.kind })); },
   weaponUnlocked: w => { const u = MW[w.id]?.unlock; return save.teacher || !u || u.need.every(([id, n]) => (save.mastery[id] || 0) >= n); },
   weaponProgress: w => { const u = MW[w.id]?.unlock; return u ? u.need.map(([id, n]) => ({ id, name: MW[id].name, have: Math.min(n, save.mastery[id] || 0), need: n })) : []; },
-  shipUnlocked: s => { const u = SHIP_UNLOCK[s.id]; return save.teacher || !u || save.grandShips.includes(s.id) || (u.combo ? save.combos.includes(comboKey(u.combo)) : u.bosses.filter(id => save.bosses.includes(id)).length >= (u.n || u.bosses.length)); },
+  shipUnlocked: s => { const u = SHIP_UNLOCK[s.id]; return save.teacher || !u || (u.combo ? save.combos.includes(comboKey(u.combo)) : u.bosses.filter(id => save.bosses.includes(id)).length >= (u.n || u.bosses.length)); },
   shipProgress: s => { const u = SHIP_UNLOCK[s.id], n = u?.n || u?.bosses?.length; return !u || u.combo ? null : [Math.min(n, u.bosses.filter(id => save.bosses.includes(id)).length), n]; },
-  // 범주를 모두 모았나 (kind 가 없으면 33장 전부)
-  setDone: set => (set.id && save.grandSets.includes(set.id)) || cardsOf(set.kind).every(c => view.hasCard(c.id)),
+  // 범주를 모두 모았나 (kind 가 없으면 64장 전부)
+  setDone: set => cardsOf(set.kind).every(c => view.hasCard(c.id)),
   setCount: set => { const all = cardsOf(set.kind); return [all.filter(c => view.hasCard(c.id)).length, all.length]; },
   doneSets: () => SETS.filter(s => view.setDone(s)),
   // 범주 완성 영구 능력치 합계
   bonus: () => { const b = { hp: 0, atk: 0, guard: 0, xp: 0, ult: 0 }; for (const s of view.doneSets()) b[s.stat] += s.val; return b; },
   colors: () => [BASE_COLOR, ...view.doneSets().map(s => s.color)],
   shipColor: () => view.colors().find(c => c.id === save.shipColor) || BASE_COLOR,
-  // 가장 높은 칭호 (33장 전부면 수호대장, 아니면 마지막으로 얻은 범주)
+  // 가장 높은 칭호 (64장 전부면 수호대장, 아니면 완성한 범주)
   title: () => { const d = view.doneSets(); return d.length ? d[d.length - 1].title : ''; },
   hellUnlocked: () => save.teacher || save.beatLegend,
   hasCard: id => save.teacher || save.cards.includes(id),
