@@ -16,7 +16,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.10.3';
+export const VERSION = '2.10.4';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -39,7 +39,7 @@ function boonIcon(id) {
 const weaponDef = id => WEAPONS.find(w => w.id === id);
 const upDef = id => UPGRADES.find(u => u.id === id);
 const skillArt = d => { const im = pic.skill(d.id); return im ? `<img src="${im}" alt="">` : d.icon; };
-const subEvoArt = ev => { const im = ['evo_mine','evo_turret'].includes(ev.id) && pic.skill(ev.id); return im ? `<img src="${im}" alt="">` : skillArt(weaponDef(ev.from)); };
+const subEvoArt = ev => { const im = ['evo_mine','evo_turret','evo_satellite'].includes(ev.id) && pic.skill(ev.id); return im ? `<img src="${im}" alt="">` : skillArt(weaponDef(ev.from)); };
 const mwArt = w => { const im = pic.mainWeapon(w.id); return im ? `<img src="${im}" alt="">` : `<span class="mw-emoji">${w.icon}</span>`; };
 const mwEvoArt = (w, k) => { const im = pic.mainEvo(w.id, k); return im ? `<img src="${im}" alt="">` : `<span class="evolved-skill">${mwArt(w)}</span>`; };
 // 지금 판의 메인 무기 진화 단계: 'u' 궁극 · 'a'/'b' 진화 · null

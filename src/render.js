@@ -4,7 +4,7 @@ import { art } from './assets.js';
 import { isActive } from './input.js';
 import { REGIONS, ENEMIES } from '../data/content.js';
 import { ZODIAC } from '../data/zodiac.js';
-import { drawProjectile, drawBomb, drawBoomerang, drawSatellite, drawImpact, drawHit, drawPWave, drawMine, drawTurret, drawMuzzle } from './combat-vfx.js';
+import { drawProjectile, drawBomb, drawBoomerang, drawSatellite, drawImpact, drawHit, drawPWave, drawMine, drawTurret, drawMuzzle, drawSupportDrone, drawUltimateBeam } from './combat-vfx.js';
 import { save, view } from './save.js';
 import { drawEnemyBullet } from './bullet-art.js';
 import { drawBeam, drawVine, drawFakeGift, drawOverlay, drawArm, drawEdgeMark } from './boss-fx.js';
@@ -109,7 +109,7 @@ function drawSkillFx(g, f) {
 }
 
 function orbit(g, o, t, p) {
-  if (o.kind === 'sat') return drawSatellite(g, o, t);
+  if (o.kind === 'sat') return drawSatellite(g, o, t, calm());
   const oa = ORBIT_ART[o.kind], im = oa && art.skill(oa[0]);
   if (im) {
     const size = (o.r || 14) * oa[1];
@@ -232,9 +232,9 @@ export function render(g, b, scale) {
   // 회전체·드론
   for (const o of b.orbits()) orbit(g, o, b.t, b.p);
   if (b.wl('turret')) { const n = b.evo('evo_turret') ? 4 : 2; for (let i = 0; i < n; i++) { const tp = b.turretPos(i, n); drawTurret(g, tp.x, tp.y, b.evo('evo_turret'), b.t); } }
-  if (b.ship.drones) { const n = b.ship.drones; for (let i = 0; i < n; i++) { const p = b.dronePos(i, n); if (!sprite(g, art.drone(), p.x, p.y, 30)) { g.fillStyle = '#3fe0c0'; g.beginPath(); g.arc(p.x, p.y, 10, 0, 7); g.fill(); g.strokeStyle = '#141414'; g.lineWidth = 3; g.stroke(); g.fillStyle = '#141414'; g.beginPath(); g.arc(p.x, p.y, 3, 0, 7); g.fill(); } } }
-  if (b.ultKind === 'drones') for (let i = 0; i < 6; i++) { const a = b.t * 3 + i * Math.PI / 3; const x = b.p.x + Math.cos(a) * 80, y = b.p.y + Math.sin(a) * 50; g.fillStyle = '#3fe0c0'; g.beginPath(); g.arc(x, y, 9, 0, 7); g.fill(); }
-  if (b.ultKind === 'beam') { const w = calm() ? 90 : 90 + Math.sin(b.t * 40) * 8; g.fillStyle = 'rgba(217,255,154,.55)'; g.fillRect(b.p.x - w / 2, 0, w, b.p.y - 20); g.fillStyle = calm() ? 'rgba(255,255,255,.45)' : 'rgba(255,255,255,.85)'; g.fillRect(b.p.x - w / 6, 0, w / 3, b.p.y - 20); }
+  if (b.ship.drones) { const n=b.ship.drones;for(let i=0;i<n;i++){const p=b.dronePos(i,n);drawSupportDrone(g,p.x,p.y,b.t,34,false,calm());} }
+  if (b.ultKind === 'drones') for(let i=0;i<6;i++){const a=b.t*3+i*Math.PI/3,x=b.p.x+Math.cos(a)*80,y=b.p.y+Math.sin(a)*50;drawSupportDrone(g,x,y,b.t,36,true,calm());}
+  if (b.ultKind === 'beam') drawUltimateBeam(g,b,calm());
 
   // AI 12지신 동료
   if (b.run.companion) {

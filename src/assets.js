@@ -18,6 +18,7 @@ const ENEMY_ORDER = ['spam', 'notify', 'troll', 'link', 'popup', 'bug'];
 const ITEM_ORDER = ['ebullet', 'ebullet2', 'coin', 'xp', 'heart', 'orb'];
 
 const NAMES = [
+  'support_units_sheet', 'wave_projectile_sheet',
   'weapon_main_sheet', 'weapon_evo_sheet', 'weapon_sub_sheet', 'enemy_region_sheet',
   'pilot_cockpit_sheet', 'choice_routes_sheet', 'ui_sealed_boon', 'ui_unopened_card', 'ui_purified_medal',
   'boon_duo_3d_sheet', 'boon_legend_3d_sheet', 'boon_fx_sheet', 'region_landmarks_sheet', 'menu_nav_3d_sheet',
@@ -245,8 +246,20 @@ function occupiedShip(shipId, pilotId, colorId) {
   }));
 }
 
+// 탑다운 유닛 시트: 위·아랫줄 경계의 안테나 조각이 섞이지 않도록 분리한다.
+function supportCell(i){const rect=i<3?[i*512,0,512,470]:[(i%3)*512,480,512,544];return iconCell('support_units_sheet',i,3,2,rect);}
+// 얕은 물결 띠는 정사각형 여백을 빼고 실제 곡선의 경계 안에 투사한다.
+function waveCell(i){
+  if(i<0)return null;const source=iconCell('wave_projectile_sheet',i,2,2);if(!source)return null;
+  return once('wave-tight-'+i,()=>{const w=source.width,h=source.height,p=source.getContext('2d').getImageData(0,0,w,h).data;let l=w,t=h,r=0,b=0;
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(p[(y*w+x)*4+3]>24){l=Math.min(l,x);t=Math.min(t,y);r=Math.max(r,x);b=Math.max(b,y);}
+    if(r<l)return source;return canvas(r-l+1,b-t+1,g=>g.drawImage(source,l,t,r-l+1,b-t+1,0,0,r-l+1,b-t+1));});
+}
+
 // 전투에 쓰는 그림 (Image 또는 Canvas)
 export const art = {
+  support: id => { const i=['satellite','evo_satellite','turret','evo_turret','drone','emitter'].indexOf(id); return i<0 ? null : supportCell(i); },
+  wave: branch => waveCell(['','a','b','u'].indexOf(branch || '')),
   ship: (id, pilotId, colorId) => (pilotId && occupiedShip(id, pilotId, colorId)) || tinted(get('ship_' + id), colorId) || once('ship' + id, () => shipTop(SHIPS.find(s => s.id === id))),
   // 지역 번호를 주면 그 지역 색(이로치)으로: 몬스터가 처음 나오는 지역이 원래 색
   enemy: (t, elite = false, region = null) => {
@@ -256,7 +269,7 @@ export const art = {
     return deg ? hueShifted(base, deg, 'en:' + t + ':' + !!elite) : base;
   },
   boss: id => get(bossFile(id)) || once('boss' + id, () => bossArt(id)),
-  drone: () => get('unit_drone'),
+  drone: () => supportCell(4) || get('unit_drone'),
   missile: (lv = 1, evolved = false) => cell('missile_refined_sheet', evolved ? 2 : lv >= 3 ? 1 : 0, 3),
   zodiac: id => get('zodiac_' + id),
   item: k => cell('fx_items_sheet', ITEM_ORDER.indexOf(k), 6),
@@ -291,6 +304,7 @@ export const pic = {
   nav: id => { const i = ['sortie', 'meta', 'codex', 'cards', 'settings'].indexOf(id); const c = i >= 0 && iconCell('menu_nav_3d_sheet', i, 5); return c ? url(c) : null; },
   meta: id => { const i = ['atk', 'hp', 'magnet', 'bonus', 'reroll', 'revive'].indexOf(id); const c = i >= 0 && cell('meta_upgrade_sheet', i, 3, 2); return c ? c.toDataURL() : null; },
   skill: id => {
+    if(['satellite','evo_satellite','turret','evo_turret'].includes(id)){const c=art.support(id);if(c)return url(c);}
     const ns = ['mine', 'turret', 'evo_mine', 'evo_turret'].indexOf(id);   // 새 서브 무기 (시트가 생기면)
     if (ns >= 0) { const c = iconCell('weapon_sub_sheet', ns, 4, 1, SUB_RECTS[ns]); return c ? c.toDataURL() : null; }
     const index = ['main', 'missile', 'shotgun', 'satellite', 'bomb', 'rate', 'speed', 'cd', 'size', 'dur'].indexOf(id);
