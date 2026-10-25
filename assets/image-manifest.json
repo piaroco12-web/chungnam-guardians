@@ -1,6 +1,6 @@
 {
-  "version": "2.5.2",
-  "count": 95,
+  "version": "2.5.3",
+  "count": 97,
   "images": [
     {
       "path": "assets/img/bg_asan.webp",
@@ -1140,6 +1140,30 @@
       "grid": [
         3,
         2
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/ui_sealed_boon.webp",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 153018,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/ui_unopened_card.webp",
+      "width": 1086,
+      "height": 1448,
+      "bytes": 242056,
+      "grid": [
+        1,
+        1
       ],
       "hasTransparency": true,
       "format": "webp"
