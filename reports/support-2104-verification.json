@@ -1,0 +1,17 @@
+{
+  "version": "2.10.4",
+  "units": 6,
+  "scenes": 3,
+  "widths": [
+    1180,
+    540,
+    390,
+    320
+  ],
+  "cases": 12,
+  "satelliteVisibleWidth": 32,
+  "battleMutation": false,
+  "calmAndReducedMotion": "passed",
+  "pageErrors": [],
+  "failedResponses": []
+}

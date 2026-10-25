@@ -1,0 +1,119 @@
+{
+  "version": "2.10.4",
+  "icons": 24,
+  "enemyVariants": 60,
+  "weapons": {
+    "checks": 20,
+    "shots": [
+      {
+        "id": "gun",
+        "branch": "",
+        "count": 2
+      },
+      {
+        "id": "gun",
+        "branch": "a",
+        "count": 6
+      },
+      {
+        "id": "gun",
+        "branch": "b",
+        "count": 2
+      },
+      {
+        "id": "gun",
+        "branch": "u",
+        "count": 10
+      },
+      {
+        "id": "spread",
+        "branch": "",
+        "count": 6
+      },
+      {
+        "id": "spread",
+        "branch": "a",
+        "count": 6
+      },
+      {
+        "id": "spread",
+        "branch": "b",
+        "count": 6
+      },
+      {
+        "id": "spread",
+        "branch": "u",
+        "count": 10
+      },
+      {
+        "id": "laser",
+        "branch": "",
+        "count": 2
+      },
+      {
+        "id": "laser",
+        "branch": "a",
+        "count": 2
+      },
+      {
+        "id": "laser",
+        "branch": "b",
+        "count": 3
+      },
+      {
+        "id": "laser",
+        "branch": "u",
+        "count": 4
+      },
+      {
+        "id": "homing",
+        "branch": "",
+        "count": 3
+      },
+      {
+        "id": "homing",
+        "branch": "a",
+        "count": 6
+      },
+      {
+        "id": "homing",
+        "branch": "b",
+        "count": 3
+      },
+      {
+        "id": "homing",
+        "branch": "u",
+        "count": 6
+      },
+      {
+        "id": "wave",
+        "branch": "",
+        "count": 1
+      },
+      {
+        "id": "wave",
+        "branch": "a",
+        "count": 1
+      },
+      {
+        "id": "wave",
+        "branch": "b",
+        "count": 1
+      },
+      {
+        "id": "wave",
+        "branch": "u",
+        "count": 1
+      }
+    ]
+  },
+  "widths": [
+    1120,
+    540,
+    390,
+    320
+  ],
+  "evolvedSubSlots": true,
+  "pageErrors": [],
+  "failedResponses": []
+}
