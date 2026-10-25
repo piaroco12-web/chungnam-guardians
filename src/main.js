@@ -395,7 +395,31 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || ['localho
     try { sessionStorage.setItem('cnguard_sw_reload', '1'); } catch { /* 무시 */ }
     location.reload();
   });
-  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => { /* 온라인 실행 유지 */ });
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
+    reg.update().catch(() => {});                                   // 열 때마다 새 버전이 있는지 바로 확인
+    navigator.serviceWorker.ready.then(r => r.active && r.active.postMessage('warm'));   // 그림·음악을 뒤에서 저장
+    checkVersion(reg);
+  }).catch(() => { /* 온라인 실행 유지 */ });
+}
+
+// 서버의 버전과 지금 실행 중인 버전이 다르면 바로 새 버전을 받는다 (메뉴 화면이면 저절로 새로고침)
+async function checkVersion(reg) {
+  try {
+    const txt = await (await fetch('sw.js', { cache: 'no-store' })).text();
+    const server = (/cnguard-v([\d.]+)/.exec(txt) || [])[1];
+    if (server && server !== ui.VERSION) {
+      ui.toast(`새 버전 ${server}을 받고 있어요`);
+      await reg.update();
+    }
+  } catch { /* 인터넷이 안 되면 지금 버전으로 */ }
+}
+
+// 설정의 '최신 버전 받기': 저장본을 모두 지우고 새로 받는다 (학생 기록은 그대로)
+export async function forceUpdate() {
+  try { for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); } catch { /* 무시 */ }
+  try { for (const k of await caches.keys()) if (k.startsWith('cnguard-')) await caches.delete(k); } catch { /* 무시 */ }
+  try { sessionStorage.setItem('cnguard_sw_reload', '1'); } catch { /* 무시 */ }
+  location.replace(location.pathname + '?v=' + Date.now() + (location.search.includes('debug') ? '&debug' : ''));
 }
 
 ui.loading(0);
