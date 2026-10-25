@@ -39,6 +39,7 @@ async def verify(url):
         await page.locator('#go').click()
         await page.locator('[data-v="chungnami"]').click()
         await page.locator('[data-v="byeolbit"]').click()
+        await page.locator('[data-v="gun"]').click()
         await page.locator('[data-v="sprout"]').click()
         await page.wait_for_selector('#pz')
         await page.keyboard.down('ArrowLeft')
@@ -132,7 +133,7 @@ async def verify(url):
         mp.on('pageerror', lambda e: report['pageErrors'].append(str(e)))
         await mp.goto(url + '?debug'); await mp.wait_for_selector('.tap')
         await mp.locator('.tap').tap(); await mp.locator('#go').tap()
-        await mp.locator('[data-v="chungnami"]').tap(); await mp.locator('[data-v="drone"]').tap(); await mp.locator('[data-v="sprout"]').tap()
+        await mp.locator('[data-v="chungnami"]').tap(); await mp.locator('[data-v="byeolbit"]').tap(); await mp.locator('[data-v="gun"]').tap(); await mp.locator('[data-v="sprout"]').tap()
         await mp.wait_for_selector('#pz'); await mp.wait_for_timeout(400)
         await mp.evaluate('''() => {
           const c = document.getElementById('stage'), r = c.getBoundingClientRect();
