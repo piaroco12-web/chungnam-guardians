@@ -1,6 +1,6 @@
 {
-  "version": "2.10.4",
-  "count": 104,
+  "version": "2.11.1",
+  "count": 107,
   "images": [
     {
       "path": "assets/img/bg_asan.webp",
@@ -1250,6 +1250,27 @@
         2
       ],
       "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/feature_icons_sheet.webp",
+      "width": 2173,
+      "height": 724,
+      "bytes": 269268,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/purge_burst.webp",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 511156,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/quiz_rush_host.webp",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 227382,
       "format": "webp"
     }
   ]
