@@ -6,26 +6,38 @@ import { ZODIAC } from '../data/zodiac.js';
 import { STORY } from '../data/extras.js';
 import { boonDef, godOf } from './progress.js';
 import { save } from './save.js';
+import { pic } from './assets.js';
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const box = (title, body) => `<section class="sbox"><h3>${title}</h3>${body}</section>`;
+// 2.12.5: 게임 안 A안 '충남 지도 길'과 같은 두 톤 입체 패널 + 리본 제목 + 3D 아이콘
+const box = (title, body, icon = '') => `<section class="sbox"><h3>${icon ? `<img src="${icon}" alt="">` : ''}<span class="ol">${title}</span></h3>${body}</section>`;
+const LM_IDS = ['r_asan', 'r_gongju', 'r_buyeo', 'r_boryeong', 'r_naepo'];
+const memo = {};
+const keep = (k, f) => (memo[k] ??= f() || undefined) || '';   // 그림이 아직 안 불러졌으면 다음에 다시 시도
+const landmark = i => keep('lm' + i, () => pic.region(LM_IDS[i]));
+const navIcon = id => keep('nav' + id, () => pic.nav(id));
+const STAR = '<svg viewBox="0 0 18 18" aria-hidden="true"><path d="M9 1.5l2.3 4.7 5.2.8-3.8 3.7.9 5.2L9 13.4l-4.6 2.5.9-5.2L1.5 7l5.2-.8z"/></svg>';
+// 세로 지도 길: 깬 곳 ✓(민트), 지금 ▶(금색 빛), 마지막 내포는 별(빨강). sub(i)는 이름 아래 작은 글씨
+function trail(state, sub) {
+  const n = REGIONS.length, done = REGIONS.filter((_, i) => state(i) === 'done').length;
+  return `<ol class="strail" style="--prog:${Math.min(1, done / (n - 1))}">${REGIONS.map((rg, i) => {
+    const st = state(i), last = i === n - 1, img = landmark(i);
+    return `<li class="${st}"><i class="${last ? 'fin' : ''}">${st === 'done' ? '' : last ? STAR : i + 1}</i>${img ? `<img class="lm" src="${img}" alt="">` : ''}<span><b class="ol">${esc(rg.name)}</b><small>${sub(i)}</small></span></li>`;
+  }).join('')}</ol>`;
+}
+const keys = (...k) => k.map(x => `<kbd>${x}</kbd>`).join('');
 const last = { L: '', R: '' };
 let acc = 0;
 
-const CONTROLS = `<ul class="slist">
-  <li><b>이동</b> 마우스로 끌기 · 방향키 · WASD</li>
-  <li><b>슬로우</b> 손이나 키를 떼면 느려져요</li>
-  <li><b>필살기</b> Space 또는 오른쪽 아래 버튼</li>
-  <li><b>일시정지</b> Esc</li></ul>`;
+const CONTROLS = `<ul class="skeys">
+  <li><b>이동</b><span>${keys('마우스 끌기', '← →', 'WASD')}</span></li>
+  <li><b>슬로우</b><span class="tx">손이나 키를 떼면 느려져요</span></li>
+  <li><b>필살기</b><span>${keys('Space')}</span></li>
+  <li><b>일시정지</b><span>${keys('Esc')}</span></li></ul>`;
 
-// 지역 진행: 지난 지역 ✓, 지금 지역 ▶, 남은 지역 ○
+// 지역 진행(전투 중): 지난 지역 ✓, 지금 지역은 단계 글씨
 function route(cur, stageText) {
-  return `<ol class="route">${REGIONS.map((rg, i) => {
-    const st = i < cur ? 'done' : i === cur ? 'now' : '';
-    const mark = i < cur ? '✓' : i === cur ? '▶' : i + 1;
-    const sub = i === cur && stageText ? `<small>${stageText}</small>` : `<small>${esc(BOSSES[rg.boss].name)}</small>`;
-    return `<li class="${st}"><i>${mark}</i><span>${esc(rg.name)}${sub}</span></li>`;
-  }).join('')}</ol>`;
+  return trail(i => (i < cur ? 'done' : i === cur ? 'now' : ''), i => (i === cur && stageText ? stageText : esc(BOSSES[REGIONS[i].boss].name)));
 }
 
 function battleLeft(b) {
@@ -37,8 +49,8 @@ function battleLeft(b) {
     ...(run.legend ? [(d => `<li><i>👑</i>${esc(d.name)} <small>전설</small></li>`)(boonDef(run.legend))] : []),
   ];
   const z = run.companion && ZODIAC.find(x => x.id === run.companion);
-  return box('지역 진행', route(run.region, stageText))
-    + box(`수호신 가호 <em>${boons.length}</em>`, boons.length ? `<ul class="slist icons">${boons.join('')}</ul>` : '<p class="sempty">지역 보스를 정화하면 수호신 제단에서 가호를 받아요.</p>')
+  return box('충남 지도 길', route(run.region, stageText), navIcon('sortie'))
+    + box(`수호신 가호 <em>${boons.length}</em>`, boons.length ? `<ul class="slist icons">${boons.join('')}</ul>` : '<p class="sempty">지역 보스를 정화하면 수호신 제단에서 가호를 받아요.</p>', navIcon('meta'))
     + box('12지신 동료', z ? `<p class="scomp"><i>${z.e}</i><b>${esc(z.name)} · ${esc(z.word)}</b><small>${esc(z.desc)}</small></p>` : '<p class="sempty">중간 보스를 정화하면 동료를 골라요.</p>');
 }
 
@@ -49,23 +61,24 @@ function battleRight(b) {
   const cards = run.cardsGained.map(id => CARDS.find(c => c.id === id)).filter(Boolean);
   const who = [PILOTS.find(p => p.id === run.pilot)?.name, SHIPS.find(s => s.id === run.ship)?.name, DIFFS.find(d => d.id === run.diff)?.name].filter(Boolean).join(' · ');
   return time
-    + box(`이번 판 카드 <em>${cards.length}</em>`, cards.length ? `<ul class="slist icons">${cards.map(c => `<li><i>${c.e}</i>${esc(c.title)} <small>${esc(c.kind)}</small></li>`).join('')}</ul>` : '<p class="sempty">보스를 정화하면 카드를 얻어요.</p>')
-    + box('조작법', CONTROLS)
+    + box(`이번 판 카드 <em>${cards.length}</em>`, cards.length ? `<ul class="slist icons">${cards.map(c => `<li><i>${c.e}</i>${esc(c.title)} <small>${esc(c.kind)}</small></li>`).join('')}</ul>` : '<p class="sempty">보스를 정화하면 카드를 얻어요.</p>', navIcon('cards'))
+    + box('조작법', CONTROLS, navIcon('settings'))
     + `<p class="sfoot">${esc(who)}${run.daily ? ' · 오늘의 도전' : ''}</p>`;
 }
 
 function menuLeft() {
-  const best = save.cleared.length;
-  return `<div class="slogo">충남 수호대<small>코딩 블라스터</small></div>`
-    + box('충남 5지역', `<ol class="route">${REGIONS.map((rg, i) => `<li class="${save.cleared.includes(i) ? 'done' : ''}"><i>${save.cleared.includes(i) ? '✓' : i + 1}</i><span>${esc(rg.name)}<small>${esc(BOSSES[rg.mid].name)} · ${esc(BOSSES[rg.boss].name)}</small></span></li>`).join('')}</ol>`)
-    + `<p class="sfoot">깬 지역 ${best}/${REGIONS.length}</p>`;
+  const best = save.cleared.length, logo = pic.logo();
+  return (logo ? `<img class="slogo-img" src="${logo}" alt="충남 수호대 코딩 블라스터">` : `<div class="slogo">충남 수호대<small>코딩 블라스터</small></div>`)
+    + box('충남 지도 길', trail(i => (save.cleared.includes(i) ? 'done' : ''), i => `${esc(BOSSES[REGIONS[i].mid].name)} · ${esc(BOSSES[REGIONS[i].boss].name)}`), navIcon('sortie'))
+    + `<p class="sfoot"><span class="ol">깬 지역 ${best}/${REGIONS.length}</span></p>`;
 }
 
+const stat = (icon, name, have, all, unit) => `<li>${icon ? `<img src="${icon}" alt="">` : ''}<span><b>${name}</b><em class="ol">${have}<small>/${all}${unit}</small></em><u><i style="width:${all ? Math.round(have / all * 100) : 0}%"></i></u></span></li>`;
 function menuRight() {
-  const cards = save.teacher ? CARDS.length : save.cards.length;
-  return box('모은 것', `<ul class="slist"><li><b>카드첩</b> ${cards}/${CARDS.length}장</li><li><b>이야기 조각</b> ${save.teacher ? STORY.length : save.story.length}/${STORY.length}개</li><li><b>정화한 보스</b> ${save.bosses.length}/${Object.keys(BOSSES).length}</li></ul>`)
-    + box('조작법', CONTROLS)
-    + `<p class="sfoot">${save.teacher ? '교사 모드' : save.settings.kiosk ? '체험관 모드' : ''}${save.settings.calm ? ' · 섬광 줄이기 켜짐' : ''}</p>`;
+  const t = save.teacher;
+  return box('모은 것', `<ul class="sstats">${stat(navIcon('cards'), '카드첩', t ? CARDS.length : save.cards.length, CARDS.length, '장')}${stat(pic.unopened() || '', '이야기 조각', t ? STORY.length : save.story.length, STORY.length, '개')}${stat(pic.purified() || '', '정화한 보스', save.bosses.length, Object.keys(BOSSES).length, '')}</ul>`, navIcon('codex'))
+    + box('조작법', CONTROLS, navIcon('settings'))
+    + `<p class="sfoot">${t ? '교사 모드' : save.settings.kiosk ? '체험관 모드' : ''}${save.settings.calm ? ' · 섬광 줄이기 켜짐' : ''}</p>`;
 }
 
 // main.js 루프에서 부른다. 바뀐 내용이 있을 때만 다시 그린다.
