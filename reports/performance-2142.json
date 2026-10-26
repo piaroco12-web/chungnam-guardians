@@ -1,0 +1,28 @@
+{
+  "version": "2.14.2",
+  "scenes": 300,
+  "bulletsPerScene": 240,
+  "enemiesPerScene": 100,
+  "collisionResultsEqual": true,
+  "candidates": 304327,
+  "fullScanCandidates": 7200000,
+  "candidateReduction": 0.9577323611111112,
+  "cpuTotalMs": {
+    "baseline": 80.35210600000018,
+    "optimized": 59.8488779999999
+  },
+  "limitations": [
+    "Node CPU fixture timings; not browser rendering or phone FPS.",
+    "Physical phone and offline browser verification not run: local Chromium cannot create required Unix sockets."
+  ],
+  "nodeTests": {
+    "passed": 38,
+    "failed": 0
+  },
+  "checks": [
+    "Warm projectile cache: 240 repeated draws create zero extra gradients; LRU <=64 entries; variant keys and input immutability verified.",
+    "10,000 random broad-phase queries retain every exact collider in enemy order, including large bosses and negative cells.",
+    "Knockback invalidates broad phase; homing immediately reselects dead or previously-hit targets.",
+    "Automatic quality downgrade/recovery, pause gaps, and matching service-worker/UI version verified."
+  ]
+}
