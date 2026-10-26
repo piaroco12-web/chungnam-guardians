@@ -8,6 +8,7 @@ import { MAIN_WEAPONS } from '../data/weapons.js';
 import { sync } from './account.js';
 import { Battle, newRun } from './battle.js';
 import { render } from './render.js';
+import { visualQuality } from './performance.js';
 import { levelChoices, applyLevelChoice, altarChoices, applyAltarChoice, godOf } from './progress.js';
 import { PILOTS, SHIPS, DIFFS, BOSSES, CARDS } from '../data/content.js';
 import { ZONES, DEFAULT_ROUTE, regionAt, pickMid, sigunOf } from '../data/regions.js';
@@ -427,6 +428,7 @@ function loop(now) {
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   const b = state.battle;
+  visualQuality.sample(now, !!b && state.scene === 'battle' && !b.paused && !b.over && !document.hidden);
   input.enabled = !!b && state.scene === 'battle';
   if (b) {
     if (input.pausePressed) { input.pausePressed = false; if (state.scene === 'battle' && !b.paused) openPause(b); }
