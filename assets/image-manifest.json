@@ -1,6 +1,6 @@
 {
-  "version": "2.12.6",
-  "count": 151,
+  "version": "2.14.1",
+  "count": 154,
   "images": [
     {
       "path": "assets/img/bg_asan.webp",
@@ -1794,6 +1794,42 @@
       "width": 1024,
       "height": 1024,
       "bytes": 163486,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_missile_tech.webp",
+      "width": 177,
+      "height": 320,
+      "bytes": 26966,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_missile_thorn.webp",
+      "width": 220,
+      "height": 320,
+      "bytes": 27352,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_missile_torpedo.webp",
+      "width": 236,
+      "height": 320,
+      "bytes": 28912,
       "grid": [
         1,
         1

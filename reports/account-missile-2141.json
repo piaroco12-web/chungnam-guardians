@@ -1,0 +1,23 @@
+{
+  "checks": [
+    "360×800: separate school/grade/class/number/nickname/PIN, validation before network, mock login, stable server key, returning-account prefill",
+    "390×844: separate school/grade/class/number/nickname/PIN, validation before network, mock login, stable server key, returning-account prefill",
+    "25 boss sprite compositions and actual battle projectile rendering",
+    "768×1024: separate school/grade/class/number/nickname/PIN, validation before network, mock login, stable server key, returning-account prefill",
+    "new 2.14.1 service-worker cache, 3 generated images and fresh offline reload"
+  ],
+  "errors": [],
+  "failedAssets": [],
+  "version": "2.14.1",
+  "checked": "2026-10-26",
+  "unitTests": {
+    "total": 32,
+    "passed": 32
+  },
+  "accountServer": "Mock responses only; no real student account or Apps Script deployment modified.",
+  "art": {
+    "originals": 3,
+    "bossVariants": 25,
+    "addedImageBytes": 83230
+  }
+}

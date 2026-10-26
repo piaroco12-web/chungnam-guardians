@@ -1,5 +1,5 @@
-// 학생 계정 (2.12.0): 학교·반·번호·닉네임·비밀번호(숫자 4자리)
-//  · 계정 구분 = 학교+반+번호. 닉네임은 순위표에 보이는 이름(바꿀 수 있음).
+// 학생 계정 (2.12.0): 학교·학년·반·번호·닉네임·비밀번호(숫자 4자리)
+//  · 계정 구분 = 학교+학년-반+번호. 닉네임은 순위표에 보이는 이름(바꿀 수 있음).
 //  · 비밀번호는 이 기기에서 암호화(SHA-256)해서 보낸다 → 시트에는 암호만 남고 선생님도 원래 숫자를 볼 수 없다.
 //  · 서버 = 오늘의 도전 순위표와 같은 구글 시트(Apps Script)의 '계정' 탭. 주소는 data/config.js
 //  · 동기화: 기지에 들어올 때·판이 끝날 때 자동. 서버 기록과 이 기기 기록은 '더 많이 모은 쪽'으로 합친다.
@@ -16,6 +16,27 @@ export function normSchool(s) {
 }
 export const normCls = s => String(s || '').trim().replace(/[^0-9가-힣a-zA-Z-]/g, '').slice(0, 8);
 export const accountKey = (school, cls, num) => `${normSchool(school)}|${normCls(cls)}|${num}`;
+// 입력은 학년·반으로 나누고 서버 식별값은 같은 '학년-반' 형식을 유지한다.
+// 이미 로그인한 기기의 계정과 기존 서버 기록도 같은 키로 찾는다.
+export function accountParts(a = {}) {
+  const m = /^(\d{1,2})-(\d{1,2})$/.exec(String(a.cls || ''));
+  return { grade: String(a.grade || m?.[1] || ''), cls: String(a.classNo || m?.[2] || (m ? '' : a.cls) || '') };
+}
+export const accountLabel = a => {
+  const p = accountParts(a);
+  return `${p.grade ? p.grade + '학년 ' : ''}${p.cls}반 ${a.num}번`;
+};
+export function studentFields({ school, grade, cls, num, nick, pin }) {
+  const g = String(grade || '').trim(), c = String(cls || '').trim(), n = String(num || '').trim();
+  if (normSchool(school).length < 2) return { error: '학교 이름을 넣어 주세요 (예: 홍성초)' };
+  if (!/^\d{1,2}$/.test(g) || +g < 1 || +g > 12) return { error: '학년은 1~12 사이의 숫자로 넣어 주세요' };
+  if (!/^\d{1,2}$/.test(c) || +c < 1 || +c > 99) return { error: '반은 숫자만 넣어 주세요 (예: 2)' };
+  if (!/^\d{1,2}$/.test(n) || +n < 1 || +n > 99) return { error: '번호는 1~99 사이의 숫자로 넣어 주세요' };
+  const name = String(nick || '').trim().replace(/[<>"'&]/g, '').slice(0, 10);
+  if (!name) return { error: '닉네임을 넣어 주세요' };
+  if (!/^\d{4}$/.test(String(pin || ''))) return { error: '비밀번호는 숫자 4자리예요' };
+  return { school: normSchool(school), grade: +g, classNo: +c, cls: `${+g}-${+c}`, num: +n, nick: name, pin };
+}
 
 async function sha256(text) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
@@ -59,11 +80,14 @@ export function mergeInto(dst, src) {
 }
 
 // 로그인(처음이면 계정 만들기). 결과: { ok, created, error }
-export async function login({ school, cls, num, nick, pin }) {
+export async function login(fields) {
+  const checked = studentFields(fields);
+  if (checked.error) return { ok: false, error: checked.error };
+  const { school, grade, classNo, cls, num, nick, pin } = checked;
   const key = accountKey(school, cls, num), hash = await pinHash(key, pin);
   const res = await call({ action: 'login', key, school: normSchool(school), cls: normCls(cls), num, nick, hash });
   if (!res.ok) return res;
-  save.account = { key, school: normSchool(school), cls: normCls(cls), num, nick, hash, synced: Date.now() };
+  save.account = { key, school: normSchool(school), grade, classNo, cls: normCls(cls), num, nick, hash, synced: Date.now() };
   delete save.student;
   if (res.data) mergeInto(save, res.data);
   persist();
