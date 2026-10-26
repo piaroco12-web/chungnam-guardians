@@ -54,7 +54,7 @@ async def run(url):
         ctx=await browser.new_context(viewport={'width':390,'height':844})
         page=await ctx.new_page();page.on('pageerror',lambda e:report['errors'].append(str(e)))
         await page.goto(url);await page.locator('.tap').wait_for();await page.evaluate('navigator.serviceWorker.ready')
-        cached=await page.evaluate("""async()=>{const c=await caches.open('cnguard-v2.14.0');return Promise.all(['src/daily-quiz.js','data/quiz-bank.js'].map(async p=>!!await c.match(p)))}""")
+        cached=await page.evaluate("""async()=>{const version=(await import('./src/ui.js')).VERSION;const c=await caches.open('cnguard-v'+version);return Promise.all(['src/daily-quiz.js','data/quiz-bank.js'].map(async p=>!!await c.match(p)))}""")
         assert all(cached)
         await ctx.set_offline(True);await page.reload();await page.locator('.tap').click();await page.locator('#qrush').click();await page.locator('#qrq').wait_for()
         assert await page.locator('#qrq').inner_text()
