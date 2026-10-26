@@ -592,9 +592,9 @@ table.lb tr.top1 td{background:#ffd23d22} table.lb tr.top2 td{background:#c9cbe0
 
 /* 학생 계정 (2.12.0) */
 .acct-form{display:grid;gap:calc(var(--u)*8);text-align:left;width:100%}
-.acct-form label{display:grid;gap:calc(var(--u)*2);font-size:calc(var(--u)*15);font-weight:700}
+.acct-form label{min-width:0;display:grid;gap:calc(var(--u)*2);font-size:calc(var(--u)*15);font-weight:700}
 .acct-form input{width:100%;box-sizing:border-box}
-.acct-row{display:grid;grid-template-columns:1fr 1fr;gap:calc(var(--u)*8)}
+.acct-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(var(--u)*8)}
 .acct-msg{min-height:calc(var(--u)*20);color:#ffb0b8;font-size:calc(var(--u)*15);text-align:center;margin:0}
 
 /* ───────── 우리 고장 고르기 지도 (2.13.0) ───────── */
