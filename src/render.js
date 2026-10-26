@@ -4,13 +4,14 @@ import { art } from './assets.js';
 import { isActive } from './input.js';
 import { ENEMIES } from '../data/content.js';
 import { ZODIAC } from '../data/zodiac.js';
+import { visualQuality } from './performance.js';
 import { drawProjectile, drawBomb, drawBoomerang, drawSatellite, drawImpact, drawHit, drawPWave, drawMine, drawTurret, drawMuzzle, drawSupportDrone, drawUltimateBeam, drawPurge } from './combat-vfx.js';
 import { save, view } from './save.js';
 import { drawEnemyBullet } from './bullet-art.js';
 import { drawBeam, drawVine, drawFakeGift, drawOverlay, drawArm, drawEdgeMark } from './boss-fx.js';
 
 // 섬광 줄이기: 화면 번쩍임·흔들림·빠른 깜빡임을 약하게 (광과민성 배려)
-const calm = () => !!save.settings.calm;
+const calm = () => !!save.settings.calm || visualQuality.reduced;
 // 번개 모양 흔들림: 보통은 매 프레임 무작위, 섬광 줄이기면 모양을 고정해 깜빡이지 않게
 const jit = (seed, k) => calm() ? Math.sin(seed * 0.137 + k * 1.91) * 0.5 : Math.random() - 0.5;
 
@@ -292,7 +293,10 @@ export function render(g, b, scale) {
   for (const e of b.eb) enemyBullet(g, e);
 
   // 효과
-  for (const f of b.fx) {
+  for (let fi=0; fi<b.fx.length; fi++) {
+    const f=b.fx[fi];
+    // Only decorative particles/hit sparks are thinned; warning/skill areas stay visible.
+    if (visualQuality.reduced && (f.kind === 'p' || f.kind === 'weaponHit') && fi % 3) continue;
     if (f.kind === 'p') { g.globalAlpha = Math.min(1, f.t * 3); g.fillStyle = f.c; g.beginPath(); g.arc(f.x, f.y, f.r, 0, 7); g.fill(); g.globalAlpha = 1; }
     else if (f.kind === 'ring') drawImpact(g, f);
     else if (f.kind === 'purge') drawPurge(g, f, W, H, calm());

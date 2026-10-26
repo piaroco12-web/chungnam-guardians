@@ -1,5 +1,6 @@
 // 시각 전용: 피해량·충돌 반경·발사 수는 전투 로직이 결정한다.
 import { art } from './assets.js';
+import { visualQuality } from './performance.js';
 const TAU = Math.PI * 2;
 const reducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)');
 const ink = '#142847';
@@ -37,7 +38,35 @@ function element(g,id,s,t){
   if(k==='light')star(g,0,-18,s*1.7,'#fff5c9',t*.4);
 }
 
+// Bounded LRU: 64 × 128 × 192 RGBA ≈ 6 MiB. Animation phases are shared
+// across bullets; position/heading never become cache keys. Late-loaded art gets
+// a new identity, so a fallback sprite cannot hide the real missile forever.
+const projectileCache = new Map(), imageIds = new WeakMap();
+let nextImageId = 1;
+export function clearProjectileCache() { projectileCache.clear(); }
+export function projectileCacheSize() { return projectileCache.size; }
 export function drawProjectile(g,p,t=0){
+  const quiet = visualQuality.reduced;
+  const phase = quiet ? 0 : Math.floor(t * 8) % 4;
+  const im = p.kind === 'missile' ? art.missile(rank(p),!!p.evolved) : null;
+  if (im && !imageIds.has(im)) imageIds.set(im,nextImageId++);
+  const key = [p.kind,rank(p),p.visualBranch||'',p.r||6,!!p.main,p.elem||'',quiet,phase,im?imageIds.get(im):0].join('|');
+  let sprite = projectileCache.get(key);
+  if (!sprite && typeof document !== 'undefined') {
+    sprite = document.createElement('canvas'); sprite.width = 128; sprite.height = 192;
+    const c = sprite.getContext('2d');
+    if (c) {
+      c.translate(64,96);
+      drawProjectileRaw(c,{...p,x:0,y:0,vx:0,vy:-1},phase/8,quiet);
+      if (projectileCache.size >= 64) projectileCache.delete(projectileCache.keys().next().value);
+      projectileCache.set(key,sprite);
+    } else sprite = null;
+  } else if (sprite) { projectileCache.delete(key); projectileCache.set(key,sprite); }
+  if (!sprite) return drawProjectileRaw(g,p,t,quiet);
+  g.save();g.translate(p.x,p.y);g.rotate(Math.atan2(p.vx||0,-(p.vy||-1)));
+  g.drawImage(sprite,-64,-96);g.restore();
+}
+function drawProjectileRaw(g,p,t=0,quiet=false){
   const lv=rank(p), r=p.r||6, evolved=lv===6, branch=p.visualBranch||'', ultimate=branch==='u';
   g.save();g.translate(p.x,p.y);g.rotate(Math.atan2(p.vx||0,-(p.vy||-1)));
   const s=Math.min(12,r)*(.82+lv*.045), length=16+lv*6;
@@ -48,8 +77,8 @@ export function drawProjectile(g,p,t=0){
   if(p.kind==='laser'&&ultimate)hue='#b5f5de';
   if(!evolved&&p.kind==='bullet'&&lv===4)hue='#70d8ff';
   if(p.kind==='missile')hue=evolved?'#c6a0ff':'#61e4ff';
-  g.shadowColor=hue;g.shadowBlur=5+lv*1.5;
-  trail(g,hue,s*(.6+lv*.12),length,t,lv>=3?lv-2:0);
+  g.shadowColor=hue;g.shadowBlur=quiet?0:5+lv*1.5;
+  trail(g,hue,s*(.6+lv*.12),length,t,!quiet&&lv>=3?lv-2:0);
   if(p.kind==='laser'||p.kind==='beam'||p.kind==='turret'){
     const h=(branch==='b'?34:24)+lv*6;
     if(ultimate){for(let i=0;i<3;i++){const color=['#ffb5ed','#a9eaff','#b8ffd4'][i];line(g,[[(i-1)*(s+2),-h],[(i-1)*(s+2),h*.6]],color,Math.max(2,s*.55));}}
@@ -63,11 +92,11 @@ export function drawProjectile(g,p,t=0){
     const im=art.missile(lv,evolved);
     if(im){
       const h=30+lv*2, flame=12+lv*2+Math.sin(t*42)*3;
-      g.shadowBlur=8;g.shadowColor=evolved?'#ba87ff':'#5cdbff';
+      g.shadowBlur=quiet?0:8;g.shadowColor=evolved?'#ba87ff':'#5cdbff';
       const exhaust=gradient(g,0,h*.15,0,h*.3+flame,'#f8ffff',evolved?'#9b5dff00':'#24baff00');
       g.fillStyle=exhaust;g.beginPath();g.moveTo(-s*.6,h*.1);g.bezierCurveTo(-s*.9,h*.35,-s*.25,h*.5+flame,0,h*.3+flame);g.bezierCurveTo(s*.25,h*.5+flame,s*.9,h*.35,s*.6,h*.1);g.closePath();g.fill();
       ellipse(g,0,h*.22,s*.32,5+Math.sin(t*36),'#f4ffff');
-      g.shadowBlur=3;g.drawImage(im,-h*.5,-h*.65,h,h);
+      g.shadowBlur=quiet?0:3;g.drawImage(im,-h*.5,-h*.65,h,h);
       if(lv>=4){g.strokeStyle=evolved?'#e5ceff':'#adf7ff';g.lineWidth=.8;g.beginPath();g.ellipse(0,h*.04,s*1.15,2.3,0,0,TAU);g.stroke();}
     }else{
     const h=9+lv*1.2;
@@ -150,13 +179,13 @@ export function drawImpact(g,f){
   const k=Math.max(0,Math.min(1,1-f.t/f.max)),r=f.r*(.15+.85*k),c=f.c||'#ffb34b';g.save();g.translate(f.x,f.y);g.globalAlpha=1-k;
   const glow=g.createRadialGradient(0,0,0,0,0,Math.max(1,r));glow.addColorStop(0,'#fff9d0b3');glow.addColorStop(.35,c+'80');glow.addColorStop(1,c+'00');g.fillStyle=glow;g.beginPath();g.arc(0,0,r,0,TAU);g.fill();
   g.strokeStyle=c;g.lineWidth=5*(1-k)+1;g.beginPath();g.arc(0,0,r,0,TAU);g.stroke();
-  const n=f.evolved?12:6+Math.min(5,f.visualLevel||1);for(let i=0;i<n;i++){const a=i*TAU/n;star(g,Math.cos(a)*r*.85,Math.sin(a)*r*.85,(1-k)*5+1,'#ffeac0',a);}
+  const n=visualQuality.reduced?3:f.evolved?12:6+Math.min(5,f.visualLevel||1);for(let i=0;i<n;i++){const a=i*TAU/n;star(g,Math.cos(a)*r*.85,Math.sin(a)*r*.85,(1-k)*5+1,'#ffeac0',a);}
   if(f.evolved){g.strokeStyle='#cea8ff';g.lineWidth=2;g.beginPath();g.arc(0,0,r*.68,0,TAU);g.stroke();}g.restore();
 }
 export function drawHit(g,f){
   const k=Math.max(0,Math.min(1,1-f.t/f.max)),kind=f.visualKind||'bullet',lv=f.visualLevel||1;
   const color=({laser:'#76edff',beam:'#ffb5f7',missile:'#ff9c43',pellet:'#c88cff',drone:'#67f3c6',homing:'#67f3c6',turret:'#ed9fff',boomerang:'#71dfff'})[kind]||'#ffdf83';
-  const r=(7+lv*2)*(0.4+k*1.8);g.save();g.translate(f.x,f.y);g.globalAlpha=1-k;g.shadowColor=color;g.shadowBlur=6;
+  const r=(7+lv*2)*(0.4+k*1.8);g.save();g.translate(f.x,f.y);g.globalAlpha=1-k;g.shadowColor=color;g.shadowBlur=visualQuality.reduced?0:6;
   if(kind==='laser'||kind==='beam'){
     star(g,0,0,r*1.5,'#f0ffff',Math.PI/4);line(g,[[-r*1.8,0],[r*1.8,0]],color,2);
   }else if(kind==='missile'){

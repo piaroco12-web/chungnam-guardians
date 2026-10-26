@@ -594,16 +594,23 @@ export class Battle {
 
   // ───────── 플레이어 탄 ─────────
   updatePB(dt) {
+    this._collisionGrid = null;
     const keep = [];
     for (const b of this.pb) {
       if (b.life) { b.age = (b.age || 0) + dt; if (b.age > b.life) continue; }
       if (b.homing) {
-        const t = this.nearestEnemy(b.x, b.y, 600, b.retarget ? b.hit : null);
+        b.seekT = (b.seekT || 0) - dt;
+        let t = b.target;
+        if (!t || t.hp <= 0 || t.dying || t.decoy || t.y <= -20 ||
+            (b.retarget && b.hit.has(t)) || dist2(b,t) >= 600 ** 2 || b.seekT <= 0) {
+          t = b.target = this.nearestEnemy(b.x,b.y,600,b.retarget ? b.hit : null);
+          b.seekT = 0.08; // steering still runs every frame; refresh aim at 12.5 Hz
+        }
         if (t) { const a = Math.atan2(t.y - b.y, t.x - b.x), sp = 520; b.vx += (Math.cos(a) * sp - b.vx) * Math.min(1, dt * 5); b.vy += (Math.sin(a) * sp - b.vy) * Math.min(1, dt * 5); }
       }
       b.x += b.vx * dt; b.y += b.vy * dt;
       let alive = b.y > -60 && b.y < H + 60 && b.x > -60 && b.x < W + 60;
-      if (alive) for (const e of this.enemies) {
+      if (alive) for (const e of this.bulletCandidates(b)) {
         if (e.dying || b.hit.has(e)) continue;
         const rr = (b.r + e.r) ** 2;
         const hitIt = (b.kind === 'laser' || b.kind === 'beam') ? (Math.abs(b.x - e.x) < b.r + e.r && Math.abs(b.y - e.y) < 30 + e.r) : dist2(b, e) < rr;
@@ -619,6 +626,28 @@ export class Battle {
       if (alive) keep.push(b);
     }
     this.pb = keep;
+    this._collisionGrid = null;
+  }
+
+  // Broad phase only: exact hit test and enemy order are unchanged. Rebuild
+  // after knockback/death (including split enemies), never omit large bosses.
+  bulletCandidates(b) {
+    if (this.enemies.length < 12) return this.enemies;
+    if (!this._collisionGrid) {
+      const grid = new Map();
+      this.enemies.forEach((e,i) => {
+        for(let y=Math.floor((e.y-e.r)/96); y<=Math.floor((e.y+e.r)/96); y++)
+          for(let x=Math.floor((e.x-e.r)/96); x<=Math.floor((e.x+e.r)/96); x++) {
+            const key=x+','+y; if(!grid.has(key))grid.set(key,[]);grid.get(key).push({e,i});
+          }
+      });
+      this._collisionGrid=grid;
+    }
+    const ry=b.kind==='laser'||b.kind==='beam'?30:b.r, found=new Map();
+    for(let y=Math.floor((b.y-ry)/96); y<=Math.floor((b.y+ry)/96); y++)
+      for(let x=Math.floor((b.x-b.r)/96); x<=Math.floor((b.x+b.r)/96); x++)
+        for(const entry of this._collisionGrid.get(x+','+y)||[])found.set(entry.i,entry);
+    return [...found.values()].sort((a,b)=>a.i-b.i).map(v=>v.e);
   }
 
   // ───────── 피해·상태이상 ─────────
@@ -668,7 +697,7 @@ export class Battle {
     }
   }
 
-  knock(e, d) { if (!e.isBoss) e.y -= d * (this.duo('duo_typhoon') ? 2 : 1); }
+  knock(e, d) { if (!e.isBoss) { e.y -= d * (this.duo('duo_typhoon') ? 2 : 1); this._collisionGrid = null; } }
 
   explode(x, y, r, dmg, o = {}) {
     this.fx.push({ kind: 'ring', x, y, r, t: 0.35, max: 0.35, c: o.color || '#ffb23d', visualLevel: o.visualLevel, evolved: o.evolved });
@@ -677,6 +706,7 @@ export class Battle {
   }
 
   kill(e, o) {
+    this._collisionGrid = null;
     e.hp = 0;
     if (e.isBoss) { this.bossDown(e); return; }
     this.enemies = this.enemies.filter(x => x !== e);
