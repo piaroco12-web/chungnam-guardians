@@ -1038,7 +1038,7 @@ export const BOSS_PATTERNS = {
   },
   // 대필봇
   copyLine(g, b, dt) {
-    if (every(b, 'acc', 1.0, dt)) { const a = Math.atan2(g.p.y - b.y, g.p.x - b.x); for (let i = 0; i < 5; i++) g.objs.push({ kind: 'later', t: i * 0.09, fn: () => g.shot(b.x, b.y + 30, a, 260, { c: '#f2f2f2', r: 9, src: 'copybot' }) }); }
+    if (every(b, 'acc', 1.0, dt)) { const a = Math.atan2(g.p.y - b.y, g.p.x - b.x); for (let i = 0; i < 5; i++) g.objs.push({ kind: 'later', t: i * 0.09, fn: () => g.shot(b.x, b.y + 30, a, 260, { c: '#f2f2f2', r: 9, src: b.id }) }); }
   },
   summonClone(g, b, dt) {
     if (every(b, 'acc', 2.2, dt)) for (let i = 0; i < 3; i++) g.spawnEnemy('spam', b.x + (i - 1) * 70, b.y + 40, i);
