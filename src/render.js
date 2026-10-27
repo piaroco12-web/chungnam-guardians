@@ -1,3 +1,4 @@
+import {drawRewardChest} from './reward-chest.js';
 // 전투 화면 그리기. 그림 파일이 있으면 쓰고, 없으면 assets.js의 임시 그림을 쓴다.
 import { PICKUP_SIZE } from '../data/loot.js';
 import { W, H } from './view.js';
@@ -179,7 +180,7 @@ export function render(g, b, scale) {
   for (const it of b.items) {
     const im = art.item(it.kind === 'xp' ? 'xp' : it.kind === 'coin' ? 'coin' : it.kind === 'heart' ? 'heart' : 'xp', it.v);
     if (it.kind === 'fake') { drawFakeGift(g, it, b.t); continue; }
-    if (it.kind === 'chest') { const bob = Math.sin(b.t * 6) * 3; g.save(); g.shadowColor = '#ffe14a'; g.shadowBlur = 18; emojiAt(g, '🎁', it.x, it.y + bob, 38); g.restore(); continue; }
+    if (it.kind === 'chest') { drawRewardChest(g, it, b.t, calm(), art.rewardChest()); continue; }
     if (sprite(g, im, it.x, it.y, it.kind === 'heart' ? 34 : (it.kind === 'coin' || it.kind === 'xp') ? PICKUP_SIZE : 26)) continue;
     g.save(); g.translate(it.x, it.y);
     if (it.kind === 'xp') g.scale(1.5,1.5);

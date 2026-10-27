@@ -24,7 +24,7 @@ const ENEMY_ORDER = ['spam', 'notify', 'troll', 'link', 'popup', 'bug'];
 const ITEM_ORDER = ['ebullet', 'ebullet2', 'coin', 'xp', 'heart', 'orb'];
 
 const NAMES = [
-  'item_yeopjeon_2147',
+  'item_yeopjeon_2147', 'item_gift_2152',
   'boss_symbol_play',
   'region_landmarks_15_sheet', 'map_chungnam_15',
   'feature_icons_sheet', 'purge_burst', 'quiz_rush_host',
@@ -322,6 +322,7 @@ function gemArt(value) {
 export const art = {
   feature: id => { const i = typeof id === 'number' ? id : ['purge', 'purge_locked', 'quiz_rush', 'autosave'].indexOf(id); return Number.isInteger(i) && i >= 0 && i < 4 ? featureCell(i) : null; },
   purgeBurst: () => get('purge_burst'),
+  rewardChest: () => get('item_gift_2152'),
   support: id => { const i=['satellite','evo_satellite','turret','evo_turret','drone','emitter'].indexOf(id); return i<0 ? null : supportCell(i); },
   wave: branch => waveCell(['','a','b','u'].indexOf(branch || '')),
   ship: (id, pilotId, colorId) => (pilotId && occupiedShip(id, pilotId, colorId)) || tinted(get('ship_' + id), colorId) || once('ship' + id, () => shipTop(SHIPS.find(s => s.id === id))),
