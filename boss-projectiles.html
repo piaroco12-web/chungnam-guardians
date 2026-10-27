@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>보스 주제 탄환 · 충남 수호대</title>
+<style>@font-face{font-family:Game;src:url('assets/fonts/BlackHanSans-Regular.woff2')}*{box-sizing:border-box}body{margin:0;background:#10213b;color:#fff;font-family:Game,sans-serif}main{max-width:1260px;margin:auto;padding:30px 20px}h1{text-align:center;color:#ffeaa1;font-size:32px;margin:8px}p{text-align:center;color:#c5e9ff;line-height:1.5}.nav{display:flex;justify-content:center;gap:18px;margin:20px}a{color:#fff3b6}#grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}article{min-width:0;text-align:center;border:2px solid #6584b0;border-radius:20px;background:linear-gradient(#304d76,#1b2e4e);box-shadow:0 5px 0 #070f22,inset 0 2px #89aed75c;padding:16px 8px}article h2{font-size:18px;line-height:1.3;min-height:46px;margin:8px 0}canvas{display:block;margin:auto}.small{min-height:46px;display:grid;place-items:center;background:#11213b;border-radius:12px;margin-top:8px}small{color:#acc8e6}#status{min-height:30px}@media(max-width:740px){#grid{grid-template-columns:repeat(2,minmax(0,1fr))}h1{font-size:26px}main{padding:20px 12px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}</style>
+<main><h1>보스 주제 탄환 25종</h1><p>로켓 외피를 벗고, 보스의 특징만 또렷하게!<br>입체 문양과 실제 게임 크기를 함께 확인해 보세요.</p><nav class="nav"><a href="./">게임으로 돌아가기</a><a href="art-preview.html">전체 그림관</a></nav><p id="status" role="status">그림을 준비하고 있어요…</p><section id="grid" aria-label="보스별 탄환"></section></main>
+<script type="module">
+import {BOSSES} from './data/content.js';
+import {BOSS_MISSILES,drawEnemyBullet} from './src/bullet-art.js';
+import {loadBossBulletArt} from './src/assets.js';
+await loadBossBulletArt();await document.fonts.ready;
+const colors=['#a879ff','#ff476d','#5eafff','#ca7fe9','#8d7be8','#76c76a','#ffca54','#ff9c50','#82a7a0','#ee617c'];
+for(const [i,id] of Object.keys(BOSS_MISSILES).entries()){
+ const article=document.createElement('article'),title=document.createElement('h2');title.textContent=BOSSES[id].name;
+ const big=document.createElement('canvas');big.width=big.height=240;big.style.width=big.style.height='120px';big.setAttribute('aria-label',BOSSES[id].name+' 탄환 확대');big.setAttribute('role','img');
+ drawEnemyBullet(big.getContext('2d'),{src:id,x:120,y:115,vx:1,vy:0,r:30,c:colors[i%10],t:0});
+ const small=document.createElement('canvas');small.width=100;small.height=80;small.style.width='50px';small.style.height='40px';small.setAttribute('aria-label','게임 크기');small.setAttribute('role','img');const sg=small.getContext('2d');sg.scale(2,2);drawEnemyBullet(sg,{src:id,x:25,y:18,vx:1,vy:0,r:8,c:colors[i%10],t:0});
+ const wrap=document.createElement('div');wrap.className='small';wrap.append(small);article.append(big,title,wrap);document.querySelector('#grid').append(article);
+}
+document.querySelector('#status').textContent='적용 버전 2.14.3 · 작은 그림은 게임에서 쓰는 크기 예시입니다.';
+</script></html>

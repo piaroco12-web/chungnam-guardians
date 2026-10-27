@@ -23,12 +23,13 @@ test('existing stored account pre-fills separate grade/class and readable accoun
  assert.equal(accountLabel({cls:'5-2',num:13}),'5학년 2반 13번');
  assert.deepEqual(accountParts(),{grade:'',cls:''});
 });
-test('every one of 25 bosses uses a generated themed missile instead of orb fallback',()=>{
+test('all 25 bosses use standalone topic symbols and the approved play art is precached',()=>{
  assert.equal(Object.keys(BOSSES).length,25);assert.deepEqual(Object.keys(BOSS_MISSILES).sort(),Object.keys(BOSSES).sort());
  const precache=JSON.parse(readFileSync(new URL('../assets/precache.json',import.meta.url)));
  for(const id of Object.keys(BOSSES)){
   assert.equal(kindOf({src:id,c:'#ff3d5a',r:8}),'missile:'+id);
-  const f='assets/img/boss_missile_'+BOSS_MISSILES[id].family+'.webp';assert.ok(existsSync(new URL('../'+f,import.meta.url)));assert.ok(precache.includes(f));
+  assert.ok(BOSS_MISSILES[id].motif);assert.equal(BOSS_MISSILES[id].family,undefined);
+  if(BOSS_MISSILES[id].image){const f='assets/img/'+BOSS_MISSILES[id].image+'.webp';assert.ok(existsSync(new URL('../'+f,import.meta.url)));assert.ok(precache.includes(f));}
  }
  assert.equal(kindOf({src:'notify'}),'badge');assert.equal(kindOf({src:'troll'}),'bubble');
 });

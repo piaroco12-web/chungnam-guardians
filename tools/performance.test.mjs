@@ -41,7 +41,7 @@ test('homing reuses target briefly, immediately reselects dead or already-hit re
 });
 test('new module precached and both release versions agree',()=>{
  const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8'),ui=readFileSync(new URL('../src/ui.js',import.meta.url),'utf8');
- assert.ok(sw.includes("'src/performance.js'"));assert.ok(sw.includes('cnguard-v2.14.2'));assert.ok(ui.includes("VERSION = '2.14.2'"));
+ assert.ok(sw.includes("'src/performance.js'"));const v=ui.match(/VERSION = '([^']+)'/)[1];assert.ok(sw.includes('cnguard-v'+v));
 });
 test('warm projectile cache reuses raster, separates phases and variants, stays bounded without changing input',async()=>{
  const {drawProjectile,clearProjectileCache,projectileCacheSize}=await import('../src/combat-vfx.js');

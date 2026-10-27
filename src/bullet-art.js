@@ -6,34 +6,34 @@ const TAU = Math.PI * 2;
 const cache = new Map();
 const FONT = '"Black Han Sans","Noto Sans KR",sans-serif';
 
-// 보스 25종 모두 전용 기체·문양·색을 지정한다. 재사용 공격 패턴과 외형은 별개다.
-// family: AI 회로 미사일 / 식물 가시 미사일 / 낚시 어뢰, motif: 보스의 교육 주제.
+// 보스 25종: 안쪽 주제 문양 자체를 입체 탄환으로 쓴다. 로켓 외피·추진 불꽃 없음.
+// 기존 판정/속도와 별개인 그림 정보만 지정한다.
 export const BOSS_MISSILES = {
-  blackhole: { family: 'tech', motif: 'pad', hue: 0 },
-  scroller: { family: 'tech', motif: 'play', hue: 42 },
-  copybot: { family: 'tech', motif: 'paper', hue: -75 },
-  deepfaker: { family: 'tech', motif: 'mask', hue: 12 },
-  cloud: { family: 'tech', motif: 'bubble', hue: -20 },
-  thorn: { family: 'thorn', motif: 'lock', hue: 0 },
-  slot: { family: 'tech', motif: 'chip', hue: 140 },
-  octopus: { family: 'torpedo', motif: 'chain', hue: 0 },
-  smog: { family: 'torpedo', motif: 'bottle', hue: 120 },
-  aicore: { family: 'tech', motif: 'eye', hue: 70 },
-  walnut: { family: 'thorn', motif: 'lock', hue: -70 },
-  filter: { family: 'tech', motif: 'mask', hue: 45 },
-  hatepepper: { family: 'thorn', motif: 'thorn', hue: -120 },
-  piratemole: { family: 'thorn', motif: 'paper', hue: -100 },
-  fakecommander: { family: 'tech', motif: 'mask', hue: -155 },
-  owlginseng: { family: 'thorn', motif: 'seed', hue: -40 },
-  snapgull: { family: 'tech', motif: 'eye', hue: -85 },
-  bubblejelly: { family: 'torpedo', motif: 'drop', hue: 165 },
-  ewastecrab: { family: 'torpedo', motif: 'bit', hue: 90 },
-  smishbot: { family: 'tech', motif: 'popup', hue: 130 },
-  deepvoice: { family: 'tech', motif: 'bubble', hue: -140 },
-  gachaking: { family: 'tech', motif: 'star', hue: 18 },
-  locghost: { family: 'tech', motif: 'eye', hue: -35 },
-  starfake: { family: 'tech', motif: 'star', hue: 145 },
-  badapple: { family: 'thorn', motif: 'lock', hue: -110 },
+  blackhole: { motif: 'pad' },
+  scroller: { motif: 'play', image: 'boss_symbol_play' },
+  copybot: { motif: 'paper' },
+  deepfaker: { motif: 'mask' },
+  cloud: { motif: 'bubble' },
+  thorn: { motif: 'lock' },
+  slot: { motif: 'chip' },
+  octopus: { motif: 'chain' },
+  smog: { motif: 'bottle' },
+  aicore: { motif: 'eye' },
+  walnut: { motif: 'lock' },
+  filter: { motif: 'mask' },
+  hatepepper: { motif: 'thorn' },
+  piratemole: { motif: 'paper' },
+  fakecommander: { motif: 'mask' },
+  owlginseng: { motif: 'seed' },
+  snapgull: { motif: 'eye' },
+  bubblejelly: { motif: 'drop' },
+  ewastecrab: { motif: 'bit' },
+  smishbot: { motif: 'popup' },
+  deepvoice: { motif: 'bubble' },
+  gachaking: { motif: 'star' },
+  locghost: { motif: 'eye' },
+  starfake: { motif: 'star' },
+  badapple: { motif: 'lock' },
 };
 
 // 보스·적 → 탄 모양
@@ -199,8 +199,8 @@ const canvas = (px) => { const c = document.createElement('canvas'); c.width = c
 // 탄 한 종류를 한 번 그려 둔다: main(빛무리 + 입체 모양), shadow(바닥 그림자용 실루엣)
 // 모양은 평면으로 그린 뒤 공통 입체 처리를 입힌다 — 위쪽은 밝게, 아래쪽은 어둡게, 윗부분 광택.
 // 메뉴·무기 아이콘의 에나멜 느낌과 맞춘다. 판정 크기는 그대로다.
-function sprite(kind, r, c, ch) {
-  const key = `${kind}|${r}|${c}|${ch || ''}`;
+function sprite(kind, r, c, ch, glow = true) {
+  const key = `${kind}|${r}|${c}|${ch || ''}|${glow}`;
   let sp = cache.get(key);
   if (sp) return sp;
   const R = r + 3, pad = 6, S = 2;                       // 화면에서 보이는 크기는 예전 탄(r+3)과 같게
@@ -231,9 +231,11 @@ function sprite(kind, r, c, ch) {
   // 4) 빛무리 + 모양
   const main = canvas(px), g = main.getContext('2d');
   g.save(); g.scale(S, S); g.translate(size / 2, size / 2);
+  if (glow) {
   const halo = g.createRadialGradient(0, 0, R * 0.5, 0, 0, R * 1.5);   // 탄 색 빛무리: 어두운 배경에서도 '피할 것'으로 읽히게
   halo.addColorStop(0, c + '99'); halo.addColorStop(1, c + '00');
   g.fillStyle = halo; g.beginPath(); g.arc(0, 0, R * 1.5, 0, TAU); g.fill();
+  }
   g.restore();
   g.drawImage(flat, 0, 0);
 
@@ -247,32 +249,18 @@ function sprite(kind, r, c, ch) {
   return sp;
 }
 
-// 그림 가공은 캐시 생성 때 한 번만 하고, 전투 중에는 작은 캔버스를 재사용한다.
-function missileSprite(id, r, c) {
-  const theme = BOSS_MISSILES[id], image = get('boss_missile_' + theme.family);
-  const key = `missile:${id}|${r}|${c}|${!!image}`;
+// 승인한 재생 버튼 원화와 기존 주제 문양을 같은 크기의 입체 탄환으로 사용.
+// 그림이 늦게 도착해도 문양으로 대체되며 로켓 외피로 되돌아가지 않는다.
+function symbolSprite(id, r, c) {
+  const theme = BOSS_MISSILES[id], image = theme.image ? get(theme.image) : null;
+  if (!image) return sprite(theme.motif, r, c, '1', false);
+  const key = `symbol:${id}|${r}`;
   if (cache.has(key)) return cache.get(key);
-  const R = r + 3, size = Math.ceil(R * 3.3 + 12), S = 2;
+  const R = r + 3, size = Math.ceil((R * 1.5 + 6) * 2), S = 2;
   const main = canvas(size * S), g = main.getContext('2d');
   g.scale(S, S); g.translate(size / 2, size / 2);
-  // 기수는 +x 방향. 실제 속도 방향으로 돌려 그린다.
-  if (image) {
-    g.save(); g.rotate(Math.PI / 2); g.filter = `hue-rotate(${theme.hue}deg)`;
-    const h = R * 2.8, w = h * image.width / image.height;
-    g.drawImage(image, -w / 2, -h / 2, w, h); g.restore();
-  } else {
-    // Asset download failure: still a finned missile, never a round boss orb.
-    const fill = g.createLinearGradient(0, -R, 0, R);
-    fill.addColorStop(0, '#fff3cd'); fill.addColorStop(.35, c); fill.addColorStop(1, darken(c, .5));
-    g.fillStyle = fill; g.beginPath();
-    g.moveTo(R * 1.35, 0); g.quadraticCurveTo(R * .7, -R * .65, -R * .6, -R * .5);
-    g.lineTo(-R * 1.1, -R); g.lineTo(-R * .8, 0); g.lineTo(-R * 1.1, R);
-    g.lineTo(-R * .6, R * .5); g.quadraticCurveTo(R * .7, R * .65, R * 1.35, 0);
-    g.fill(); ink(g, 1.6);
-  }
-  // 보스 주제 문양을 몸통에 더해 회복·코인 아이템과 구별한다.
-  g.save(); g.translate(R * .08, 0); curR = R * .37;
-  SHAPES[theme.motif](g, R * .37, c, '1'); curR = 8; g.restore();
+  const w = R * 2.25, h = w * image.height / image.width;
+  g.drawImage(image, -w / 2, -h / 2, w, h);
   const shadow = canvas(size * S), sg = shadow.getContext('2d');
   sg.drawImage(main, 0, 0); sg.globalCompositeOperation = 'source-in';
   sg.fillStyle = 'rgba(6,8,34,.42)'; sg.fillRect(0, 0, shadow.width, shadow.height);
@@ -285,9 +273,11 @@ export function drawEnemyBullet(g, b) {
   const kind = kindOf(b);
   if (kind === 'bit' && b.ch == null) b.ch = Math.random() < 0.5 ? '0' : '1';
   const missile = kind.startsWith('missile:');
-  const sp = missile ? missileSprite(b.src, b.r, b.c) : sprite(kind, b.r, b.c, kind === 'bit' ? b.ch : '');
+  const sp = missile ? symbolSprite(b.src, b.r, b.c) : sprite(kind, b.r, b.c, kind === 'bit' ? b.ch : '');
   let a = 0;
-  if (missile || AIM.has(kind)) a = Math.atan2(b.vy, b.vx);
+  // 문양은 읽기 쉽게 정면 유지. 방향성 있는 물방울·가시·링크만 탄도에 맞춘다.
+  const directed = missile ? ['drop', 'thorn', 'chain'].includes(BOSS_MISSILES[b.src].motif) : AIM.has(kind);
+  if (directed) a = Math.atan2(b.vy, b.vx);
   else if (SPIN[kind]) a = (b.t || 0) * SPIN[kind] * (b.vx < 0 ? -1 : 1);
   const sx = kind === 'coin' ? 0.35 + 0.65 * Math.abs(Math.cos((b.t || 0) * 5)) : 1, s = sp.size;
   // 그림자는 화면 기준으로 아래에 둔다 (탄이 돌아도 그림자는 늘 아래)
@@ -300,4 +290,4 @@ export function drawEnemyBullet(g, b) {
 
 // 미리보기·점검용
 export const BULLET_KINDS = [...Object.keys(SHAPES), ...Object.keys(BOSS_MISSILES).map(id => 'missile:' + id)];
-export function previewSprite(kind, r, c, ch = '1') { const sp = kind.startsWith('missile:') ? missileSprite(kind.slice(8), r, c) : sprite(kind, r, c, ch); const v = canvas(sp.main.width); const x = v.getContext('2d'); x.drawImage(sp.shadow, 2, Math.max(6, r * 0.9)); x.drawImage(sp.main, 0, 0); v.size = sp.size; return v; }
+export function previewSprite(kind, r, c, ch = '1') { const sp = kind.startsWith('missile:') ? symbolSprite(kind.slice(8), r, c) : sprite(kind, r, c, ch); const v = canvas(sp.main.width); const x = v.getContext('2d'); x.drawImage(sp.shadow, 2, Math.max(6, r * 0.9)); x.drawImage(sp.main, 0, 0); v.size = sp.size; return v; }

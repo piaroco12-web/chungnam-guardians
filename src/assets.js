@@ -20,7 +20,7 @@ const ENEMY_ORDER = ['spam', 'notify', 'troll', 'link', 'popup', 'bug'];
 const ITEM_ORDER = ['ebullet', 'ebullet2', 'coin', 'xp', 'heart', 'orb'];
 
 const NAMES = [
-  'boss_missile_tech', 'boss_missile_thorn', 'boss_missile_torpedo',
+  'boss_symbol_play',
   'region_landmarks_15_sheet', 'map_chungnam_15',
   'feature_icons_sheet', 'purge_burst', 'quiz_rush_host',
   'support_units_sheet', 'wave_projectile_sheet',
@@ -69,6 +69,7 @@ export function loadRegionArt(id, mid = null) {
   if (mid || r.mid) names.push('boss_' + (mid || r.mid), 'boss_' + (mid || r.mid) + '_cleansed');
   return Promise.all(names.map(loadImage));
 }
+export const loadBossBulletArt = () => loadImage('boss_symbol_play');
 export const loadExpansionArt = () => Promise.all(EXPANSION_ASSETS.map(loadImage));
 
 export const has = n => !!img[n];
