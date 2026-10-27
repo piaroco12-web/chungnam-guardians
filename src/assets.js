@@ -11,6 +11,9 @@ import { STORY, PACTS } from '../data/extras.js';
 import { SETS } from '../data/unlocks.js';
 import { MAIN_WEAPONS } from '../data/weapons.js';
 
+// One compact vector source for every wallet/HUD/price icon and cached pickup art.
+export const COIN_ICON_URL = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><defs><linearGradient id="edge" x2="0" y2="1"><stop stop-color="#e2a034"/><stop offset="1" stop-color="#854019"/></linearGradient><linearGradient id="gold" x1=".2" y1="0" x2=".8" y2="1"><stop stop-color="#fff3ae"/><stop offset=".4" stop-color="#ffce51"/><stop offset="1" stop-color="#dc8a24"/></linearGradient></defs><path fill="url(#edge)" fill-rule="evenodd" stroke="#49301c" stroke-width="5" d="M64 7a55 55 0 1 0 0 110a55 55 0 1 0 0-110ZM47 43h34v34H47Z"/><path fill="url(#gold)" fill-rule="evenodd" stroke="#76491f" stroke-width="3" d="M64 7a52 52 0 1 0 0 104a52 52 0 1 0 0-104ZM47 43h34v34H47Z"/><circle cx="64" cy="59" r="45" fill="none" stroke="#fff0a1" stroke-width="4"/><path d="M47 77V43h34" fill="none" stroke="#a36122" stroke-width="5" stroke-linejoin="round"/><path d="M47 78h35V43" fill="none" stroke="#fff0a3" stroke-width="4" stroke-linejoin="round"/><path d="M27 38a42 42 0 0 1 29-19" fill="none" stroke="#fff9d5" stroke-width="5" stroke-linecap="round"/><path d="M38 57h-9m6-6v12M92 57h9m-5-6v12M59 28h10m-5-5v10M59 92h10m-5-5v10" fill="none" stroke="#aa6524" stroke-width="4" stroke-linecap="round"/></svg>`);
+
 const img = {};          // 이름 → 불러온 Image
 const cache = {};        // 임시 그림 캐시
 
@@ -20,6 +23,7 @@ const ENEMY_ORDER = ['spam', 'notify', 'troll', 'link', 'popup', 'bug'];
 const ITEM_ORDER = ['ebullet', 'ebullet2', 'coin', 'xp', 'heart', 'orb'];
 
 const NAMES = [
+  'item_yeopjeon',
   'boss_symbol_play',
   'region_landmarks_15_sheet', 'map_chungnam_15',
   'feature_icons_sheet', 'purge_burst', 'quiz_rush_host',
@@ -42,10 +46,10 @@ async function loadImage(n) {
   if (img[n]) return img[n];
   if (loadingImages.has(n)) return loadingImages.get(n);
   const job = (async () => {
-    for (const ext of ['webp', 'png']) {
+    for (const ext of (n === 'item_yeopjeon' ? ['svg'] : ['webp', 'png'])) {
       const im = await new Promise(resolve => {
         const i = new Image(); i.onload = () => resolve(i); i.onerror = () => resolve(null);
-        i.src = new URL(`../assets/img/${n}.${ext}`, import.meta.url).href;
+        i.src = n === 'item_yeopjeon' ? COIN_ICON_URL : new URL(`../assets/img/${n}.${ext}`, import.meta.url).href;
       });
       if (im) return (img[n] = im);
     }
@@ -311,7 +315,12 @@ export const art = {
   drone: () => supportCell(4) || get('unit_drone'),
   missile: (lv = 1, evolved = false) => cell('missile_refined_sheet', evolved ? 2 : lv >= 3 ? 1 : 0, 3),
   zodiac: id => get('zodiac_' + id),
-  item: k => cell('fx_items_sheet', ITEM_ORDER.indexOf(k), 6),
+  item: k => k === 'coin' ? once(has('item_yeopjeon') ? 'yeopjeon:loaded' : 'yeopjeon:fallback', () => canvas(128,128,g => {
+    if (has('item_yeopjeon')) { g.drawImage(get('item_yeopjeon'),0,0,128,128); return; }
+    // A readable square-hole coin even if SVG decoding fails.
+    g.fillStyle='#ffce51'; g.strokeStyle='#49301c'; g.lineWidth=5;
+    g.beginPath(); g.arc(64,64,54,0,Math.PI*2); g.rect(48,48,32,32); g.fill('evenodd'); g.stroke();
+  })) : cell('fx_items_sheet', ITEM_ORDER.indexOf(k), 6),
   // 수호신 가호 스킬 그림 6×2: 윗줄 궤도(계룡·금강·서해·백제·칠갑·태안), 아랫줄 자동 스킬(낙뢰·서리꽃·해일·불새·회오리·등대)
   skill: i => cell('boon_fx_sheet', i, 6, 2),
   bg: name => get(name),
