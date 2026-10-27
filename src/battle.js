@@ -1,5 +1,6 @@
 // 전투: 플레이어·적·보스·탄·무기·가호 효과를 한곳에서 돌린다.
 // 시간은 dt(실제) × ts(슬로우 배율)로 흐른다. 플레이어 이동만 실제 시간.
+import { enemyXp, bossXp } from '../data/loot.js';
 import { W, H } from './view.js';
 import { input, isActive, keyAxis, consumeDrag } from './input.js';
 import { regionAt } from '../data/regions.js';
@@ -49,10 +50,13 @@ export class Battle {
     this.t = 0; this.scroll = 0; this.ts = 1; this.wasActive = true;
     this.pb = []; this.eb = []; this.enemies = []; this.items = []; this.fx = []; this.texts = []; this.objs = []; this.hazards = []; this.overlays = [];
     this.timers = {}; this.real = []; this.boss = null; this.banner = null; this.shake = 0; this.flash = 0;
-    this.pendingLevels = 0; this.paused = false; this.over = false;
+    this.pendingLevels = run.pendingLevels || 0; this.paused = false; this.over = false;
     this.ultT = 0; this.ultKind = null;
     this.startStage();
   }
+
+  get pendingLevels() { return this.run.pendingLevels || 0; }
+  set pendingLevels(n) { this.run.pendingLevels = Math.max(0,n); }
 
   // ───────── 능력치 ─────────
   pact(id) { return (this.run.pacts || []).includes(id); }
@@ -232,7 +236,7 @@ export class Battle {
   // 제단을 마친 뒤 다음 지역
   nextRegion() {
     for (const it of this.items) if (it.kind !== 'fake') this.collect(it); // 남은 보상은 자동으로 챙긴다
-    this.items = []; this.pendingLevels = 0;
+    this.items = []; // Preserve queued level-up choices earned by automatic collection.
     this.run.region++; this.run.stage = 0; this.run.companion = null; this.run.oxUsed = false; this.recalc();
     this.eb = []; this.pb = []; this.hazards = []; this.overlays = [];
     this.startStage();
@@ -725,7 +729,7 @@ export class Battle {
     this.addGauge(e.type === 'bug' ? 8 : 2);
     this.spark(e.x, e.y, ENEMIES[e.type].color, 14);
     sfx.boom(false);
-    const xp = ENEMIES[e.type].xp;
+    const xp = enemyXp(ENEMIES[e.type].xp, this.run.region, e.elite, e.mini);
     this.items.push({ kind: 'xp', x: e.x, y: e.y, v: xp, vy: 0 });
     if (Math.random() < (this.buffOn('coin') ? Math.min(0.95, 0.3 * (this.run.buff.mult || 2.5)) : 0.3)) this.items.push({ kind: 'coin', x: e.x + rnd(-10, 10), y: e.y, v: 1, vy: 0 });
     if (e.elite) { this.items.push({ kind: 'chest', x: e.x, y: e.y, v: 1, vy: 0 }); this.showBanner('정예 처치!', '보물 상자를 챙기세요', 1.1); }
@@ -747,7 +751,7 @@ export class Battle {
     this.addGauge(b.mid ? 30 : 0);
     this.flash = 0.8; this.shake = 12; sfx.boom(true);
     for (let i = 0; i < (b.mid ? 12 : 20); i++) this.items.push({ kind: 'coin', x: b.x + rnd(-60, 60), y: b.y + rnd(-40, 40), v: 1, vy: rnd(-200, -40) });
-    for (let i = 0; i < 6; i++) this.items.push({ kind: 'xp', x: b.x + rnd(-60, 60), y: b.y + rnd(-40, 40), v: 5, vy: rnd(-150, -20) });
+    for (const value of bossXp(b.mid)) this.items.push({ kind: 'xp', x: b.x + rnd(-60, 60), y: b.y + rnd(-40, 40), v: value, vy: rnd(-150, -20) });
     this.run.kills++;
   }
 

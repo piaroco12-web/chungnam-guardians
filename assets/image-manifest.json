@@ -1,6 +1,6 @@
 {
-  "version": "2.14.3",
-  "count": 155,
+  "version": "2.14.7",
+  "count": 156,
   "images": [
     {
       "path": "assets/img/bg_asan.webp",
@@ -1842,6 +1842,18 @@
       "width": 256,
       "height": 166,
       "bytes": 10534,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/item_yeopjeon_2147.webp",
+      "width": 256,
+      "height": 256,
+      "bytes": 27150,
       "grid": [
         1,
         1

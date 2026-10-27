@@ -10,6 +10,14 @@
     },
     {
       "type": "img",
+      "title": "상평통보 기반 전통 엽전",
+      "author": "ChatGPT 이미지 생성",
+      "source": "https://www.museum.go.kr/MUSEUM/contents/M0502000000.do?relicId=140290&schM=view&searchId=search",
+      "license": "AI 생성 이미지",
+      "note": "국립중앙박물관 상평통보 형태 설명을 참고한 새 생성 원화. 박물관 사진을 복제하지 않음. 2.14.7."
+    },
+    {
+      "type": "img",
       "title": "무한스크롤러 재생 버튼 탄환",
       "author": "ChatGPT 이미지 생성",
       "source": "",
