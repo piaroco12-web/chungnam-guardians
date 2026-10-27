@@ -1,3 +1,5 @@
+import {personalClearedRegions} from '../data/personal-map.js';
+import {restorationMapHtml} from './restoration-map.js';
 // 넓은 화면(PC·전자칠판)에서 게임 양옆 빈 공간에 띄우는 정보 패널.
 // 전투 판은 그대로 두고 패널만 보여 준다. 세로 기기에서는 view.js가 패널을 숨긴다.
 import { BOSSES, CARDS, PILOTS, SHIPS, DIFFS } from '../data/content.js';
@@ -75,7 +77,7 @@ function battleRight(b) {
 function menuLeft() {
   const best = save.cleared.length, logo = pic.logo();
   return (logo ? `<img class="slogo-img" src="${logo}" alt="충남 수호대 코딩 블라스터">` : `<div class="slogo">충남 수호대<small>코딩 블라스터</small></div>`)
-    + box('충남 지도 길', trail(i => (save.cleared.includes(i) ? 'done' : ''), i => ({ name: ZONES[i].name, sub: ZONES[i].sigun.map(id => (save.home === id ? '🏠' : '') + sigunOf(id).name).join(' · '), lm: zoneLm(ZONES[i]) })), navIcon('sortie'))
+    + box('충남 지도 길', ZONES.every((_,i)=>save.cleared.includes(i)) ? restorationMapHtml(personalClearedRegions(save),{prefix:'side',compact:true}) : trail(i => (save.cleared.includes(i) ? 'done' : ''), i => ({ name: ZONES[i].name, sub: ZONES[i].sigun.map(id => (save.home === id ? '🏠' : '') + sigunOf(id).name).join(' · '), lm: zoneLm(ZONES[i]) })), navIcon('sortie'))
     + `<p class="sfoot"><span class="ol">깬 권역 ${best}/${ZONES.length}${save.home ? ` · 우리 고장 ${esc(sigunOf(save.home).name)}` : ''}</span></p>`;
 }
 
