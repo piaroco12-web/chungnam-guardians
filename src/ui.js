@@ -1,4 +1,5 @@
 // 화면(DOM) 그리기: 타이틀·기지·선택·HUD·일시정지·레벨업·제단·카드·결과
+import {summaryHtml} from './cooperation-ui.js';
 import { XP_GEMS } from '../data/loot.js';
 import { PILOTS, SHIPS, DIFFS, REGIONS, CARDS, META_UPGRADES, BOSSES } from '../data/content.js';
 import { SIGUN, ZONES, sigunOf, regionAt } from '../data/regions.js';
@@ -21,7 +22,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.14.7';
+export const VERSION = '2.15.0';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -134,6 +135,8 @@ function sortie(bb, state, act) {
       <button class="btn blue sm ${state.quizLeft > 0 || save.teacher ? '' : 'gray'}" id="qrush">시작</button></div>
     <button class="btn gray sm" id="home">타이틀로</button>
   </div>`;
+  bb.insertAdjacentHTML('afterbegin',`<div id="coop-summary">${summaryHtml(state.coop)}</div>`);
+  click('#coop-open',act.coop,bb);
   click('#go', act.sortie, bb); click('#cont', act.cont, bb); click('#home', act.title, bb); click('#daily', act.daily, bb); click('#qrush', act.quizRush, bb);
 }
 

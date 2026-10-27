@@ -39,11 +39,12 @@ function doPost(e) {
   const lock = LockService.getScriptLock();
   lock.waitLock(15000);                                             // 25명이 동시에 보내도 섞이지 않게
   try {
+    if (d.action === 'coop') return out_(coopHandle_(d));
     if (d.action === 'login') return out_(login_(d));
     if (d.action === 'load') return out_(load_(d));
     if (d.action === 'save') return out_(save_(d));
     return out_(record_(d));
-  } finally { lock.releaseLock(); }
+  } finally { try { SpreadsheetApp.flush(); } finally { lock.releaseLock(); } }
 }
 
 // ───────── 오늘의 도전 기록 ─────────
@@ -119,6 +120,7 @@ const parse_ = (s) => { try { return s ? JSON.parse(s) : null; } catch (e) { ret
 // ───────── 순위표 (교사 모드) ─────────
 function doGet(e) {
   const p = e.parameter || {};
+  if (p.feature === 'coop') return out_({ok:true,api:COOP_API,now:Date.now(),date:coopDay()});
   if (p.key !== READ_KEY) return out_({ ok: false, error: '열쇠가 맞지 않아요' });
   const date = String(p.date || '');
   const rows = tab_(SHEET, HEAD).getDataRange().getValues().slice(1).filter(r => {
@@ -136,4 +138,159 @@ function doGet(e) {
   });
   const list = Object.values(best).sort((a, b) => b.score - a.score || b.kills - a.kills);
   return out_({ ok: true, date, list });
+}
+
+// BEGIN GENERATED COOPERATION
+// Shared with Apps Script by tools/build_cooperation.py. KST and server day govern limits.
+const COOP_API = 'coop-1';
+const COOP_DAILY_RUNS = 3;
+const COOP_ROLES = ['battle','quiz','explore'];
+const COOP_REGIONS = ['cheonan','asan','dangjin','gongju','buyeo','cheongyang','nonsan','gyeryong','geumsan','seosan','taean','boryeong','seocheon','naepo','yesan'];
+function coopDay(time=Date.now()) { return new Date(time+9*3600000).toISOString().slice(0,10); }
+function coopFreshClass(id,roster=25) { return {id,roster,minutes:null,points:0,current:0,completed:[],roles:{battle:0,quiz:0,explore:0}}; }
+function coopAddClass(group,role) {
+  if(role) {group.points++;group.current++;group.roles[role]=(group.roles[role]||0)+1;}
+  const target=group.roster*3;
+  while(group.current>=target&&group.completed.length<COOP_REGIONS.length) {
+    group.current-=target;group.completed.push(COOP_REGIONS.find(id=>!group.completed.includes(id)));
+  }
+  return group;
+}
+function coopClassView(group) {
+  const done=group.completed.length===COOP_REGIONS.length,target=group.roster*3;
+  return {...group,target,region:COOP_REGIONS.find(id=>!group.completed.includes(id))||null,small:done?3:Math.min(3,Math.floor(group.current/group.roster)),done};
+}
+function coopNewDay() { return {requests:[],roles:{battle:false,quiz:false,explore:false}}; }
+function coopReserve(day,requestId,ticket) {
+  const old=day.requests.find(t=>t.requestId===requestId);
+  if(old)return {ok:true,ticket:old,left:COOP_DAILY_RUNS-day.requests.length};
+  if(day.requests.length>=COOP_DAILY_RUNS)return {ok:false,error:'오늘 출격 3회를 모두 사용했어요. 도감과 지역 이야기는 계속 볼 수 있어요.',limit:true,left:0};
+  day.requests.push({...ticket,requestId,closed:false});
+  return {ok:true,ticket:day.requests[day.requests.length-1],left:COOP_DAILY_RUNS-day.requests.length};
+}
+function coopAward(day,group,role) {
+  if(!COOP_ROLES.includes(role))return false;
+  if(day.roles[role])return false;
+  day.roles[role]=true;coopAddClass(group,role);return true;
+}
+function coopActiveEvent(event,now=Date.now()) { return !!event&&now>=event.start&&now<=event.end; }
+function coopEventAllows(event,classId) { return !event.classes.length||event.classes.includes(classId); }
+
+function coopEventReward(group,event,date) {
+  group.eventMemories=group.eventMemories||[];
+  if(!group.completed.includes(event.region))group.completed.push(event.region);
+  if(!group.eventMemories.some(m=>m.id===event.id))group.eventMemories.push({id:event.id,title:event.title,region:event.region,date});
+  group.eventMemories=group.eventMemories.slice(-20);return group;
+}
+
+// Server-only portion. Never include READ_KEY in the browser build.
+const COOP_STORE = '협동상태';
+function coopRead_(key,fallback) {
+  const cache=CacheService.getScriptCache(),cached=cache.get('coop-state:'+key);
+  if(cached!==null)return parse_(cached)||fallback;
+  const sh=tab_(COOP_STORE,['구분 키','집계 JSON','갱신 시각']);
+  const rows=sh.getLastRow()>1?sh.getRange(2,1,sh.getLastRow()-1,2).getValues():[];
+  const row=rows.find(r=>String(r[0])===key);
+  const value=row?parse_(row[1])||fallback:fallback;
+  cache.put('coop-state:'+key,JSON.stringify(value),60);return value;
+}
+function coopWrite_(key,value) {
+  const sh=tab_(COOP_STORE,['구분 키','집계 JSON','갱신 시각']);
+  const keys=sh.getLastRow()>1?sh.getRange(2,1,sh.getLastRow()-1,1).getValues():[];
+  const index=keys.findIndex(r=>String(r[0])===key);
+  if(index<0)sh.appendRow([key,JSON.stringify(value),new Date()]);
+  else sh.getRange(index+2,2,1,2).setValues([[JSON.stringify(value),new Date()]]);
+  CacheService.getScriptCache().put('coop-state:'+key,JSON.stringify(value),60);
+}
+function coopIdentity_(d) {
+  if(!validKey_(d.key)||!validHash_(d.hash))return {error:'내 계정으로 먼저 들어와 주세요.'};
+  const sh=tab_(ACC,ACC_HEAD),row=findAcc_(sh,d.key);
+  if(!row)return {error:'계정이 없어요. 내 계정으로 먼저 들어와 주세요.'};
+  const checked=check_(sh,row,d.hash);if(checked.error)return checked;
+  const r=checked.r;
+  return {key:String(r[C.key]),school:String(r[C.school]),cls:String(r[C.cls]).replace(/^'/,''),classId:String(r[C.school])+'|'+String(r[C.cls]).replace(/^'/,'')};
+}
+function coopPublicEvent_(event,now) {
+  if(!event)return null;
+  return {id:event.id,title:event.title,region:event.region,start:event.start,end:event.end,target:event.target,total:event.total||0,active:coopActiveEvent(event,now),classes:event.classes,records:event.records||{}};
+}
+function coopStatus_(identity) {
+  const now=Date.now(),date=coopDay(now),day=coopRead_('day|'+date+'|'+identity.key,coopNewDay());
+  const group=coopRead_('class|'+identity.classId,coopFreshClass(identity.classId));
+  const event=coopRead_('event|'+identity.school,null);
+  return {ok:true,api:COOP_API,date,now,left:Math.max(0,COOP_DAILY_RUNS-day.requests.length),roles:day.roles,group:coopClassView(group),event:event&&coopEventAllows(event,identity.classId)?coopPublicEvent_(event,now):null};
+}
+function coopApplyAward_(identity,date,day,role) {
+  const group=coopRead_('class|'+identity.classId,coopFreshClass(identity.classId));
+  if(!coopAward(day,group,role))return false;
+  coopWrite_('class|'+identity.classId,group);
+  // A late resume contributes to its original day/class only; never a later event.
+  const event=coopRead_('event|'+identity.school,null),now=Date.now();
+  if(coopActiveEvent(event,now)&&date===coopDay(now)&&coopEventAllows(event,identity.classId)) {
+    event.records=event.records||{};const rec=event.records[identity.classId]||{roles:{battle:0,quiz:0,explore:0},roster:group.roster};
+    rec.roles[role]++;rec.roster=group.roster;event.records[identity.classId]=rec;event.total=(event.total||0)+1;coopWrite_('event|'+identity.school,event);
+    if(event.total>=event.target)for(const id of event.classes){const member=coopRead_('class|'+id,coopFreshClass(id));coopEventReward(member,event,date);coopWrite_('class|'+id,member);}
+  }
+  return true;
+}
+function coopAdmin_(d) {
+  if(!READ_KEY||READ_KEY==='여기에-선생님만-아는-열쇠'||d.teacherKey!==READ_KEY)return {ok:false,error:'선생님 읽기 열쇠가 맞지 않아요.'};
+  const school=clip_(d.school,20),cls=clip_(d.cls,8);
+  if(!/^[0-9가-힣a-zA-Z]{2,20}$/.test(school))return {ok:false,error:'학교 이름을 확인해 주세요.'};
+  if(d.op==='teacherStatus') {
+    if(!/^(?:[1-9]|1[0-2])-(?:[1-9]|[1-9][0-9])$/.test(cls))return {ok:false,error:'학년·반을 확인해 주세요.'};
+    const now=Date.now(),id=school+'|'+cls;
+    return {ok:true,api:COOP_API,teacher:true,date:coopDay(now),now,left:3,roles:coopNewDay().roles,group:coopClassView(coopRead_('class|'+id,coopFreshClass(id))),event:coopPublicEvent_(coopRead_('event|'+school,null),now)};
+  }
+  if(d.op==='classConfig') {
+    if(!/^(?:[1-9]|1[0-2])-(?:[1-9]|[1-9][0-9])$/.test(cls))return {ok:false,error:'학년·반을 확인해 주세요.'};
+    const id=school+'|'+cls,group=coopRead_('class|'+id,coopFreshClass(id));
+    group.roster=int_(d.roster,1,50);group.minutes=int_(d.minutes,0,180);coopAddClass(group,null);coopWrite_('class|'+id,group);
+    return {ok:true,group:coopClassView(group)};
+  }
+  if(d.op==='eventConfig') {
+    if(d.endEvent){coopWrite_('event|'+school,null);return {ok:true};}
+    const start=Number(d.start),end=Number(d.end),now=Date.now();
+    if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start||end-start>31*86400000||end<now)return {ok:false,error:'행사 시작·종료 시각을 확인해 주세요(최대 31일).'};
+    const list=Array.isArray(d.classes)?d.classes:[];
+    if(!list.length||list.length>50||list.some(c=>!/^(?:[1-9]|1[0-2])-(?:[1-9]|[1-9][0-9])$/.test(c)))return {ok:false,error:'참여 학급을 학년-반으로 넣어 주세요.'};
+    const classes=[...new Set(list)].map(c=>school+'|'+c);
+    let roster=0;classes.forEach(id=>{roster+=coopRead_('class|'+id,coopFreshClass(id)).roster;});
+    const event={id:Utilities.getUuid(),region:COOP_REGIONS.includes(d.region)?d.region:COOP_REGIONS[0],title:clip_(d.title,40)||'함께 지키는 충남',start,end,classes,target:int_(d.target||roster*3,1,150000),total:0,records:{}};
+    coopWrite_('event|'+school,event);return {ok:true,event:coopPublicEvent_(event,now)};
+  }
+  return {ok:false,error:'지원하지 않는 선생님 설정이에요.'};
+}
+function coopHandle_(d) {
+  if(d.op==='classConfig'||d.op==='eventConfig'||d.op==='teacherStatus')return coopAdmin_(d);
+  const identity=coopIdentity_(d);if(identity.error)return {ok:false,error:identity.error};
+  const date=coopDay(),dayKey='day|'+date+'|'+identity.key;
+  if(d.op==='status')return coopStatus_(identity);
+  if(d.op==='start') {
+    if(!/^[a-zA-Z0-9-]{12,80}$/.test(d.requestId||''))return {ok:false,error:'출격 요청을 다시 해 주세요.'};
+    if(!['normal','daily','event'].includes(d.kind))return {ok:false,error:'출격 종류를 확인해 주세요.'};
+    const day=coopRead_(dayKey,coopNewDay()),event=coopRead_('event|'+identity.school,null);
+    const group=coopRead_('class|'+identity.classId,coopFreshClass(identity.classId));
+    if(day.requests.some(t=>t.requestId===d.requestId))return {...coopReserve(day,d.requestId,{}),minutes:group.minutes};
+    if(d.kind==='event'&&(!coopActiveEvent(event)||!coopEventAllows(event,identity.classId)))return {ok:false,error:'지금은 함께 출격하는 행사 시간이 아니에요.'};
+    const result=coopReserve(day,d.requestId,{id:Utilities.getUuid(),date,kind:d.kind,owner:identity.key,eventId:d.kind==='event'?event.id:null,eventRegion:d.kind==='event'?event.region:null});
+    if(result.ok)coopWrite_(dayKey,day);
+    return {...result,minutes:group.minutes};
+  }
+  if(d.op==='resume'||d.op==='finish'||d.op==='participate') {
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(d.date||''))return {ok:false,error:'이어하기 기록을 확인해 주세요.'};
+    const key='day|'+d.date+'|'+identity.key,day=coopRead_(key,coopNewDay());
+    const ticket=day.requests.find(t=>t.id===d.ticketId);
+    if(!ticket)return {ok:false,error:'이 계정의 출격 기록이 아니에요.'};
+    if(d.op==='resume')return {ok:!ticket.closed,error:ticket.closed?'이미 마친 출격이에요.':null,ticket,minutes:coopRead_('class|'+identity.classId,coopFreshClass(identity.classId)).minutes};
+    if(!ticket.closed){if(d.op==='finish')ticket.closed=true;coopApplyAward_(identity,d.date,day,'battle');coopWrite_(key,day);}
+    return coopStatus_(identity);
+  }
+  if(d.op==='contribute') {
+    if(!['quiz','explore'].includes(d.role))return {ok:false,error:'임무 종류를 확인해 주세요.'};
+    if(d.date&&d.date!==date)return {ok:true,expired:true};
+    const day=coopRead_(dayKey,coopNewDay());const added=coopApplyAward_(identity,date,day,d.role);coopWrite_(dayKey,day);
+    return {...coopStatus_(identity),added};
+  }
+  return {ok:false,error:'협동 서버 버전을 확인해 주세요.'};
 }
