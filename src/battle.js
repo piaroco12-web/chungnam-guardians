@@ -602,25 +602,32 @@ export class Battle {
         b.seekT = (b.seekT || 0) - dt;
         let t = b.target;
         if (!t || t.hp <= 0 || t.dying || t.decoy || t.y <= -20 ||
-            (b.retarget && b.hit.has(t)) || dist2(b,t) >= 600 ** 2 || b.seekT <= 0) {
-          t = b.target = this.nearestEnemy(b.x,b.y,600,b.retarget ? b.hit : null);
+            b.hit.has(t) || dist2(b,t) >= 600 ** 2 || b.seekT <= 0) {
+          t = b.target = this.nearestEnemy(b.x,b.y,600,b.hit);
           b.seekT = 0.08; // steering still runs every frame; refresh aim at 12.5 Hz
         }
+        if (!t && b.hit.size) continue; // No unhit target remains: retire the spent missile.
         if (t) { const a = Math.atan2(t.y - b.y, t.x - b.x), sp = 520; b.vx += (Math.cos(a) * sp - b.vx) * Math.min(1, dt * 5); b.vy += (Math.sin(a) * sp - b.vy) * Math.min(1, dt * 5); }
       }
+      const from = b.homing ? { x: b.x, y: b.y } : null;
       b.x += b.vx * dt; b.y += b.vy * dt;
       let alive = b.y > -60 && b.y < H + 60 && b.x > -60 && b.x < W + 60;
-      if (alive) for (const e of this.bulletCandidates(b)) {
-        if (e.dying || b.hit.has(e)) continue;
-        const rr = (b.r + e.r) ** 2;
-        const hitIt = (b.kind === 'laser' || b.kind === 'beam') ? (Math.abs(b.x - e.x) < b.r + e.r && Math.abs(b.y - e.y) < 30 + e.r) : dist2(b, e) < rr;
+      if (alive) for (const e of this.bulletCandidates(b, from)) {
+        if (e.dying || e.hp <= 0 || b.hit.has(e)) continue;
+        // Homing fuse: 10 logical pixels beyond contact, swept over this frame
+        // so slow-motion orbiting and fast pass-through both produce one hit.
+        const dx = from ? b.x - from.x : 0, dy = from ? b.y - from.y : 0;
+        const along = from ? clamp(((e.x-from.x)*dx+(e.y-from.y)*dy)/(dx*dx+dy*dy || 1),0,1) : 1;
+        const impact = from ? {x:from.x+dx*along,y:from.y+dy*along} : b;
+        const rr = (b.r + e.r + (b.homing ? 10 : 0)) ** 2;
+        const hitIt = (b.kind === 'laser' || b.kind === 'beam') ? (Math.abs(b.x - e.x) < b.r + e.r && Math.abs(b.y - e.y) < 30 + e.r) : dist2(impact, e) < rr;
         if (!hitIt) continue;
         b.hit.add(e);
         if (e.decoy) { this.spark(b.x, b.y, '#fff', 3); alive = false; break; }
         const near = b.near ? 1 + Math.max(0, Math.min(1, 1 - Math.sqrt(dist2(this.p, e)) / 320)) : 1;   // 근접 포화
         this.damage(e, b.dmg * near, { elem: b.elem, src: b.main ? 'main' : b.kind, kb: b.main && this.has('sh_bullet'), critMul: b.critMul, critAdd: b.critAdd });
-        if (this.fx.length < 160) this.fx.push({kind:'weaponHit',x:b.x,y:b.y,t:.18,max:.18,visualKind:b.kind,visualLevel:b.visualLevel,evolved:b.evolved});
-        if (b.explode) this.explode(b.x, b.y, b.explode * this.st.area, b.explodeDmg || 15 * this.st.atk, { color: '#ffb23d', silent: true });
+        if (this.fx.length < 160) this.fx.push({kind:'weaponHit',x:impact.x,y:impact.y,t:.18,max:.18,visualKind:b.kind,visualLevel:b.visualLevel,evolved:b.evolved});
+        if (b.explode) this.explode(impact.x, impact.y, b.explode * this.st.area, b.explodeDmg || 15 * this.st.atk, { color: '#ffb23d', silent: true });
         if (b.pierce-- <= 0) { alive = false; break; }
       }
       if (alive) keep.push(b);
@@ -631,7 +638,7 @@ export class Battle {
 
   // Broad phase only: exact hit test and enemy order are unchanged. Rebuild
   // after knockback/death (including split enemies), never omit large bosses.
-  bulletCandidates(b) {
+  bulletCandidates(b, from = null) {
     if (this.enemies.length < 12) return this.enemies;
     if (!this._collisionGrid) {
       const grid = new Map();
@@ -643,9 +650,12 @@ export class Battle {
       });
       this._collisionGrid=grid;
     }
-    const ry=b.kind==='laser'||b.kind==='beam'?30:b.r, found=new Map();
-    for(let y=Math.floor((b.y-ry)/96); y<=Math.floor((b.y+ry)/96); y++)
-      for(let x=Math.floor((b.x-b.r)/96); x<=Math.floor((b.x+b.r)/96); x++)
+    const pad=b.homing?10:0, rx=b.r+pad;
+    const ry=b.kind==='laser'||b.kind==='beam'?30:rx, found=new Map();
+    const x0=from?Math.min(from.x,b.x):b.x, x1=from?Math.max(from.x,b.x):b.x;
+    const y0=from?Math.min(from.y,b.y):b.y, y1=from?Math.max(from.y,b.y):b.y;
+    for(let y=Math.floor((y0-ry)/96); y<=Math.floor((y1+ry)/96); y++)
+      for(let x=Math.floor((x0-rx)/96); x<=Math.floor((x1+rx)/96); x++)
         for(const entry of this._collisionGrid.get(x+','+y)||[])found.set(entry.i,entry);
     return [...found.values()].sort((a,b)=>a.i-b.i).map(v=>v.e);
   }
