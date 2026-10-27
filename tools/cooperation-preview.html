@@ -1,0 +1,19 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>협동 기지 디자인 확인 · 예시 자료</title><link rel="stylesheet" href="../style.css"><style>body{height:auto;min-height:100vh;overflow:auto;touch-action:auto;display:block;background:#101e2a;padding:20px 0}#stage{margin:0 auto}#preview-note{font:13px sans-serif;color:#d0e5df;text-align:center;line-height:1.8;margin:0 auto 18px}#preview-note button{padding:8px 12px;margin:4px;border-radius:8px;border:1px solid #9bbfac;background:#23434c;color:#fff;cursor:pointer}#ui{pointer-events:auto}.coop-screen{position:relative;min-height:100%;height:auto}.coop-scroll{overflow:visible;flex:none}#stage{overflow:visible}.coop-screen{background-attachment:fixed!important}</style><div id="preview-note">디자인 확인용 예시 · 실제 계정·학급 기록을 사용하지 않습니다.<br><button data-state="fresh">오늘 시작</button><button data-state="done">오늘 완료</button><button data-state="personal">개인 지도</button><button data-state="entry">입장 버튼</button></div><div id="stage"><div id="ui"></div></div><script type="module">
+import {loadAssets,loadExpansionArt} from '../src/assets.js';
+import {showCooperation,summaryHtml} from '../src/cooperation-ui.js';
+import {restorationMapHtml} from '../src/restoration-map.js';
+import {save} from '../src/save.js';
+import {coopClassView,coopFreshClass} from '../data/cooperation.js';
+const width=Math.max(320,Math.min(540,Number(new URLSearchParams(location.search).get('width'))||Math.min(innerWidth-24,540)));
+const stage=document.querySelector('#stage');stage.style.width=width+'px';document.documentElement.style.setProperty('--u',width/540+'px');
+await loadAssets();await loadExpansionArt();save.teacher=false;
+const group=coopClassView({...coopFreshClass('예시초|5-1'),current:38,completed:['cheonan'],points:113});
+const state={ok:true,preview:true,left:3,roles:{battle:false,quiz:false,explore:false},group,now:Date.now()};
+function draw(mode){
+ if(mode==='personal'){document.querySelector('#ui').innerHTML='<div class="coop-panel"><h2>개인 정화 지도 · 예시</h2>'+restorationMapHtml(['asan','gongju','nonsan','boryeong','naepo'],{prefix:'personal'})+'</div>';return;}
+ if(mode==='entry'){document.querySelector('#ui').innerHTML=summaryHtml(state);return;}
+ state.roles={battle:mode==='done',quiz:mode==='done',explore:mode==='done'};state.left=mode==='done'?0:3;
+ const noop=()=>{};showCooperation(state,{back:noop,refresh:noop,login:noop,battle:noop,quiz:noop,event:noop,explore:noop,configure:noop});
+}
+document.querySelectorAll('[data-state]').forEach(b=>b.onclick=()=>draw(b.dataset.state));draw('fresh');
+</script></html>
