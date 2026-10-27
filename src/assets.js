@@ -9,10 +9,11 @@ import { GODS, DUOS, LEGENDS } from '../data/boons.js';
 import { ZODIAC } from '../data/zodiac.js';
 import { STORY, PACTS } from '../data/extras.js';
 import { SETS } from '../data/unlocks.js';
+import { XP_GEMS, xpGem } from '../data/loot.js';
 import { MAIN_WEAPONS } from '../data/weapons.js';
 
-// One compact vector source for every wallet/HUD/price icon and cached pickup art.
-export const COIN_ICON_URL = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><defs><linearGradient id="edge" x2="0" y2="1"><stop stop-color="#e2a034"/><stop offset="1" stop-color="#854019"/></linearGradient><linearGradient id="gold" x1=".2" y1="0" x2=".8" y2="1"><stop stop-color="#fff3ae"/><stop offset=".4" stop-color="#ffce51"/><stop offset="1" stop-color="#dc8a24"/></linearGradient></defs><path fill="url(#edge)" fill-rule="evenodd" stroke="#49301c" stroke-width="5" d="M64 7a55 55 0 1 0 0 110a55 55 0 1 0 0-110ZM47 43h34v34H47Z"/><path fill="url(#gold)" fill-rule="evenodd" stroke="#76491f" stroke-width="3" d="M64 7a52 52 0 1 0 0 104a52 52 0 1 0 0-104ZM47 43h34v34H47Z"/><circle cx="64" cy="59" r="45" fill="none" stroke="#fff0a1" stroke-width="4"/><path d="M47 77V43h34" fill="none" stroke="#a36122" stroke-width="5" stroke-linejoin="round"/><path d="M47 78h35V43" fill="none" stroke="#fff0a3" stroke-width="4" stroke-linejoin="round"/><path d="M27 38a42 42 0 0 1 29-19" fill="none" stroke="#fff9d5" stroke-width="5" stroke-linecap="round"/><path d="M38 57h-9m6-6v12M92 57h9m-5-6v12M59 28h10m-5-5v10M59 92h10m-5-5v10" fill="none" stroke="#aa6524" stroke-width="4" stroke-linecap="round"/></svg>`);
+// Generated traditional Sangpyeong Tongbo artwork shared by menus and cached pickups.
+export const COIN_ICON_URL = new URL('../assets/img/item_yeopjeon_2147.webp', import.meta.url).href;
 
 const img = {};          // 이름 → 불러온 Image
 const cache = {};        // 임시 그림 캐시
@@ -23,7 +24,7 @@ const ENEMY_ORDER = ['spam', 'notify', 'troll', 'link', 'popup', 'bug'];
 const ITEM_ORDER = ['ebullet', 'ebullet2', 'coin', 'xp', 'heart', 'orb'];
 
 const NAMES = [
-  'item_yeopjeon',
+  'item_yeopjeon_2147',
   'boss_symbol_play',
   'region_landmarks_15_sheet', 'map_chungnam_15',
   'feature_icons_sheet', 'purge_burst', 'quiz_rush_host',
@@ -46,10 +47,10 @@ async function loadImage(n) {
   if (img[n]) return img[n];
   if (loadingImages.has(n)) return loadingImages.get(n);
   const job = (async () => {
-    for (const ext of (n === 'item_yeopjeon' ? ['svg'] : ['webp', 'png'])) {
+    for (const ext of ['webp', 'png']) {
       const im = await new Promise(resolve => {
         const i = new Image(); i.onload = () => resolve(i); i.onerror = () => resolve(null);
-        i.src = n === 'item_yeopjeon' ? COIN_ICON_URL : new URL(`../assets/img/${n}.${ext}`, import.meta.url).href;
+        i.src = new URL(`../assets/img/${n}.${ext}`, import.meta.url).href;
       });
       if (im) return (img[n] = im);
     }
@@ -296,6 +297,28 @@ function waveCell(i){
 }
 
 // 전투에 쓰는 그림 (Image 또는 Canvas)
+// Four cached faceted gems, with the same 232px visible extent as the coin.
+function gemArt(value) {
+  const gem = xpGem(value), rank = XP_GEMS.indexOf(gem);
+  return once('xp-gem:'+gem.id, () => canvas(256,256,g => {
+    const polygon = (points, fill, stroke=null) => {
+      g.beginPath(); points.forEach(([x,y],i) => i ? g.lineTo(x,y) : g.moveTo(x,y)); g.closePath();
+      g.fillStyle=fill;g.fill();if(stroke){g.strokeStyle=stroke;g.lineWidth=7;g.lineJoin='round';g.stroke();}
+    };
+    const shade=g.createLinearGradient(70,12,175,244);shade.addColorStop(0,gem.light);shade.addColorStop(.42,gem.color);shade.addColorStop(1,gem.dark);
+    polygon([[128,12],[210,84],[194,174],[128,244],[62,174],[46,84]],shade,'#132f46');
+    polygon([[128,20],[128,105],[55,87]],gem.light);
+    polygon([[128,20],[201,87],[128,105]],gem.color);
+    polygon([[55,87],[128,105],[128,232],[69,171]],gem.color);
+    polygon([[201,87],[187,171],[128,232],[128,105]],gem.dark);
+    polygon([[128,54],[167,102],[128,185],[90,102]],gem.light);
+    polygon([[128,105],[167,102],[128,185]],gem.color);
+    g.strokeStyle='#ffffffc9';g.lineWidth=5;g.beginPath();g.moveTo(65,80);g.lineTo(124,27);g.stroke();
+    // 1/2/3/4 bright inlays also distinguish tiers without colour alone.
+    for(let i=0;i<=rank;i++)polygon([[128+(i-rank/2)*22,192],[135+(i-rank/2)*22,200],[128+(i-rank/2)*22,208],[121+(i-rank/2)*22,200]],gem.light);
+  }));
+}
+
 export const art = {
   feature: id => { const i = typeof id === 'number' ? id : ['purge', 'purge_locked', 'quiz_rush', 'autosave'].indexOf(id); return Number.isInteger(i) && i >= 0 && i < 4 ? featureCell(i) : null; },
   purgeBurst: () => get('purge_burst'),
@@ -315,8 +338,8 @@ export const art = {
   drone: () => supportCell(4) || get('unit_drone'),
   missile: (lv = 1, evolved = false) => cell('missile_refined_sheet', evolved ? 2 : lv >= 3 ? 1 : 0, 3),
   zodiac: id => get('zodiac_' + id),
-  item: k => k === 'coin' ? once(has('item_yeopjeon') ? 'yeopjeon:loaded' : 'yeopjeon:fallback', () => canvas(128,128,g => {
-    if (has('item_yeopjeon')) { g.drawImage(get('item_yeopjeon'),0,0,128,128); return; }
+  item: (k, value = 2) => k === 'xp' ? gemArt(value) : k === 'coin' ? once(has('item_yeopjeon_2147') ? 'yeopjeon:loaded' : 'yeopjeon:fallback', () => canvas(128,128,g => {
+    if (has('item_yeopjeon_2147')) { g.drawImage(get('item_yeopjeon_2147'),0,0,128,128); return; }
     // A readable square-hole coin even if SVG decoding fails.
     g.fillStyle='#ffce51'; g.strokeStyle='#49301c'; g.lineWidth=5;
     g.beginPath(); g.arc(64,64,54,0,Math.PI*2); g.rect(48,48,32,32); g.fill('evenodd'); g.stroke();

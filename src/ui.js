@@ -1,4 +1,5 @@
 // 화면(DOM) 그리기: 타이틀·기지·선택·HUD·일시정지·레벨업·제단·카드·결과
+import { XP_GEMS } from '../data/loot.js';
 import { PILOTS, SHIPS, DIFFS, REGIONS, CARDS, META_UPGRADES, BOSSES } from '../data/content.js';
 import { SIGUN, ZONES, sigunOf, regionAt } from '../data/regions.js';
 import { MAP_POINTS } from '../data/expansion-art.js';
@@ -20,7 +21,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.14.6';
+export const VERSION = '2.14.7';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -429,6 +430,7 @@ export function pause(run, act) {
   show(`<div class="screen dim">
     <div class="pausettl ol">일시정지</div>
     <div class="pausescroll">
+    <div class="xp-guide" aria-label="보석 기본 경험치">${XP_GEMS.map(g => `<span><img src="${art.item('xp',g.value).toDataURL()}" alt="${g.name} 보석"><b>+${g.value}</b></span>`).join('')}</div>
     <div class="slotpanel"><div class="slothead">🔫 무기</div>${slotCells(o.weapons)}</div>
     <div class="slotpanel" style="margin-top:calc(var(--u)*14)"><div class="slothead blue">📘 강화</div>${slotCells(o.ups)}</div>
     <div class="slotpanel" style="margin-top:calc(var(--u)*14)"><div class="slothead pink">✨ 수호신 가호</div>${slotCells(o.boons, nb, 'six')}</div>
