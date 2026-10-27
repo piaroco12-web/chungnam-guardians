@@ -179,10 +179,10 @@ export function render(g, b, scale) {
     const im = art.item(it.kind === 'xp' ? 'xp' : it.kind === 'coin' ? 'coin' : it.kind === 'heart' ? 'heart' : 'xp');
     if (it.kind === 'fake') { drawFakeGift(g, it, b.t); continue; }
     if (it.kind === 'chest') { const bob = Math.sin(b.t * 6) * 3; g.save(); g.shadowColor = '#ffe14a'; g.shadowBlur = 18; emojiAt(g, '🎁', it.x, it.y + bob, 38); g.restore(); continue; }
-    if (sprite(g, im, it.x, it.y, it.kind === 'heart' ? 34 : 26)) continue;
+    if (sprite(g, im, it.x, it.y, it.kind === 'heart' ? 34 : (it.kind === 'coin' || it.kind === 'xp') ? 39 : 26)) continue;
     g.save(); g.translate(it.x, it.y);
+    if (it.kind === 'xp') g.scale(1.5,1.5);
     if (it.kind === 'xp') { g.rotate(Math.PI / 4); g.fillStyle = '#3fe0c0'; g.fillRect(-7, -7, 14, 14); g.strokeStyle = '#141414'; g.lineWidth = 3; g.strokeRect(-7, -7, 14, 14); }
-    else if (it.kind === 'coin') { g.rotate(Math.PI / 4); g.fillStyle = '#ffc53d'; g.fillRect(-10, -10, 20, 20); g.strokeStyle = '#141414'; g.lineWidth = 3; g.strokeRect(-10, -10, 20, 20); g.fillStyle = '#ffe27a'; g.fillRect(-4, -4, 8, 8); }
     else { g.font = '30px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('💖', 0, 0); }
     g.restore();
   }

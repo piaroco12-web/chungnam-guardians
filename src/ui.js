@@ -13,14 +13,14 @@ import { lbEnabled, loadBoard } from './leaderboard.js';
 import { login, logout, accountParts, accountLabel, studentFields } from './account.js';
 import { MAIN_WEAPONS, mainOf, SHIP_WEAPON, BAR_NAMES } from '../data/weapons.js';
 import { save, view, persist, checkTeacher, metaNow, coinsNow, buyMeta, totalCodex, totalCards, resetAll, resetForNextStudent, spendCoins, addPurge } from './save.js';
-import { art, pic } from './assets.js';
+import { art, pic, COIN_ICON_URL } from './assets.js';
 import { sfx, refreshBgm } from './audio.js';
 import { scatterText, stagger, stamp as stampFx, unfold, highlight, countUp, bouncy, jelly, nope, dealChoices, chooseCard } from './motion.js';
 import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.14.5';
+export const VERSION = '2.14.6';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -62,7 +62,7 @@ const mwEvoArt = (w, k) => { const im = pic.mainEvo(w.id, k); return im ? `<img 
 const mwStage = run => { const w = mainOf(run), e = id => run.evolved.includes(id); return e(w.ult.id) ? 'u' : e(w.pairs[0].evo.id) ? 'a' : e(w.pairs[1].evo.id) ? 'b' : null; };
 const choiceArt = (id, fallback) => { const im = pic.path(id); return im ? `<img src="${im}" alt="">` : fallback; };
 const dots = (lv, max = 3) => `<div class="dots">${Array.from({ length: max }, (_, i) => `<i class="${i < lv ? 'on' : ''}"></i>`).join('')}</div>`;
-const coinIcon = '<span class="coin"></span>';
+const coinIcon = `<span class="coin"><img src="${COIN_ICON_URL}" alt="옆전"></span>`;
 function cardArt(c) {
   const concept = c.art && pic.concept(c.art);
   if (concept) return `<img class="card-character" src="${concept}" alt="${esc(c.title)}">`;
@@ -138,8 +138,7 @@ function sortie(bb, state, act) {
 
 function metaTab(bb, state, act) {
   bb.classList.add('meta-panel');
-  const priceCoin = art.item('coin');
-  const coinArt = priceCoin ? `<span class="meta-price-coin"><img src="${priceCoin.toDataURL()}" alt="코인"></span>` : coinIcon;
+  const coinArt = `<span class="meta-price-coin">${coinIcon}</span>`;
   const have = save.items.purge || 0, full = have >= PURGE.max;
   const purgeRow = `<div class="row meta-row meta-purge"><div class="ic">${pic.feature?.(0) ? `<img src="${pic.feature(0)}" alt="">` : '🌟'}</div><div class="tx"><b>정화 대폭발</b><p>적 탄을 모두 지우고 일반 적을 정화, 보스 체력 ${Math.round(PURGE.bossPct * 100)}%. 한 판에 1번, 오늘의 도전에서는 못 써요.</p>
       <div class="meta-progress"><span class="meta-level">가진 개수 ${have}/${PURGE.max}</span></div></div>
@@ -356,7 +355,7 @@ export function hud(act) {
     <div class="maptrail hpanel"><div class="mline"><i id="hml"></i></div>${nodes}</div>
     <div class="stagechip hpanel"><span class="ol" id="hw"></span>${pips}</div>
     <div class="pilotbox"><div class="xpring" id="hx"><div class="face"><img id="hface" alt=""></div></div><span class="lvbadge ol" id="hl">Lv.1</span></div>
-    <div class="pills"><div class="pill hpanel"><span class="coin"></span><b class="ol" id="hc">0</b></div><div class="pill hpanel"><img class="medal" id="hmedal" alt=""><b class="ol">정화 <span id="hk">0</span></b></div></div>
+    <div class="pills"><div class="pill hpanel">${coinIcon}<b class="ol" id="hc">0</b></div><div class="pill hpanel"><img class="medal" id="hmedal" alt=""><b class="ol">정화 <span id="hk">0</span></b></div></div>
     <button class="purge act" id="purge" aria-label="정화 대폭발" hidden>${pic.feature?.(0) ? `<img src="${pic.feature(0)}" alt="">` : '🌟'}</button>
     <button class="ult act" id="ult" aria-label="필살기"><span class="fill" id="uf"></span><span class="lab ol" id="ul">필살기</span></button>
     <div class="slowtag ol" id="hs" hidden>슬로우 모션</div>
