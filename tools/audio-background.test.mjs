@@ -33,3 +33,10 @@ test('window blur/pagehide silence decoded samples; focus cannot override hidden
 test('hidden initial load never creates media/context, including unlock and fallback jingles',()=>setup(async({api,doc,media,contexts})=>{
  doc.hidden=true;api.bgm('title');api.unlockAudio();api.sfx.clear();save.settings.bgm=false;api.sfx.over();assert.equal(media.length,0);assert.equal(contexts.length,0);
 }));
+test('next game gesture retries mobile autoplay rejection without rewinding music',()=>setup(async({api,doc,media})=>{
+ api.bgm('battle');const m=media[0],normalPlay=m.play;m.currentTime=19;
+ doc.hidden=true;doc.emit('visibilitychange');m.play=function(){this.paused=true;return Promise.reject(Error('autoplay blocked'));};
+ doc.hidden=false;doc.emit('visibilitychange');await Promise.resolve();await Promise.resolve();assert.equal(m.paused,true);
+ m.play=normalPlay;doc.emit('pointerdown');assert.equal(m.paused,false);assert.equal(m.currentTime,19);
+ doc.hidden=true;doc.emit('visibilitychange');const n=m.playCalls;doc.emit('keydown');assert.equal(m.playCalls,n);assert.equal(m.paused,true);
+}));
