@@ -1,6 +1,6 @@
 {
-  "version": "2.14.1",
-  "count": 154,
+  "version": "2.14.3",
+  "count": 155,
   "images": [
     {
       "path": "assets/img/bg_asan.webp",
@@ -1830,6 +1830,18 @@
       "width": 236,
       "height": 320,
       "bytes": 28912,
+      "grid": [
+        1,
+        1
+      ],
+      "hasTransparency": true,
+      "format": "webp"
+    },
+    {
+      "path": "assets/img/boss_symbol_play.webp",
+      "width": 256,
+      "height": 166,
+      "bytes": 10534,
       "grid": [
         1,
         1
