@@ -1,0 +1,194 @@
+{
+  "version": "2.14.3",
+  "rendered": [
+    {
+      "id": "blackhole",
+      "motif": "pad",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "scroller",
+      "motif": "play",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "copybot",
+      "motif": "paper",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "deepfaker",
+      "motif": "mask",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "cloud",
+      "motif": "bubble",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "thorn",
+      "motif": "lock",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "slot",
+      "motif": "chip",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "octopus",
+      "motif": "chain",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "smog",
+      "motif": "bottle",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "aicore",
+      "motif": "eye",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "walnut",
+      "motif": "lock",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "filter",
+      "motif": "mask",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "hatepepper",
+      "motif": "thorn",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "piratemole",
+      "motif": "paper",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "fakecommander",
+      "motif": "mask",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "owlginseng",
+      "motif": "seed",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "snapgull",
+      "motif": "eye",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "bubblejelly",
+      "motif": "drop",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "ewastecrab",
+      "motif": "bit",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "smishbot",
+      "motif": "popup",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "deepvoice",
+      "motif": "bubble",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "gachaking",
+      "motif": "star",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "locghost",
+      "motif": "eye",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "starfake",
+      "motif": "star",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    },
+    {
+      "id": "badapple",
+      "motif": "lock",
+      "nonempty": true,
+      "warmCache": true,
+      "physicsUnchanged": true
+    }
+  ],
+  "checks": [
+    "25 non-empty sprites rendered with original topic motifs",
+    "Late-approved artwork replaces procedural fallback",
+    "Every boss warm draw allocates zero canvases",
+    "Drawing preserves position, velocity, collision radius, damage and time",
+    "Old rocket artwork is not referenced by renderer"
+  ],
+  "limitations": [
+    "Native Canvas raster verification, not physical phone FPS."
+  ],
+  "tests": {
+    "passed": 38,
+    "failed": 0
+  }
+}
