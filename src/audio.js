@@ -181,4 +181,14 @@ if (typeof document !== 'undefined' && typeof window !== 'undefined') {
   window.addEventListener('pageshow', () => { pageAway = false; windowAway = false; restoreForeground(); });
   window.addEventListener('blur', () => { windowAway = true; silenceBackground(); });
   window.addEventListener('focus', () => { windowAway = false; restoreForeground(); });
+  // Mobile autoplay may reject automatic resume. Retry within the next real
+  // game gesture (including Continue), without rewinding music or jingles.
+  const retryFromGesture = () => {
+    if (document.hidden || pageAway) return;
+    windowAway = false;
+    const a = tracks[current];
+    if ((ac && ac.state !== 'running') || a?.paused || a?.muted) restoreForeground();
+  };
+  document.addEventListener('pointerdown', retryFromGesture);
+  document.addEventListener('keydown', retryFromGesture);
 }
