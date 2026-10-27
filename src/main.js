@@ -1,4 +1,6 @@
 // 충남 수호대 — 진입점. 화면 흐름과 전투 루프를 묶는다.
+import {coopCached,coopStatus,coopStart,coopResume,coopBattle,coopContribute,coopConfigure} from './cooperation.js';
+import {mountSummary,showCooperation} from './cooperation-ui.js';
 import { W, H, fitStage } from './view.js';
 import { initInput, input, isActive } from './input.js';
 import { loadAssets, loadRegionArt, loadExpansionArt } from './assets.js';
@@ -51,6 +53,7 @@ function restoreRandom() { Math.random = realRandom; }
 
 // ───────── 화면 전환 ─────────
 function toTitle() {
+  stopCoopPoll();
   restoreRandom();
   state.scene = 'title'; state.battle = null; bgm('title');
   ui.title({ hasRun: !!loadRun(), onStart: () => { unlockAudio(); toBase(); }, onContinue: () => { unlockAudio(); continueRun(); } });
@@ -58,6 +61,7 @@ function toTitle() {
 
 let artLoading = false;
 function toBase(tab) {
+  stopCoopPoll();
   restoreRandom();
   if (!artLoading) { artLoading = true; loadExpansionArt(); }   // 새 보스·배경을 뒤에서 미리 (도감·카드첩·전투용)
   state.scene = 'base'; state.battle = null; if (tab) state.tab = tab; bgm('base');
@@ -66,15 +70,38 @@ function toBase(tab) {
   if (!view.pilotUnlocked(PILOTS.find(p => p.id === state.pilot))) state.pilot = 'chungnami';
   if (!view.shipUnlocked(SHIPS.find(s => s.id === state.ship))) state.ship = 'byeolbit';
   if (!view.weaponUnlocked(MAIN_WEAPONS.find(w => w.id === state.weapon) || {})) state.weapon = 'gun';
-  ui.base({ tab: state.tab, pilot: state.pilot, ship: state.ship, hasRun: !!loadRun(), daily: dailyInfo(), quizLeft: quizLeft(), quizToday: dailyQuizInfo() }, {
-    tab: t => toBase(t), refresh: () => toBase(), title: toTitle,
+  ui.base({ tab: state.tab, pilot: state.pilot, ship: state.ship, hasRun: !!loadRun(), daily: dailyInfo(), quizLeft: quizLeft(), quizToday: dailyQuizInfo(), coop:coopCached() }, {
+    tab: t => toBase(t), refresh: () => toBase(), title: toTitle, coop:openCoop,
     sortie: () => { state.sel = {}; needHome() ? ui.homePick(setHome, () => toBase()) : toSelect('pilot'); }, cont: continueRun, daily: startDaily, quizRush: startQuizRush,
   });
+  coopStatus().then(data=>{if(state.scene==='base')mountSummary(data,openCoop);});
+}
+
+let coopPoll=null,coopGeneration=0;
+function stopCoopPoll(){if(coopPoll)clearInterval(coopPoll);coopPoll=null;coopGeneration++;}
+async function openCoop(){
+  stopCoopPoll();const generation=coopGeneration;state.scene='coop';state.battle=null;
+  const draw=data=>showCooperation(data,{
+    back:()=>toBase('sortie'),refresh:openCoop,
+    login:()=>ui.askStudent(openCoop,()=>toBase(),'내 계정 · 우리 반 수호 기지'),
+    battle:()=>{state.sel={};needHome()?ui.homePick(setHome,()=>openCoop()):toSelect('pilot');},
+    quiz:startQuizRush,event:()=>startRun(0,true),
+    explore:card=>ui.modal(`<b class="ol" style="font-size:calc(var(--u)*28)">${card.title}</b><p>${card.text}</p>`,[['읽었어요 · 탐험 기여','',()=>{coopContribute('explore').then(r=>{ui.toast(save.teacher?'선생님 미리보기예요. 학생 기록은 바뀌지 않아요.':r.ok?'우리 반 탐험 임무를 확인했어요.':r.error);openCoop();});}],['닫기','gray']]),
+    configure:async body=>{ui.toast('설정을 저장하는 중…');const result=await coopConfigure(body);ui.toast(result.ok?'학급·행사 설정을 저장했어요.':result.error);if(result.ok)openCoop();},
+  });
+  draw(coopCached()||{error:'우리 반 소식을 불러오고 있어요…'});
+  const data=await coopStatus();if(state.scene!=='coop'||generation!==coopGeneration)return;draw(data);
+  let refreshing=false;
+  coopPoll=setInterval(async()=>{
+    if(refreshing||generation!==coopGeneration||state.scene!=='coop'||document.hidden||document.querySelector('.modal')||document.querySelector('.coop-admin[open]'))return;
+    refreshing=true;try{const fresh=await coopStatus();if(state.scene==='coop'&&generation===coopGeneration)draw(fresh);}finally{refreshing=false;}
+  },20000);
 }
 
 // ───────── 날짜별 주제 OX 퀴즈 러시 ─────────
 function quizLeft() { const q = save.quizRush; return q.date === quizDateKey() ? Math.max(0, QUIZ_RUSH.perDay - q.count) : QUIZ_RUSH.perDay; }
 function startQuizRush() {
+  stopCoopPoll();
   const topic = dailyQuizInfo(); // 한 판 도중 자정이 지나도 출제 주제·이용일은 시작 시점으로 고정
   if (!save.teacher && quizLeft() <= 0) return ui.toast(`오늘은 ${QUIZ_RUSH.perDay}판을 모두 했어요. 내일 또 만나요!`);
   const pool = dailyQuizDeck(topic.id, save.quizSeen);
@@ -82,9 +109,10 @@ function startQuizRush() {
   // 시작할 때 횟수를 차감해 새로고침·중도 종료로 하루 제한을 건너뛰지 않게 한다.
   progress(s => { if (s.quizRush.date !== topic.key) s.quizRush = { date: topic.key, count: 0 }; s.quizRush.count++; });
   state.scene = 'quiz'; bgm('altar');
-  ui.quizRush(pool, ok => { progress(() => earnCoins(ok * QUIZ_RUSH.coin)); }, () => toBase('sortie'), {
+  let answered=0;
+  ui.quizRush(pool, ok => { progress(() => earnCoins(ok * QUIZ_RUSH.coin)); if(answered>0)coopContribute('quiz'); }, () => toBase('sortie'), {
     topic,
-    onAnswer: q => progress(s => { s.quizSeen = recordQuizAnswer(s.quizSeen, q.id); }),
+    onAnswer: q => { answered++;progress(s => { s.quizSeen = recordQuizAnswer(s.quizSeen, q.id); }); },
   });
 }
 
@@ -96,6 +124,7 @@ function usePurge(b) {
 }
 
 function toSelect(step) {
+  stopCoopPoll();
   state.scene = 'select';
   ui.select(step, state.sel, {
     back: () => {
@@ -114,10 +143,24 @@ function toSelect(step) {
 }
 
 // ───────── 판 시작·이어하기 ─────────
-function startRun(region) {
-  clearRun();
-  const run = newRun({ pilot: state.pilot, ship: state.ship, mainWeapon: state.weapon, diff: state.diff, region, pacts: [...(state.sel.pacts || [])] });
-  chooseSigun(run, region, () => beginBattle(run));
+let launching=false;
+async function sortieTicket(kind,retry) {
+  const result=await coopStart(kind);
+  if(result.login){ui.askStudent(retry,()=>toBase(),'내 계정 · 하루 3회 출격');return null;}
+  if(!result.ok){ui.toast(result.error);return null;}
+  return result;
+}
+async function startRun(region,event=false) {
+  if(launching)return;launching=true;
+  try {
+    const result=await sortieTicket(event?'event':'normal',()=>startRun(region,event));if(!result)return;
+    clearRun();
+    const effectiveRegion=event?(sigunOf(result.ticket?.eventRegion)?.zone??region):region;
+    const run=newRun({pilot:state.pilot,ship:state.ship,mainWeapon:state.weapon,diff:state.diff,region:effectiveRegion,pacts:[...(state.sel.pacts||[])]});
+    run.coopTicket=result.ticket;run.coopMinutes=result.minutes??save.settings.classMin;
+    if(event&&result.ticket?.eventId){let seed=0;for(const c of result.ticket.eventId)seed=(Math.imul(seed,31)+c.charCodeAt(0))>>>0;Math.random=seeded(seed);run.coopSeed=seed;run.route=ZONES.map(z=>z.sigun[Math.floor(Math.random()*z.sigun.length)]);run.route[effectiveRegion]=result.ticket.eventRegion;run.mids=run.route.map((id,i)=>pickMid(id,i));}
+    chooseSigun(run,effectiveRegion,()=>beginBattle(run));
+  }finally{launching=false;}
 }
 // ───────── 15개 시군 (2.13.0) ─────────
 // 우리 고장: 처음 출격할 때 한 번 고른다. 고른 곳은 바로 열리고 그 고장 카드를 준다
@@ -134,26 +177,30 @@ function chooseSigun(run, i, done) {
   if (run.route[i]) return go();
   ui.sigunPick(i, id => { run.route[i] = id; run.mids[i] = pickMid(id, i); go(); });
 }
-let askedStudent = false;
-function startDaily() {
-  // 순위표를 쓰면 처음 한 번 반·번호를 묻는다 (건너뛰면 이번에는 기록을 보내지 않음)
-  if (lbEnabled() && !save.teacher && !save.account && !askedStudent) {
-    askedStudent = true;
-    return ui.askStudent(() => startDaily(), () => startDaily());
-  }
-  clearRun();
-  const d = dailyInfo();
-  Math.random = seeded(d.seed);   // 오늘 하루는 모두 같은 하늘
-  const run = newRun({ pilot: d.pilot, ship: d.ship, mainWeapon: d.weapon, diff: 'chall', daily: d.key, region: d.region, route: d.route, mids: d.mids });
-  chooseSigun(run, d.region, () => beginBattle(run));
+async function startDaily() {
+  if(launching)return;launching=true;
+  try {
+    const result=await sortieTicket('daily',startDaily);if(!result)return;
+    clearRun();const d=dailyInfo();Math.random=seeded(d.seed);
+    const run=newRun({pilot:d.pilot,ship:d.ship,mainWeapon:d.weapon,diff:'chall',daily:d.key,region:d.region,route:d.route,mids:d.mids});
+    run.coopTicket=result.ticket;run.coopMinutes=result.minutes??save.settings.classMin;chooseSigun(run,d.region,()=>beginBattle(run));
+  }finally{launching=false;}
 }
-function continueRun() {
-  const run = loadRun(); if (!run) return toBase();
-  state.pilot = run.pilot; state.ship = run.ship; state.diff = run.diff; if (run.mainWeapon) state.weapon = run.mainWeapon;
-  chooseSigun(run, run.region, () => beginBattle(run));
+async function continueRun() {
+  if(launching)return;launching=true;
+  try {
+    const run=loadRun();if(!run)return toBase();
+    const result=await coopResume(run.coopTicket);
+    if(!result.ok){if(result.login)ui.askStudent(continueRun,()=>toBase(),'출격했던 계정으로 이어하기');else ui.toast(result.error);return;}
+    run.coopMinutes=result.minutes??run.coopMinutes??save.settings.classMin;
+    state.pilot=run.pilot;state.ship=run.ship;state.diff=run.diff;if(run.mainWeapon)state.weapon=run.mainWeapon;
+    if(run.daily)Math.random=seeded(+run.daily.replace(/-/g,''));else if(run.coopSeed)Math.random=seeded(run.coopSeed);
+    chooseSigun(run,run.region,()=>beginBattle(run));
+  }finally{launching=false;}
 }
 
 function beginBattle(run) {
+  stopCoopPoll();
   state.scene = 'battle';
   snap = unlockSnap();
   let b = null;
@@ -166,7 +213,9 @@ function beginBattle(run) {
     stageSaved: () => autoSave(b),
   });
   state.battle = b;
-  if (save.settings.classMin > 0) b.classLeft = save.settings.classMin * 60;
+  const classMinutes=run.coopMinutes??coopCached()?.group?.minutes??save.settings.classMin;
+  if(classMinutes>0)b.classLeft=classMinutes*60;
+  if(!save.teacher)saveRun(run);
   ui.hud({ pause: () => openPause(b), ult: () => b.tryUlt(), purge: () => usePurge(b) });
   b.hooks.hud();
   if (!save.tutorialDone) {
@@ -323,9 +372,10 @@ function openPath(b) {
 // ───────── 판 종료 ─────────
 // 단계마다 자동 저장 (2.11.0): 껐다 켜면 지금 단계 처음부터. 오늘의 도전·교사 모드는 저장하지 않는다
 function autoSave(b) {
-  if (b.run.daily || save.teacher || b.over) return;
+  if (save.teacher || b.over) return;
   progress(() => creditMastery(b.run));
   saveRun(b.run);
+  if(b.run.kills>0)coopBattle(b.run.coopTicket);
   ui.saveTag();
 }
 
@@ -334,7 +384,8 @@ function finish(b, win, reason = '') {
   b.over = true; b.paused = true;
   restoreRandom();
   // 수업 시간이 끝나 멈춘 판은 저장을 남겨 다음 시간에 이어 한다(코인은 지금 받으므로 저장본의 코인은 0으로)
-  const keep = reason === 'time' && !b.run.daily && !save.teacher && loadRun();
+  const keep = reason === 'time' && !save.teacher && loadRun();
+  coopBattle(b.run.coopTicket,reason!=='time');
   clearRun();
   const d = DIFFS.find(x => x.id === b.run.diff);
   const pactBonus = PACTS.filter(p => (b.run.pacts || []).includes(p.id)).reduce((a, p) => a + p.bonus, 0);
