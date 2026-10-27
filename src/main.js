@@ -1,3 +1,4 @@
+import {recordPersonalClear} from '../data/personal-map.js';
 // 충남 수호대 — 진입점. 화면 흐름과 전투 루프를 묶는다.
 import {coopCached,coopStatus,coopStart,coopResume,coopBattle,coopContribute,coopConfigure} from './cooperation.js';
 import {mountSummary,showCooperation} from './cooperation-ui.js';
@@ -280,6 +281,7 @@ function showCards(list, done) {
 }
 
 function onBossDefeated(b, id, isRegion) {
+  if (isRegion) progress(s => recordPersonalClear(s, b.region.id));
   b.paused = true;
   // 정화된 보스를 축하 패널로 보여 준 뒤 퀴즈로
   return ui.stamp('정화 완료!', () => afterStamp(b, id, isRegion), id);

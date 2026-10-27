@@ -21,6 +21,7 @@ export async function checkTeacher(code) {
 const fresh = () => ({
   coins: 0,
   meta: { atk: 0, hp: 0, magnet: 0, bonus: 0, reroll: 0, revive: 0 },
+  clearedSigun: [],    // 직접 지역 보스를 정화한 시군; 학급 공동 지도와 별도
   cleared: [],          // 처음 클리어한 권역 index (0~4)
   home: null,           // 우리 고장 시군 id (2.13.0, 처음 출격 때 한 번 고른다)
   beatLegend: false,    // 전설 난이도 최종 클리어 → 극한 난이도 해금
@@ -58,7 +59,7 @@ save.unlockRule = CURRENT_UNLOCK_RULE;
 save.meta = Object.assign(fresh().meta, save.meta);
 save.settings = Object.assign(fresh().settings, save.settings);
 save.stats = Object.assign(fresh().stats, save.stats);
-for (const k of ['bosses', 'story']) if (!Array.isArray(save[k])) save[k] = [];
+for (const k of ['bosses', 'story', 'clearedSigun']) if (!Array.isArray(save[k])) save[k] = [];
 if (!save.daily || typeof save.daily !== 'object') save.daily = {};
 // 번개호는 실제 에듀이+드론호 최종 보스 정화 조합 기록으로 판정한다.
 if (!Array.isArray(save.combos)) save.combos = [];
