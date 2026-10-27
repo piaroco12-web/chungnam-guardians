@@ -3,12 +3,12 @@
 // · 인터넷이 안 되면 저장본으로 실행한다. 그림·음악은 처음 접속 뒤 뒤에서 조금씩 저장(warm)한다.
 // · 새 버전 설치는 코드 파일만 받으면 끝나서 빠르고, 파일 하나가 실패해도 설치가 막히지 않는다.
 // 파일 목록이 바뀌면 VERSION을 올린다 (src/ui.js 의 VERSION 과 같은 번호).
-const VERSION = 'cnguard-v2.15.0';
+const VERSION = 'cnguard-v2.15.1';
 const CORE = [
   './', 'index.html', 'style.css', 'manifest.webmanifest',
   'src/main.js', 'src/assets.js', 'src/audio.js', 'src/battle.js', 'src/bgart.js', 'src/bullet-art.js', 'src/boss-fx.js', 'src/enemy-art.js', 'src/input.js', 'src/motion.js',
   'src/progress.js', 'src/render.js', 'src/combat-vfx.js', 'src/save.js', 'src/side.js', 'src/leaderboard.js', 'src/account.js', 'src/ui.js', 'src/view.js',
-  'data/cooperation.js', 'src/cooperation.js', 'src/cooperation-ui.js',
+  'data/cooperation.js', 'src/cooperation.js', 'src/cooperation-ui.js', 'src/restoration-map.js', 'data/personal-map.js',
   'data/loot.js', 'assets/img/item_yeopjeon_2147.webp',
   'src/performance.js', 'src/daily-quiz.js', 'data/quiz-bank.js',
   'data/expansion-art.js', 'data/regions.js', 'art-preview.html', 'boss-projectiles.html', 'data/boons.js', 'data/build.js', 'data/content.js', 'data/extras.js', 'data/luck.js', 'data/unlocks.js', 'data/config.js', 'data/zodiac.js', 'data/weapons.js', 'data/boss_lines.js',
