@@ -1,25 +1,38 @@
 // 효과음은 코드로 합성 (네온블라스터에서 가져옴). 배경음은 assets/bgm/에 파일이 있을 때만 재생.
 import { save } from './save.js';
 
-let ac = null;
+let ac = null, master = null;
+let pageAway = false, windowAway = false;
+const synthVoices = new Set();
+const background = () => pageAway || windowAway || (typeof document !== 'undefined' && document.hidden);
+function tracked(source, cleanup = () => {}) {
+  synthVoices.add(source);
+  source.onended = () => { synthVoices.delete(source); source.disconnect(); cleanup(); };
+  return source;
+}
 function ctx() {
+  if (background()) return null;
   if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch { return null; } }
-  if (ac.state === 'suspended') ac.resume();
+  if (!master) { master = ac.createGain(); master.connect(ac.destination); }
+  if (ac.state === 'suspended') ac.resume().catch(() => {});
   return ac;
 }
 
 function tone({ type = 'sine', freq = 440, freq2 = null, duration = 0.15, vol = 0.18, attack = 0.005, delay = 0 }) {
-  const a = ctx(); if (!a || !save.settings.sfx) return;
+  if (background() || !save.settings.sfx) return;
+  const a = ctx(); if (!a) return;
   const t = a.currentTime + delay;
   const o = a.createOscillator(), g = a.createGain();
+  tracked(o, () => g.disconnect());
   o.type = type; o.frequency.setValueAtTime(freq, t);
   if (freq2) o.frequency.exponentialRampToValueAtTime(Math.max(20, freq2), t + duration);
   g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + attack);
   g.gain.exponentialRampToValueAtTime(0.0001, t + duration);
-  o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + duration + 0.02);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t + duration + 0.02);
 }
 function noise({ duration = 0.3, vol = 0.25, freq = 800, delay = 0 }) {
-  const a = ctx(); if (!a || !save.settings.sfx) return;
+  if (background() || !save.settings.sfx) return;
+  const a = ctx(); if (!a) return;
   const t = a.currentTime + delay;
   const len = Math.floor(a.sampleRate * duration);
   const buf = a.createBuffer(1, len, a.sampleRate), d = buf.getChannelData(0);
@@ -27,7 +40,8 @@ function noise({ duration = 0.3, vol = 0.25, freq = 800, delay = 0 }) {
   const s = a.createBufferSource(); s.buffer = buf;
   const f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = freq;
   const g = a.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + duration);
-  s.connect(f); f.connect(g); g.connect(a.destination); s.start(t);
+  tracked(s, () => { f.disconnect(); g.disconnect(); });
+  s.connect(f); f.connect(g); g.connect(master); s.start(t);
 }
 
 // 같은 소리가 한 프레임에 수십 번 겹치지 않게 제한
@@ -80,7 +94,7 @@ function loadSamples() {
     .then(bytes => a.decodeAudioData(bytes)).then(b => buffers.set(file, b)).catch(() => {});
 }
 function sample(name, args) {
-  if (!save.settings.sfx) return;
+  if (background() || !save.settings.sfx) return;
   const def = samples[name];
   const file = name === 'boom' && args[0] ? 'explosion_large' : def[0];
   const a = ctx(), buffer = buffers.get(file);
@@ -88,7 +102,7 @@ function sample(name, args) {
   if (!gate('file:' + name, def[2]) || voices.size >= 18) return;
   const source = a.createBufferSource(), gain = a.createGain();
   source.buffer = buffer; gain.gain.value = def[1];
-  source.connect(gain); gain.connect(a.destination);
+  source.connect(gain); gain.connect(master);
   voices.add(source); source.onended = () => { voices.delete(source); source.disconnect(); gain.disconnect(); };
   source.start();
   // 반복 총알 소리는 짧게 끊어 겹침을 줄인다.
@@ -98,7 +112,7 @@ export const sfx = { ...synth };
 for (const name of Object.keys(samples)) sfx[name] = (...args) => sample(name, args);
 // 카드 확정음은 UI에서 한 번만 재생한다. 짧은 음색 차이로 선택 종류를 구분한다.
 sfx.choose = (kind = 'upgrade') => {
-  if (!save.settings.sfx || !gate('choose', 100)) return;
+  if (background() || !save.settings.sfx || !gate('choose', 100)) return;
   sfx.pick();
   const base = { route: 523, boon: 784, zodiac: 659, pilot: 587, reward: 880, toggle: 440 }[kind] || 698;
   tone({ type: 'sine', freq: base, duration: .09, vol: .045, delay: .035 });
@@ -117,7 +131,10 @@ export function bgm(name) {
   if (current === name) return;
   for (const k in tracks) tracks[k].pause();
   current = name;
-  if (!name || !save.settings.bgm || !TRACKS[name]) return;
+  playTrack(name, true);
+}
+function playTrack(name, restart = false) {
+  if (background() || !name || !save.settings.bgm || !TRACKS[name]) return;
   let a = tracks[name];
   if (!a) {
     a = new Audio(new URL(`../assets/bgm/bgm_${TRACKS[name]}.mp3`, import.meta.url).href);
@@ -125,8 +142,43 @@ export function bgm(name) {
     a.volume = name === 'boss' ? 0.24 : 0.20;
     a.preload = 'auto'; tracks[name] = a;
   }
-  if (!a.loop) a.currentTime = 0;
-  a.play().catch(() => {}); // 첫 터치 전 자동재생 제한은 unlockAudio에서 다시 시도
+  if (!a.loop && restart) a.currentTime = 0;
+  if (!restart && !a.loop && a.ended) return; // completed jingles never repeat on tab return
+  a.muted = false;
+  a.play().then(() => {
+    // A pending play promise may finish after another tab/track is selected.
+    if (background() || current !== name || !save.settings.bgm) a.pause();
+  }).catch(() => {}); // 첫 터치 전 자동재생 제한은 unlockAudio에서 다시 시도
 }
 export function refreshBgm() { const c = current; current = null; bgm(c); }
-export function unlockAudio() { ctx(); loadSamples(); refreshBgm(); }
+export function unlockAudio() {
+  if (typeof document !== 'undefined' && !document.hidden && !pageAway) windowAway = false;
+  if (background()) return;
+  ctx(); loadSamples(); refreshBgm();
+}
+
+// Silence synchronously, then suspend processing. Stopping queued/delayed SFX
+// prevents a burst of old shots or jingles when the game becomes visible again.
+function silenceBackground() {
+  for (const a of Object.values(tracks)) { a.muted = true; a.pause(); }
+  if (master && ac) { master.gain.cancelScheduledValues(ac.currentTime); master.gain.setValueAtTime(0, ac.currentTime); }
+  for (const source of [...voices, ...synthVoices]) { try { source.stop(); } catch { /* already ended */ } }
+  voices.clear(); synthVoices.clear();
+  if (ac && ac.state !== 'closed') ac.suspend().catch(() => {});
+}
+function restoreForeground() {
+  if (background()) return;
+  if (master && ac) { master.gain.cancelScheduledValues(ac.currentTime); master.gain.setValueAtTime(1, ac.currentTime); }
+  if (ac && ac.state !== 'closed') ctx();
+  playTrack(current); // same loop position; respect the user's BGM/SFX settings
+}
+if (typeof document !== 'undefined' && typeof window !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) silenceBackground();
+    else { windowAway = false; restoreForeground(); }
+  });
+  window.addEventListener('pagehide', () => { pageAway = true; silenceBackground(); });
+  window.addEventListener('pageshow', () => { pageAway = false; windowAway = false; restoreForeground(); });
+  window.addEventListener('blur', () => { windowAway = true; silenceBackground(); });
+  window.addEventListener('focus', () => { windowAway = false; restoreForeground(); });
+}
