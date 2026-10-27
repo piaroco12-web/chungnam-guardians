@@ -626,3 +626,8 @@ table.lb tr.top1 td{background:#ffd23d22} table.lb tr.top2 td{background:#c9cbe0
 .qr-review summary{font-weight:900;cursor:pointer;line-height:1.5;overflow-wrap:anywhere}
 .qr-review p{line-height:1.65;margin:calc(var(--u)*10) 0}
 .qr-review a{display:block;color:#aff0ff;text-decoration:underline;text-underline-offset:3px;font-weight:800;line-height:1.5}
+
+/* Loot tiers share one visual pickup size; guide stays inside the pause scroller. */
+.xp-guide{display:flex;justify-content:center;gap:calc(var(--u)*14);padding:calc(var(--u)*10);margin-bottom:calc(var(--u)*12);background:#102138e8;border:calc(var(--u)*2) solid #92d8ef;border-radius:calc(var(--u)*12)}
+.xp-guide span{display:flex;align-items:center;gap:calc(var(--u)*3);color:#fff;font-size:calc(var(--u)*18)}
+.xp-guide img{width:calc(var(--u)*30);height:calc(var(--u)*30);object-fit:contain}
