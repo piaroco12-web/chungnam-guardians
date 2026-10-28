@@ -40,3 +40,14 @@ test('next game gesture retries mobile autoplay rejection without rewinding musi
  m.play=normalPlay;doc.emit('pointerdown');assert.equal(m.paused,false);assert.equal(m.currentTime,19);
  doc.hidden=true;doc.emit('visibilitychange');const n=m.playCalls;doc.emit('keydown');assert.equal(m.playCalls,n);assert.equal(m.paused,true);
 }));
+test('blocked first title autoplay is reported and the first activating gesture plays it once',()=>setup(async({api,doc,media})=>{
+ const seen=[];api.onBgmBlocked(v=>seen.push(v));
+ const blockedPlay=function(){this.paused=true;this.playCalls++;const e=Error('blocked');e.name='NotAllowedError';return Promise.reject(e);};
+ api.bgm('title');const m=media[0],okPlay=m.play;m.play=blockedPlay;api.refreshBgm();await new Promise(r=>setTimeout(r,0));
+ assert.equal(api.bgmBlocked(),true);assert.deepEqual(seen,[true]);assert.equal(m.paused,true);
+ doc.emit('touchstart');await new Promise(r=>setTimeout(r,0));assert.equal(api.bgmBlocked(),true);
+ m.play=okPlay;doc.emit('touchend');await new Promise(r=>setTimeout(r,0));
+ assert.equal(m.paused,false);assert.equal(api.bgmBlocked(),false);assert.deepEqual(seen,[true,false]);
+ const n=m.playCalls;doc.emit('click');assert.equal(m.playCalls,n);assert.equal(media.length,1);
+ api.bgm('base');assert.equal(m.paused,true);assert.equal(media.filter(x=>!x.paused).length,1);
+}));

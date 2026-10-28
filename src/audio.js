@@ -127,6 +127,12 @@ const TRACKS = {
 };
 const tracks = {};
 let current = null;
+// 브라우저가 소리 있는 자동재생을 막았는지. 타이틀의 "소리 켜기" 안내가 구독한다.
+let blocked = false;
+const blockWatchers = new Set();
+function setBlocked(v) { if (blocked === v) return; blocked = v; for (const f of blockWatchers) f(v); }
+export const bgmBlocked = () => blocked;
+export function onBgmBlocked(f) { blockWatchers.add(f); return () => blockWatchers.delete(f); }
 export function bgm(name) {
   if (current === name) return;
   for (const k in tracks) tracks[k].pause();
@@ -146,9 +152,13 @@ function playTrack(name, restart = false) {
   if (!restart && !a.loop && a.ended) return; // completed jingles never repeat on tab return
   a.muted = false;
   a.play().then(() => {
+    setBlocked(false);
     // A pending play promise may finish after another tab/track is selected.
     if (background() || current !== name || !save.settings.bgm) a.pause();
-  }).catch(() => {}); // 첫 터치 전 자동재생 제한은 unlockAudio에서 다시 시도
+  }).catch(e => {
+    // 첫 입력 전 자동재생 제한(NotAllowedError)은 아래 retryFromGesture가 첫 입력 때 다시 시도
+    if (e?.name === 'NotAllowedError' && current === name && !background()) setBlocked(true);
+  });
 }
 export function refreshBgm() { const c = current; current = null; bgm(c); }
 export function unlockAudio() {
@@ -181,14 +191,17 @@ if (typeof document !== 'undefined' && typeof window !== 'undefined') {
   window.addEventListener('pageshow', () => { pageAway = false; windowAway = false; restoreForeground(); });
   window.addEventListener('blur', () => { windowAway = true; silenceBackground(); });
   window.addEventListener('focus', () => { windowAway = false; restoreForeground(); });
-  // Mobile autoplay may reject automatic resume. Retry within the next real
-  // game gesture (including Continue), without rewinding music or jingles.
+  // Autoplay may reject the first track or an automatic resume. Retry within the
+  // next real gesture anywhere (including Continue), without rewinding music or jingles.
+  // Touch pointerdown/touchstart do not count as a user activation in Chrome, so
+  // pointerup/touchend/click are listened to as well. Capture runs before UI handlers.
   const retryFromGesture = () => {
     if (document.hidden || pageAway) return;
     windowAway = false;
     const a = tracks[current];
     if ((ac && ac.state !== 'running') || a?.paused || a?.muted) restoreForeground();
   };
-  document.addEventListener('pointerdown', retryFromGesture);
-  document.addEventListener('keydown', retryFromGesture);
+  for (const k of ['pointerdown', 'touchstart', 'pointerup', 'touchend', 'click', 'keydown']) {
+    document.addEventListener(k, retryFromGesture, { capture: true, passive: true });
+  }
 }
