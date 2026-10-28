@@ -127,7 +127,7 @@ try { swReload = sessionStorage.getItem('cnguard_sw_reload') === '1'; sessionSto
 if (save.settings.kiosk && !swReload) resetForNextStudent();
 
 // 교사 모드면 모두 열린 것으로 본다
-const cardsOf = kind => CARDS.filter(c => !kind || c.kind === kind);
+const cardsOf = kind => CARDS.filter(c => kind ? c.kind === kind : !c.evolution);
 export const view = {
   pilotUnlocked: p => { const u = PILOT_UNLOCK[p.id]; return save.teacher || !u || (u.n ? view.setCount({ kind: u.kind })[0] >= u.n : view.setDone({ kind: u.kind })); },
   weaponUnlocked: w => { const u = MW[w.id]?.unlock; return save.teacher || !u || u.need.every(([id, n]) => (save.mastery[id] || 0) >= n); },
@@ -179,4 +179,4 @@ export function loadRun() {
   if (Array.isArray(run.evolved)) run.evolved = run.evolved.filter(id => id !== 'evo_main').map(id => ({ evo_missile: 'evo_turret', evo_shotgun: 'evo_mine' })[id] || id);
   return run;
 }
-export function clearRun() { remove(RUN_KEY); }
+export function clearRun() { remove(RUN_KEY); }  
