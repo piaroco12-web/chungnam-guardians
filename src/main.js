@@ -1,3 +1,4 @@
+import { evolutionCardId } from '../data/evolution-cards.js';
 import {recordPersonalClear} from '../data/personal-map.js';
 // 충남 수호대 — 진입점. 화면 흐름과 전투 루프를 묶는다.
 import {coopCached,coopStatus,coopStart,coopResume,coopBattle,coopContribute,coopConfigure} from './cooperation.js';
@@ -247,11 +248,13 @@ function openLevelUp(b) {
   const choices = levelChoices(b.run);
   ui.levelUp(b.run, choices, b.ship.id, c => {
     const res = applyLevelChoice(b.run, c);
-    if (c.type === 'mwevo' && c.ult) { const cards = []; giveCard(b, 'c_func', cards); if (cards.length) ui.toast('SW·AI 개념 카드 「함수」를 얻었어요!'); }   // 궁극 진화 처음 → 함수 카드
+    const evolutionCards = [];
+    if (c.type === 'mwevo' || c.type === 'evo') giveCard(b, evolutionCardId(c.id), evolutionCards);
+    if (c.type === 'mwevo' && c.ult) giveCard(b, 'c_func', evolutionCards);
     b.recalc();
     if (b.run._healUp) { b.heal(b.run._healUp); delete b.run._healUp; }
     if (b.run._healPct) { b.heal(b.maxHp * b.run._healPct); delete b.run._healPct; }
-    resumeBattle(b);
+    showCards(evolutionCards, () => resumeBattle(b));
     if (res && res.gamble) { res.ok ? sfx.levelup() : sfx.hurt(); ui.toast(res.ok ? `🎲 도전 성공! ${c.def.name} 2단계 상승` : `🎲 아쉬워요, 이번엔 실패 (성공 확률 ${Math.round(c.chance * 100)}%)`); }
   });
 }
@@ -552,4 +555,4 @@ loadAssets(p => ui.loading(p)).then(() => { toTitle(); requestAnimationFrame(loo
 void persist; void godOf;
 
 // 개발 확인용: 주소 끝에 ?debug 를 붙이면 콘솔에서 window.__cg 로 상태를 볼 수 있다.
-if (location.search.includes('debug')) window.__cg = { state, save, openAltar, openLevelUp, giveCard, showCards };
+if (location.search.includes('debug')) window.__cg = { state, save, openAltar, openLevelUp, giveCard, showCards };  
