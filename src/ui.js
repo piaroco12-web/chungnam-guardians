@@ -17,13 +17,13 @@ import { login, logout, accountParts, accountLabel, studentFields } from './acco
 import { MAIN_WEAPONS, mainOf, SHIP_WEAPON, BAR_NAMES } from '../data/weapons.js';
 import { save, view, persist, checkTeacher, metaNow, coinsNow, buyMeta, totalCodex, totalCards, resetAll, resetForNextStudent, spendCoins, addPurge } from './save.js';
 import { art, pic, COIN_ICON_URL } from './assets.js';
-import { sfx, refreshBgm } from './audio.js';
+import { sfx, refreshBgm, unlockAudio, bgmBlocked, onBgmBlocked } from './audio.js';
 import { scatterText, stagger, stamp as stampFx, unfold, highlight, countUp, bouncy, jelly, nope, dealChoices, chooseCard } from './motion.js';
 import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.15.4';
+export const VERSION = '2.15.5';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -99,11 +99,32 @@ export function title({ onStart, hasRun, onContinue }) {
     ${art ? `<div class="title-art" style="background-image:url(${art})"></div>` : ''}
     <div class="version ol">버전 ${VERSION}</div>
     ${logo ? `<img class="logo-img" src="${logo}" alt="충남 수호대">` : `<div class="logo ol">충남 수호대<small class="ol">코딩 블라스터</small></div>`}
+    <button class="btn sm sound-hint" id="sound" hidden>🔊 소리 켜기</button>
     <div class="tap ol">화면을 터치해서 시작</div>
     <div class="title-btns">${hasRun ? '<button class="btn blue sm" id="cont">이어하기</button>' : ''}</div>
   </div>`);
   scatterText(r.querySelector('.logo'));
-  r.querySelector('.screen').addEventListener('click', e => { if (e.target.id === 'cont') return; sfx.click(); onStart(); });
+  // 브라우저가 타이틀 음악 자동재생을 막으면, 첫 터치는 시작 대신 소리만 켜서 타이틀 음악을 듣게 한다.
+  // 키 입력이나 이어하기로 소리가 먼저 켜지면 안내는 사라지고, 한 번 소리를 켠 뒤에는 다시 묻지 않는다.
+  const screen = r.querySelector('.screen'), hint = r.querySelector('#sound'), tap = r.querySelector('.tap');
+  let needSound = false, asked = false, pressing = false;
+  const sync = blocked => {
+    if (!hint.isConnected) return off();
+    if (blocked && save.settings.bgm && !asked) needSound = true;
+    else if (!pressing) needSound = false;   // 누르는 중에 재생되면 그 터치까지는 소리 켜기로 처리
+    hint.hidden = !needSound;
+    tap.textContent = needSound ? '화면을 터치하면 소리가 켜져요' : '화면을 터치해서 시작';
+  };
+  const off = onBgmBlocked(sync);
+  sync(bgmBlocked());
+  screen.addEventListener('pointerdown', () => { pressing = true; });
+  screen.addEventListener('pointercancel', () => { pressing = false; });
+  screen.addEventListener('click', e => {
+    pressing = false;
+    if (e.target.id === 'cont') { off(); return; }
+    if (needSound) { asked = true; needSound = false; unlockAudio(); sync(false); return; }
+    off(); sfx.click(); onStart();
+  });
   click('#cont', onContinue);
 }
 

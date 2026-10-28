@@ -54,6 +54,8 @@ body{font-family:var(--body);color:var(--white);display:flex;align-items:center;
 .version{position:absolute;left:calc(var(--u)*16);top:calc(var(--u)*14);font-size:calc(var(--u)*16)}
 .tap{position:absolute;bottom:calc(var(--u)*140);font-size:calc(var(--u)*30);animation:blink 1.4s ease-in-out infinite}
 .title-btns{position:absolute;bottom:calc(var(--u)*50);display:flex;gap:calc(var(--u)*14)}
+.sound-hint{position:absolute;right:calc(var(--u)*16);top:calc(var(--u)*12)}
+.sound-hint[hidden]{display:none}
 @keyframes blink{50%{opacity:.35}}
 
 /* 기지 */
