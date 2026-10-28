@@ -1,3 +1,4 @@
+import { MASTERY_REWARDS } from '../data/mastery-rewards.js';
 // 화면(DOM) 그리기: 타이틀·기지·선택·HUD·일시정지·레벨업·제단·카드·결과
 import {summaryHtml} from './cooperation-ui.js';
 import { XP_GEMS } from '../data/loot.js';
@@ -22,7 +23,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.15.3';
+export const VERSION = '2.15.4';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -173,16 +174,32 @@ function metaTab(bb, state, act) {
   }, bb);
 }
 
+function masteryPanel(r) {
+  const [n,total]=view.masteryCount(r),done=view.masteryDone(r);
+  return `<div class="mastery-panel ${done?'complete':''}"><div><b>${done?'🏅':'◇'} ${esc(r.title)}</b><span>${n}/${total}</span></div><p>${esc(r.condition)}</p><p class="mastery-buff">${done?'✓ 적용 중':'완성 보상'} · ${esc(r.label)}</p>${done?`<button class="btn sm" data-title="${r.id}">${view.title()===r.title?'표시 중인 칭호':'이 칭호 표시'}</button>`:''}</div>`;
+}
+function setDisplayedTitle(bb,id) {
+  save.settings.titleId=id; persist(); const scroll=bb.scrollTop; codex(bb); bb.scrollTop=scroll;
+  let chip=root().querySelector('.title-chip');
+  if (!chip && view.title()) { chip=document.createElement('span'); chip.className='title-chip'; root().querySelector('.base-name')?.appendChild(chip); }
+  if(chip) chip.textContent='🏅 '+view.title();
+}
+function bindTitles(bb) {
+  click('[data-title]', (e,el)=>setDisplayedTitle(bb,el.dataset.title),bb);
+  on('#codex-title','change',(e,el)=>setDisplayedTitle(bb,el.value),bb);
+}
 function codex(bb) {
   const got = id => view.inCodex(id);
   const sealed = () => pic.sealed() ? `<img class="sealed-emblem" src="${pic.sealed()}" alt="미확인 가호">` : '<span class="sealed-fallback">?</span>';
   const cell = (id, cls = '') => `<div class="cell ${got(id) ? 'got ' + cls : 'unseen ' + cls}" data-b="${id}">${got(id) ? boonIcon(id) : sealed()}</div>`;
   const n = [...BOONS, ...DUOS, ...LEGENDS].filter(b => got(b.id)).length;
-  bb.innerHTML = `<h2 class="ol">가호 도감 ${n}/${totalCodex()}</h2>
+  bb.innerHTML = `<h2 class="ol">무기 도감</h2><label class="mastery-panel">표시할 칭호 <select id="codex-title" aria-label="표시할 칭호"><option value="">자동 선택</option>${view.titles().map(t=>`<option value="${t.id}" ${save.settings.titleId===t.id?'selected':''}>${esc(t.title)}</option>`).join('')}</select><p>획득한 버프는 칭호 선택과 관계없이 자동 적용돼요.</p></label><p class="note backed">진화 카드를 모아 무기별 칭호와 해당 무기 피해 +5%를 얻어요.</p>${MASTERY_REWARDS.filter(r=>r.kind==='weapon').map(r=>`<div class="sec-label">${esc(r.name)}</div><div class="grid mastery-cards">${r.cardIds.map(id=>{const c=CARDS.find(c=>c.id===id);return `<button class="mastery-card ${view.hasCard(id)?'got':'locked'}" data-mastery-card="${id}"><span>${cardArt(c)}</span><b>${esc(c.title)}</b><small>${view.hasCard(id)?'해금 완료':'조건 보기'}</small></button>`;}).join('')}</div>${masteryPanel(r)}`).join('')}<h2 class="ol">가호 도감 ${n}/${totalCodex()}</h2>
     <p class="note backed">제단에서 가호 등급이 나올 확률: ${RARITY.map(r => `${r.name} ${r.w}%`).join(' · ')}</p>
-    ${GODS.map(g => `<div class="sec-label">${g.e} ${g.name} · ${g.elem}</div><div class="grid">${BOONS.filter(b => b.god === g.id).map(b => cell(b.id)).join('')}</div>`).join('')}
+    ${GODS.map(g => `<div class="sec-label">${g.e} ${g.name} · ${g.elem}</div><div class="grid">${BOONS.filter(b => b.god === g.id).map(b => cell(b.id)).join('')}</div>${masteryPanel(MASTERY_REWARDS.find(r=>r.god===g.id))}`).join('')}
     <div class="sec-label">듀오 가호</div><div class="grid">${DUOS.map(d => cell(d.id, 'duo')).join('')}</div>
     <div class="sec-label">전설 가호</div><div class="grid">${LEGENDS.map(l => cell(l.id, 'legend')).join('')}</div>`;
+  bindTitles(bb);
+  click('[data-mastery-card]', (e,el)=>cardModal(CARDS.find(c=>c.id===el.dataset.masteryCard)),bb);
   click('[data-b]', (e, el) => {
     const id = el.dataset.b, d = boonDef(id);
     if (!got(id)) return modal(`<b class="ol" style="font-size:calc(var(--u)*26)">아직 못 만났어요</b><p>수호신 제단에서 얻으면 공개돼요.</p>`);
@@ -571,6 +588,7 @@ async function openBoard(day) {
 
 // ───────── 해금·범주 완성 축하 ─────────
 export function newsName(n) {
+  if (n.type === 'mastery') return `${n.reward.name} 도감 완성 (${n.reward.title})`;
   if (n.type === 'set') return `${n.set.kind || '카드 64장'} 완성 (${n.set.title})`;
   if (n.type === 'pilot') return '파일럿 ' + PILOTS.find(p => p.id === n.id).name;
   return '기체 ' + SHIPS.find(s => s.id === n.id).name;
@@ -580,7 +598,10 @@ export function celebrate(news, done) {
   const n = news[0], rest = news.slice(1);
   sfx.levelup();
   let k, art, ttl, body;
-  if (n.type === 'set') {
+  if (n.type === 'mastery') {
+    const m=n.reward; k=`${m.name} 도감 완성!`; ttl=m.title; art=m.god?`<img class="news-art" src="${pic.god(godOf(m.god))}" alt="">`:cardArt(CARDS.find(c=>c.id===m.cardIds.at(-1)));
+    body=`<p>칭호 <strong>${esc(m.title)}</strong></p><p>영구 버프 <strong>${esc(m.label)}</strong></p><p>도감에서 표시할 칭호를 고를 수 있어요. 획득한 버프는 자동으로 함께 적용돼요.</p>`;
+  } else if (n.type === 'set') {
     const s = n.set;
     k = s.kind ? `${s.kind} 카드 완성!` : '카드 64장 모두 모았어요!';
     art = `<span class="medal">🏅</span>`; ttl = s.title;

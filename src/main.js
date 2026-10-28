@@ -276,7 +276,7 @@ function showCards(list, done) {
     snap = unlockSnap();
     const b = state.battle;
     if (b) b.unlocksThisRun = [...(b.unlocksThisRun || []), ...news.map(n => ui.newsName(n))];
-    if (b && news.some(n => n.type === 'set')) b.recalc();   // 범주 보너스를 이번 판에도 바로
+    if (b && news.some(n => n.type === 'set' || n.type === 'mastery')) b.recalc();   // 범주 보너스를 이번 판에도 바로
     return ui.celebrate(news, done);
   }
   const c = list.shift();
