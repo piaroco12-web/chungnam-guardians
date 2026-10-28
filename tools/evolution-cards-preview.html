@@ -1,0 +1,14 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>진화 카드 화면 검증</title><link rel="stylesheet" href="../style.css"><div id="stage"><canvas id="game"></canvas><div id="ui"></div></div><script type="module">
+import {loadAssets} from '../src/assets.js';
+import {base} from '../src/ui.js';
+import {fitStage} from '../src/view.js';
+import {save} from '../src/save.js';
+import {EVOLUTION_CARDS} from '../data/evolution-cards.js';
+// 전용 로컬 검증 페이지. 계정·서버 요청 및 persist 호출 없이 메모리에서만 예시 카드 표시.
+save.teacher=false;save.settings.sfx=false;save.settings.bgm=false;
+save.cards=EVOLUTION_CARDS.filter((c,i)=>i%3!==0).map(c=>c.id);
+const stage=document.getElementById('stage'),canvas=document.getElementById('game');
+const resize=()=>fitStage(stage,canvas);resize();window.addEventListener('resize',resize);
+await loadAssets();base({tab:'cards'},{});
+document.querySelector('.kind-evolution')?.scrollIntoView({block:'start'});
+</script></html>
