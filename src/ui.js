@@ -22,7 +22,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.15.2';
+export const VERSION = '2.15.3';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -66,6 +66,11 @@ const choiceArt = (id, fallback) => { const im = pic.path(id); return im ? `<img
 const dots = (lv, max = 3) => `<div class="dots">${Array.from({ length: max }, (_, i) => `<i class="${i < lv ? 'on' : ''}"></i>`).join('')}</div>`;
 const coinIcon = `<span class="coin"><img src="${COIN_ICON_URL}" alt="옆전"></span>`;
 function cardArt(c) {
+  if (c.evolution) {
+    const w = MAIN_WEAPONS.find(w => w.id === c.weapon);
+    const image = w ? mwEvoArt(w, c.stage) : subEvoArt(EVOLUTIONS.find(ev => ev.id === c.evolution));
+    return image.replace('<img ', '<img class="card-character" ');
+  }
   const concept = c.art && pic.concept(c.art);
   if (concept) return `<img class="card-character" src="${concept}" alt="${esc(c.title)}">`;
   const region = pic.region(c.id);
@@ -203,24 +208,26 @@ const twoLines = t => {
 };
 const gridTitle = t => { const m = /^(.*?)\s*\((.+)\)$/.exec(t); return m ? `${esc(m[1])}<small>(${esc(m[2])})</small>` : twoLines(t); };
 function cardsTab(bb) {
-  const groups = ['지역 상식', 'SW·AI 개념', '예방 수칙', 'AI 역량'];
+  const groups = ['지역 상식', 'SW·AI 개념', '예방 수칙', 'AI 역량', '일반 진화', '궁극 진화', '보조무기 진화'];
   const n = CARDS.filter(c => view.hasCard(c.id)).length;
-  const setLine = set => { const [a, t] = view.setCount(set), done = a >= t || view.setDone(set);
+  const setLine = (set, kind) => { if (!set) { const cards = CARDS.filter(c => c.kind === kind); return `<span class="set-prog">${cards.filter(c => view.hasCard(c.id)).length}/${cards.length} · 진화를 선택하면 카드 해금</span>`; } const [a, t] = view.setCount(set), done = a >= t || view.setDone(set);
     return `<span class="set-prog ${done ? 'done' : ''}">${done ? '✓ 완성' : `${a}/${t}`} · ${esc(set.label)} · 🏅${esc(set.title)}</span>`; };
   const all = SETS.find(s => !s.kind);
-  bb.innerHTML = `<h2 class="ol">카드첩 ${n}/${totalCards()}</h2><div class="set-all">${setLine(all)}<small>범주를 모두 모으면 영구 보너스·칭호·기체 색을 받아요</small></div>${groups.map(gname => `<div class="sec-label">${gname} ${setLine(SETS.find(s => s.kind === gname))}</div><div class="grid cards">${CARDS.filter(c => c.kind === gname).map(c => view.hasCard(c.id)
+  bb.innerHTML = `<h2 class="ol">카드첩 ${n}/${totalCards()}</h2><div class="set-all">${setLine(all)}<small>학습 카드 64장을 모으면 영구 보너스·칭호·기체 색을 받아요. 진화 카드 20종은 별도로 수집해요.</small></div>${groups.map(gname => `<div class="sec-label">${gname} ${setLine(SETS.find(s => s.kind === gname), gname)}</div><div class="grid cards">${CARDS.filter(c => c.kind === gname).map(c => view.hasCard(c.id)
     ? `<div class="ccard got ${kindClass(c)}" data-c="${c.id}"><span class="e">${cardArt(c)}</span><b>${gridTitle(c.title)}</b></div>`
-    : `<div class="ccard unopened" aria-label="미확인 카드 · ${esc(hintFor(c))}"><img class="unopened-art" src="${pic.unopened() || pic.cardBack()}" alt=""><span class="unopened-hint">${hintFor(c)}</span></div>`).join('')}</div>`).join('')}`;
+    : `<div class="ccard unopened ${c.evolution ? kindClass(c) + ' evolution-locked' : ''}" ${c.evolution ? `data-c="${c.id}" role="button" tabindex="0"` : ''} aria-label="미확인 카드 · ${esc(hintFor(c))}"><img class="unopened-art" src="${pic.unopened() || pic.cardBack()}" alt=""><span class="unopened-hint">${hintFor(c)}</span></div>`).join('')}</div>`).join('')}`;
   const opened = STORY.filter(st => save.teacher || save.story.includes(st.id));
   bb.insertAdjacentHTML('beforeend', `<div class="sec-label">이야기 조각 ${opened.length}/${STORY.length}</div><div class="rows">${STORY.map(st => (save.teacher || save.story.includes(st.id))
     ? `<div class="row story" data-st="${st.id}"><div class="ic" style="width:calc(var(--u)*72);height:calc(var(--u)*72);overflow:hidden">${pic.story(st.id) ? `<img src="${pic.story(st.id)}" alt="" style="width:100%;height:100%;object-fit:cover">` : st.e}</div><div class="tx"><b>${esc(st.who)}</b><p style="color:#fff">${esc(st.text)}</p></div></div>`
     : '<div class="row locked" style="opacity:.6"><div class="ic">🔒</div><div class="tx"><p>출격을 거듭하면 열려요</p></div></div>').join('')}</div>`);
   click('[data-c]', (e, el) => cardModal(CARDS.find(c => c.id === el.dataset.c)), bb);
+  on('.evolution-locked', 'keydown', (e, el) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); } }, bb);
   click('[data-st]', (e, el) => { const st = STORY.find(x => x.id === el.dataset.st), im = pic.story(st.id); modal(`${im ? `<img src="${im}" alt="" style="width:100%;border-radius:calc(var(--u)*12);border:calc(var(--u)*3) solid var(--ink)">` : `<div style="font-size:calc(var(--u)*64)">${st.e}</div>`}<b class="ol" style="font-size:calc(var(--u)*26)">${esc(st.who)}</b><p style="font-size:calc(var(--u)*19);font-weight:700;line-height:1.6;text-align:left">${esc(st.text)}</p>`); }, bb);
 }
 // 카드 종류별 색 이름
-const kindClass = c => ({ '지역 상식': 'kind-region', 'SW·AI 개념': 'kind-concept', '예방 수칙': 'kind-rule', 'AI 역량': 'kind-ai' })[c.kind] || '';
+const kindClass = c => ({ '지역 상식': 'kind-region', 'SW·AI 개념': 'kind-concept', '예방 수칙': 'kind-rule', 'AI 역량': 'kind-ai', '일반 진화': 'kind-evolution', '궁극 진화': 'kind-ultimate', '보조무기 진화': 'kind-support' })[c.kind] || '';
 function hintFor(c) {
+  if (c.evolution) return c.title + ' · 조건 보기';
   if (c.kind === '지역 상식') return SIGUN.find(r => 'r_' + r.id === c.id)?.name + ' 클리어';
   if (c.id === 'c_func') return '메인 무기 궁극 진화';
   if (c.kind === 'SW·AI 개념') return c.god ? godOf(c.god).name + ' 가호 얻기' : ZONES.find(z => z.card === c.id)?.name + ' 처음 클리어';
@@ -228,7 +235,7 @@ function hintFor(c) {
   const b = Object.values(BOSSES).find(x => x.card === c.id); return b ? b.name + ' 처치' : '';
 }
 export function cardModal(c) {
-  modal(`<div class="card-detail ${kindClass(c)}" style="display:grid;justify-items:center;gap:calc(var(--u)*12)"><div class="card-modal-art" style="font-size:calc(var(--u)*64)">${cardArt(c)}</div><b class="ol" style="display:block;width:100%;text-align:center;font-size:calc(var(--u)*30)">${esc(c.title)}</b><p style="font-size:calc(var(--u)*19);font-weight:700;line-height:1.6;text-align:left">${esc(c.text)}</p></div>`);
+  modal(`<div class="card-detail ${kindClass(c)}" style="display:grid;justify-items:center;gap:calc(var(--u)*12)"><div class="card-modal-art" style="font-size:calc(var(--u)*64)">${cardArt(c)}</div><b class="ol" style="display:block;width:100%;text-align:center;font-size:calc(var(--u)*30)">${esc(c.title)}</b><p style="font-size:calc(var(--u)*19);font-weight:700;line-height:1.6;text-align:left">${esc(c.text)}</p>${c.evolution ? `<div class="evolution-condition"><b>${view.hasCard(c.id) ? '✓ 해금 완료' : '해금 조건'}</b><p>${esc(c.condition)}</p><small>전투 중 진화를 선택하면 카드가 저장돼요.</small></div>` : ''}</div>`);
 }
 
 function settings(bb, state, act) {
@@ -803,4 +810,4 @@ export function sigunPick(zi, onPick) {
     confirmChoice(el, 'pilot', () => onPick(el.dataset.v));
   });
   dealChoices(r.querySelectorAll('.pick'));
-}
+}  
