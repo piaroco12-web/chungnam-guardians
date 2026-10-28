@@ -111,9 +111,11 @@ export const BOSSES = {
 };
 
 import { ZODIAC } from './zodiac.js';
+import { EVOLUTION_CARDS } from './evolution-cards.js';
 
-// 카드 64장: 지역 상식 15, SW·AI 개념 12, 예방 수칙 25, AI 역량(12지신) 12
+// 학습 카드 64장 + 무기 진화 카드 20장. 학습 카드 완성 보상은 64장 기준 유지.
 export const CARDS = [
+  ...EVOLUTION_CARDS,
   { id: 'r_asan', kind: '지역 상식', e: '🏯', title: '아산', text: '이순신 장군을 모신 현충사가 있고, 온양온천은 오래전부터 이름난 온천이에요. 외암민속마을에서는 돌담길과 옛 초가집을 볼 수 있어요.' },
   { id: 'r_gongju', kind: '지역 상식', e: '🧱', title: '공주', text: '백제가 웅진(지금의 공주)을 수도로 삼았던 곳이에요. 공산성과 무령왕릉이 있는 왕릉원은 유네스코 세계유산 백제역사유적지구에 속해요.' },
   { id: 'r_buyeo', kind: '지역 상식', e: '🗼', title: '부여', text: '백제의 마지막 수도 사비가 있던 곳이에요. 정림사지 오층석탑은 백제 때 세워진 국보예요.' },
@@ -181,4 +183,4 @@ export const META_UPGRADES = [
   { id: 'bonus', name: '코인 보너스', icon: '💰', max: 5, cost: l => 60 + l * 50, desc: l => `판 종료 코인 +${l * 5}%` },
   { id: 'reroll', name: '제단 다시 뽑기', icon: '🎲', max: 3, cost: l => 150 + l * 150, desc: l => `판마다 다시 뽑기 ${l}회` },
   { id: 'revive', name: '부활', icon: '✨', max: 1, cost: () => 500, desc: l => (l ? '판마다 1회 체력 50%로 부활' : '쓰러지면 1회 부활') },
-];
+];  
