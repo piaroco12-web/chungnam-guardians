@@ -1,3 +1,4 @@
+import { MASTERY_REWARDS, masteryComplete, masteryProgress, masteryBuffs } from '../data/mastery-rewards.js';
 // 기록 저장: 기기 localStorage. 저장이 막혀도 게임은 메모리로 계속 동작한다.
 import { CARDS, REGIONS } from '../data/content.js';
 import { ZONES, sigunOf } from '../data/regions.js';
@@ -138,12 +139,19 @@ export const view = {
   setDone: set => cardsOf(set.kind).every(c => view.hasCard(c.id)),
   setCount: set => { const all = cardsOf(set.kind); return [all.filter(c => view.hasCard(c.id)).length, all.length]; },
   doneSets: () => SETS.filter(s => view.setDone(s)),
+  masteryDone: r => save.teacher || masteryComplete(save, r),
+  masteryCount: r => save.teacher ? [(r.cardIds || r.codexIds).length, (r.cardIds || r.codexIds).length] : masteryProgress(save, r),
+  doneMasteries: () => MASTERY_REWARDS.filter(r => view.masteryDone(r)),
+  masteryBuffs: () => masteryBuffs(save.teacher ? {cards:CARDS.map(c=>c.id),codex:[...BOONS,...DUOS,...LEGENDS].map(b=>b.id)} : save),
+  weaponBonus: id => view.masteryBuffs().weapons[id] || 0,
+  combatBonus: () => { const b = view.bonus(), m = view.masteryBuffs(); for (const k of ['hp','atk','guard','xp','ult']) b[k] += m[k]; return {...b,rate:m.rate,speed:m.speed}; },
+  titles: () => [...view.doneSets().map(s=>({id:s.id,title:s.title})),...view.doneMasteries().map(r=>({id:r.id,title:r.title}))],
   // 범주 완성 영구 능력치 합계
   bonus: () => { const b = { hp: 0, atk: 0, guard: 0, xp: 0, ult: 0 }; for (const s of view.doneSets()) b[s.stat] += s.val; return b; },
   colors: () => [BASE_COLOR, ...view.doneSets().map(s => s.color)],
   shipColor: () => view.colors().find(c => c.id === save.shipColor) || BASE_COLOR,
   // 가장 높은 칭호 (64장 전부면 수호대장, 아니면 완성한 범주)
-  title: () => { const d = view.doneSets(); return d.length ? d[d.length - 1].title : ''; },
+  title: () => { const titles=view.titles(); return (titles.find(t=>t.id===save.settings.titleId)||titles.at(-1))?.title || ''; },
   hellUnlocked: () => save.teacher || save.beatLegend,
   hasCard: id => save.teacher || save.cards.includes(id),
   inCodex: id => save.teacher || save.codex.includes(id),
@@ -157,11 +165,12 @@ export function totalCards() { return CARDS.length; }
 
 // 해금 알림: 무언가를 얻기 전 상태를 찍어 두고, 얻은 뒤 새로 열린 것을 알려 준다
 export function unlockSnap() {
-  return { pilots: new Set(PILOTS_IDS().filter(id => view.pilotUnlocked({ id }))), ships: new Set(Object.keys(SHIP_UNLOCK).filter(id => view.shipUnlocked({ id }))), sets: new Set(view.doneSets().map(s => s.id)) };
+  return { pilots: new Set(PILOTS_IDS().filter(id => view.pilotUnlocked({ id }))), ships: new Set(Object.keys(SHIP_UNLOCK).filter(id => view.shipUnlocked({ id }))), sets: new Set(view.doneSets().map(s => s.id)), masteries: new Set(view.doneMasteries().map(r=>r.id)) };
 }
 export function unlockNews(before) {
   const now = unlockSnap(), news = [];
   for (const s of SETS) if (now.sets.has(s.id) && !before.sets.has(s.id)) news.push({ type: 'set', set: s });
+  for (const r of MASTERY_REWARDS) if (now.masteries.has(r.id) && !before.masteries?.has(r.id)) news.push({type:'mastery',reward:r});
   for (const id of now.pilots) if (!before.pilots.has(id)) news.push({ type: 'pilot', id });
   for (const id of now.ships) if (!before.ships.has(id)) news.push({ type: 'ship', id });
   return news;

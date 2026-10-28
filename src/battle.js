@@ -71,11 +71,11 @@ export class Battle {
   recalc() {
     // 고른 메인 무기의 짝 강화는 효과 +25% (data/weapons.js)
     const pairs = pairUps(this.run), u = id => this.up(id) * (pairs.includes(id) ? 1 + WEAPON_RULES.pairBonus : 1), m = metaNow();
-    this.bonus = view.bonus();   // 카드 범주 완성 보너스 (data/unlocks.js)
+    this.bonus = view.combatBonus(); this.mastery = view.masteryBuffs();   // 카드 범주 완성 보너스 (data/unlocks.js)
     this.st = {
       atk: (1 + u('atk') * 0.1 + m.atk * 0.03) * (this.run.companion === 'tiger' ? 1.25 : 1) * (1 + this.bonus.atk),
-      rate: 1 + u('rate') * 0.08,
-      speed: 1 + u('speed') * 0.1,
+      rate: (1 + u('rate') * 0.08) * (1 + this.bonus.rate),
+      speed: (1 + u('speed') * 0.1) * (1 + this.bonus.speed),
       cd: Math.max(0.4, 1 - u('cd') * 0.06),
       size: 1 + u('size') * 0.1,
       area: 1 + u('area') * 0.1,
@@ -326,7 +326,7 @@ export class Battle {
     return 1 / rate;
   }
 
-  baseDmg() { return this.mw.fire.dmg * (1 + (this.wl('main') - 1) * 0.2) * this.st.atk * this.shipW().dmg * (this.fitsMain() ? 1 + WEAPON_RULES.fitBonus : 1); }
+  baseDmg() { return this.mw.fire.dmg * (1 + (this.wl('main') - 1) * 0.2) * this.st.atk * this.shipW().dmg * (1 + (this.mastery.weapons[this.mw.id] || 0)) * (this.fitsMain() ? 1 + WEAPON_RULES.fitBonus : 1); }
 
   playerFire(dt) {
     const p = this.p;
@@ -406,22 +406,22 @@ export class Battle {
     if (this.wl('mine') && tick('mine', Math.max(0.5, 1.4 - this.wl('mine') * 0.1) * st.cd)) {   // 지뢰 투하: 지나간 자리에
       const ev = this.evo('evo_mine'), max = (3 + this.wl('mine')) * (ev ? 2 : 1), mines = this.objs.filter(o => o.kind === 'mine');
       if (mines.length >= max) mines[0].t = 0;
-      this.objs.push({ kind: 'mine', x: p.x, y: p.y + 14, t: 9, arm: 0.4, r: 14 * st.size, blast: (60 + this.wl('mine') * 8) * st.area, dmg: (26 + this.wl('mine') * 6) * st.atk, chain: ev, visualLevel: this.wl('mine'), evolved: ev });
+      this.objs.push({ kind: 'mine', x: p.x, y: p.y + 14, t: 9, arm: 0.4, r: 14 * st.size, blast: (60 + this.wl('mine') * 8) * st.area, dmg: (26 + this.wl('mine') * 6) * st.atk * (1 + (this.mastery.weapons.mine || 0)), chain: ev, visualLevel: this.wl('mine'), evolved: ev });
     }
     if (this.wl('turret') && tick('turret', Math.max(0.4, 1.2 - this.wl('turret') * 0.1) * st.cd)) {   // 보조 레이저 포탑: 가까운 적 조준
       const ev = this.evo('evo_turret'), n = ev ? 4 : 2;
       for (let i = 0; i < n; i++) {
         const pos = this.turretPos(i, n), t = this.nearestEnemy(pos.x, pos.y, 560); if (!t) continue;
         const a = Math.atan2(t.y - pos.y, t.x - pos.x);
-        this.pb.push({ x: pos.x, y: pos.y, vx: Math.cos(a) * 1100 * st.speed, vy: Math.sin(a) * 1100 * st.speed, dmg: (8 + this.wl('turret') * 3) * st.atk, r: 4 * st.size, pierce: ev ? 3 : 0, kind: 'turret', hit: new Set(), elem: null, visualLevel: this.wl('turret'), evolved: ev });
+        this.pb.push({ x: pos.x, y: pos.y, vx: Math.cos(a) * 1100 * st.speed, vy: Math.sin(a) * 1100 * st.speed, dmg: (8 + this.wl('turret') * 3) * st.atk * (1 + (this.mastery.weapons.turret || 0)), r: 4 * st.size, pierce: ev ? 3 : 0, kind: 'turret', hit: new Set(), elem: null, visualLevel: this.wl('turret'), evolved: ev });
       }
     }
     if (this.wl('bomb') && tick('bomb', 2.5 * st.cd)) {
-      this.objs.push({ kind: 'bomb', x: p.x, y: p.y - 30, t: 0.8, vy: -320, r: (70 + this.wl('bomb') * 10) * st.area, dmg: (30 + this.wl('bomb') * 5) * st.atk, cluster: this.evo('evo_bomb'), visualLevel: this.wl('bomb'), evolved: this.evo('evo_bomb') });
+      this.objs.push({ kind: 'bomb', x: p.x, y: p.y - 30, t: 0.8, vy: -320, r: (70 + this.wl('bomb') * 10) * st.area, dmg: (30 + this.wl('bomb') * 5) * st.atk * (1 + (this.mastery.weapons.bomb || 0)), cluster: this.evo('evo_bomb'), visualLevel: this.wl('bomb'), evolved: this.evo('evo_bomb') });
     }
     if (this.wl('boomerang') && tick('boomer', 2 * st.cd)) {
       const ev = this.evo('evo_boomerang'), n = ev ? 3 : 1;
-      for (let i = 0; i < n; i++) this.objs.push({ kind: 'boomerang', x: p.x, y: p.y, vx: (i - (n - 1) / 2) * 160, vy: -650 * st.speed, t: 0, r: 18 * (ev ? 2 : 1) * st.size, dmg: (18 + this.wl('boomerang') * 6) * st.atk, hitCd: new Map(), visualLevel: this.wl('boomerang'), evolved: ev });
+      for (let i = 0; i < n; i++) this.objs.push({ kind: 'boomerang', x: p.x, y: p.y, vx: (i - (n - 1) / 2) * 160, vy: -650 * st.speed, t: 0, r: 18 * (ev ? 2 : 1) * st.size, dmg: (18 + this.wl('boomerang') * 6) * st.atk * (1 + (this.mastery.weapons.boomerang || 0)), hitCd: new Map(), visualLevel: this.wl('boomerang'), evolved: ev });
     }
   }
 
@@ -436,7 +436,7 @@ export class Battle {
   orbits() {
     const list = [], st = this.st, t = this.t;
     const add = (kind, n, rad, spd, dmg, opts = {}) => { for (let i = 0; i < n; i++) { const a = t * spd + i * Math.PI * 2 / n; list.push({ kind, x: this.p.x + Math.cos(a) * rad, y: this.p.y + Math.sin(a) * rad, dmg, r: opts.r || 14, ...opts }); } };
-    if (this.wl('satellite')) { const ev = this.evo('evo_satellite'); add('sat', ev ? 6 : this.wl('satellite'), ev ? 84 : 62, 3, (ev ? 18 : 12) * st.atk, { visualLevel: this.wl('satellite'), evolved: ev }); }
+    if (this.wl('satellite')) { const ev = this.evo('evo_satellite'); add('sat', ev ? 6 : this.wl('satellite'), ev ? 84 : 62, 3, (ev ? 18 : 12) * st.atk * (1 + (this.mastery.weapons.satellite || 0)), { visualLevel: this.wl('satellite'), evolved: ev }); }
     if (this.has('gy_orbit')) add('gy_orbit', 2, 74, 2.4, 14 * this.rr('gy_orbit') * st.atk, { elem: 'shock', r: 15 });
     if (this.has('gg_orbit')) add('gg_orbit', 3, 96, -2, 12 * this.rr('gg_orbit') * st.atk, { elem: 'chill', r: 14 });
     if (this.has('sh_orbit')) add('sh_orbit', 1, 70, 1.6, 10 * this.rr('sh_orbit') * st.atk, { r: 26, absorb: true, elem: 'wave' });
