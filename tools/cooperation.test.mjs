@@ -38,7 +38,7 @@ test('KST day and all 15 canonical region IDs are valid',()=>{
  assert.equal(COOP_REGIONS.length,15);assert.equal(new Set(COOP_REGIONS).size,15);assert.ok(COOP_REGIONS.every(id=>SIGUN.some(s=>s.id===id)));
 });
 test('small class milestones lead to retained region decorations without resetting completed places',()=>{
- const g=coopFreshClass('x',2);for(let i=0;i<2;i++)coopAddClass(g,'battle');assert.equal(coopClassView(g).small,1);
+ const g=coopFreshClass('x',5);/* 5명 → 목표 6칸, 한 단계 2칸 */for(let i=0;i<2;i++)coopAddClass(g,'battle');assert.equal(coopClassView(g).small,1);
  for(let i=0;i<4;i++)coopAddClass(g,'quiz');assert.deepEqual(g.completed,['cheonan']);assert.equal(g.current,0);
  for(let i=0;i<6;i++)coopAddClass(g,'explore');assert.deepEqual(g.completed,['cheonan','asan']);assert.equal(g.points,12);
 });
@@ -85,7 +85,7 @@ test('events require teacher authorization, include configured classes and close
  assert.equal(s.coop({op:'start',kind:'event',requestId:'event-request-0001'}).ok,false);s.advance(1001);
  const t=s.coop({op:'start',kind:'event',requestId:'event-request-0001'}).ticket;assert.ok(t.eventId);
  s.coop({op:'finish',ticketId:t.id,date:t.date});s.coop({op:'contribute',role:'quiz'});
- let state=s.coop({op:'status'});assert.equal(state.event.total,2);assert.equal(state.event.target,15);assert.equal(state.event.classes.length,2);
+ let state=s.coop({op:'status'});assert.equal(state.event.total,2);assert.equal(state.event.target,6);  // 두 반 5명 ×1.2assert.equal(state.event.classes.length,2);
  assert.equal('rank' in state.event,false);s.advance(61000);
  s.coop({op:'contribute',role:'explore'});state=s.coop({op:'status'});assert.equal(state.event.total,2);assert.equal(state.group.points,3);assert.equal(state.event.active,false);
 });

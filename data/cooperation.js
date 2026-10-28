@@ -4,18 +4,20 @@ export const COOP_DAILY_RUNS = 3;
 export const COOP_ROLES = ['battle','quiz','explore'];
 export const COOP_REGIONS = ['cheonan','asan','dangjin','gongju','buyeo','cheongyang','nonsan','gyeryong','geumsan','seosan','taean','boryeong','seocheon','naepo','yesan'];
 export function coopDay(time=Date.now()) { return new Date(time+9*3600000).toISOString().slice(0,10); }
+// 도시 하나를 정화하는 칸 수: 인원×1.2 (25명 → 30칸). 정찰·회복·정화 세 단계는 목표의 1/3씩
+export function coopTarget(roster) { return Math.max(3, Math.ceil(roster * 6 / 5)); }
 export function coopFreshClass(id,roster=25) { return {id,roster,minutes:null,points:0,current:0,completed:[],roles:{battle:0,quiz:0,explore:0}}; }
 export function coopAddClass(group,role) {
   if(role) {group.points++;group.current++;group.roles[role]=(group.roles[role]||0)+1;}
-  const target=group.roster*3;
+  const target=coopTarget(group.roster);
   while(group.current>=target&&group.completed.length<COOP_REGIONS.length) {
     group.current-=target;group.completed.push(COOP_REGIONS.find(id=>!group.completed.includes(id)));
   }
   return group;
 }
 export function coopClassView(group) {
-  const done=group.completed.length===COOP_REGIONS.length,target=group.roster*3;
-  return {...group,target,region:COOP_REGIONS.find(id=>!group.completed.includes(id))||null,small:done?3:Math.min(3,Math.floor(group.current/group.roster)),done};
+  const done=group.completed.length===COOP_REGIONS.length,target=coopTarget(group.roster);
+  return {...group,target,region:COOP_REGIONS.find(id=>!group.completed.includes(id))||null,small:done?3:Math.min(3,Math.floor(group.current*3/target)),done};
 }
 export function coopNewDay() { return {requests:[],roles:{battle:false,quiz:false,explore:false}}; }
 export function coopReserve(day,requestId,ticket) {

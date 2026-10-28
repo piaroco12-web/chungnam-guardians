@@ -147,18 +147,20 @@ const COOP_DAILY_RUNS = 3;
 const COOP_ROLES = ['battle','quiz','explore'];
 const COOP_REGIONS = ['cheonan','asan','dangjin','gongju','buyeo','cheongyang','nonsan','gyeryong','geumsan','seosan','taean','boryeong','seocheon','naepo','yesan'];
 function coopDay(time=Date.now()) { return new Date(time+9*3600000).toISOString().slice(0,10); }
+// 도시 하나를 정화하는 칸 수: 인원×1.2 (25명 → 30칸). 정찰·회복·정화 세 단계는 목표의 1/3씩
+function coopTarget(roster) { return Math.max(3, Math.ceil(roster * 6 / 5)); }
 function coopFreshClass(id,roster=25) { return {id,roster,minutes:null,points:0,current:0,completed:[],roles:{battle:0,quiz:0,explore:0}}; }
 function coopAddClass(group,role) {
   if(role) {group.points++;group.current++;group.roles[role]=(group.roles[role]||0)+1;}
-  const target=group.roster*3;
+  const target=coopTarget(group.roster);
   while(group.current>=target&&group.completed.length<COOP_REGIONS.length) {
     group.current-=target;group.completed.push(COOP_REGIONS.find(id=>!group.completed.includes(id)));
   }
   return group;
 }
 function coopClassView(group) {
-  const done=group.completed.length===COOP_REGIONS.length,target=group.roster*3;
-  return {...group,target,region:COOP_REGIONS.find(id=>!group.completed.includes(id))||null,small:done?3:Math.min(3,Math.floor(group.current/group.roster)),done};
+  const done=group.completed.length===COOP_REGIONS.length,target=coopTarget(group.roster);
+  return {...group,target,region:COOP_REGIONS.find(id=>!group.completed.includes(id))||null,small:done?3:Math.min(3,Math.floor(group.current*3/target)),done};
 }
 function coopNewDay() { return {requests:[],roles:{battle:false,quiz:false,explore:false}}; }
 function coopReserve(day,requestId,ticket) {
@@ -256,7 +258,7 @@ function coopAdmin_(d) {
     if(!list.length||list.length>50||list.some(c=>!/^(?:[1-9]|1[0-2])-(?:[1-9]|[1-9][0-9])$/.test(c)))return {ok:false,error:'참여 학급을 학년-반으로 넣어 주세요.'};
     const classes=[...new Set(list)].map(c=>school+'|'+c);
     let roster=0;classes.forEach(id=>{roster+=coopRead_('class|'+id,coopFreshClass(id)).roster;});
-    const event={id:Utilities.getUuid(),region:COOP_REGIONS.includes(d.region)?d.region:COOP_REGIONS[0],title:clip_(d.title,40)||'함께 지키는 충남',start,end,classes,target:int_(d.target||roster*3,1,150000),total:0,records:{}};
+    const event={id:Utilities.getUuid(),region:COOP_REGIONS.includes(d.region)?d.region:COOP_REGIONS[0],title:clip_(d.title,40)||'함께 지키는 충남',start,end,classes,target:int_(d.target||coopTarget(roster),1,150000),total:0,records:{}};
     coopWrite_('event|'+school,event);return {ok:true,event:coopPublicEvent_(event,now)};
   }
   return {ok:false,error:'지원하지 않는 선생님 설정이에요.'};

@@ -27,6 +27,10 @@ export const SETS = [
     color: { id: 'violet', name: '보라 별빛', hue: 270, sat: 1.15 } },
   { id: 'all', kind: null, title: '충남 수호대장', stat: 'ult', val: 0.08, label: '필살기 충전 +8%',
     color: { id: 'rainbow', name: '무지개', rainbow: true } },
+  // 카드가 아닌 수집 완성 (group: evolution 진화 카드 20 · story 이야기 조각 15 · boon 가호 도감 46). 기체 색 없음
+  { id: 'evolution', group: 'evolution', kind: '무기 진화 카드', title: '무기 장인', stat: 'atk', val: 0.05, label: '공격력 +5%' },
+  { id: 'story', group: 'story', kind: '이야기 조각', title: '충남 이야기꾼', stat: 'hp', val: 10, label: '최대 체력 +10' },
+  { id: 'boon', group: 'boon', kind: '가호 도감', title: '', stat: 'guard', val: 0.05, label: '받는 피해 -5%' },
 ];
 
 export const BASE_COLOR = { id: 'base', name: '기본' };
