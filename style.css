@@ -653,3 +653,19 @@ table.lb tr.top1 td{background:#ffd23d22} table.lb tr.top2 td{background:#c9cbe0
 
 /* One illustrated map shared by class restoration and completed desktop route. */
 .restoration-map{width:100%;min-width:0}.restoration-art{position:relative;overflow:hidden;border:calc(var(--u)*2) solid #a4d8d6;border-radius:calc(var(--u)*20);background:#173c50;box-shadow:0 calc(var(--u)*5) calc(var(--u)*12) #081d3f66,inset 0 calc(var(--u)*2) #fff6;isolation:isolate;aspect-ratio:1080/1600}.restoration-art svg{display:block;width:100%;height:100%}.restoration-pin{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;gap:calc(var(--u)*2);padding:calc(var(--u)*5) calc(var(--u)*9);font-family:var(--body);font-size:calc(var(--u)*14);font-weight:900;line-height:1.3;white-space:nowrap;color:#e3e9ee;border:calc(var(--u)*1.5) solid #9cb8c9;border-radius:calc(var(--u)*10);background:linear-gradient(#3e6079,#1c3e5a);box-shadow:0 calc(var(--u)*3) #0c243de6,inset 0 calc(var(--u)*1) #ffffff40}.restoration-pin.sleeping{color:#d2dce4;border-color:#8399a9;background:linear-gradient(#4e6375,#2d4156)}.restoration-pin.restored{color:#f7ffe7;border-color:#ceedd1;background:linear-gradient(#438a72,#236655);box-shadow:0 calc(var(--u)*3) #123e36,0 0 calc(var(--u)*12) #ffe9a777}.restoration-pin.restored i{font-style:normal;color:#ffe49b}.restoration-pin.current{background:linear-gradient(#ffe4a0,#dba449);color:#163748;border-color:#fff1b8;box-shadow:0 calc(var(--u)*3) #6b4e2a,0 0 0 calc(var(--u)*3) #fff3bf40}.restoration-caption{font-size:calc(var(--u)*13)!important;line-height:1.7;text-align:center;color:#d2eee3!important;margin:calc(var(--u)*12) 0 0!important}.restoration-map.compact .restoration-art{border-radius:calc(var(--u)*13)}.restoration-map.compact .restoration-pin{font-size:max(8px,calc(var(--u)*10));padding:calc(var(--u)*3) calc(var(--u)*5);border-radius:calc(var(--u)*6);border-width:calc(var(--u)*1)}.restoration-map.compact .restoration-caption{font-size:calc(var(--u)*12)!important}
+/* 진화 카드: 청록 / 금빛 / 보라, 기존 진화 원화와 입체 테두리 */
+.ccard.got.kind-evolution{--k1:#178b92;--k2:#113c58;--kb:#83f4e3;--kg:#c4fff2}
+.ccard.got.kind-ultimate{--k1:#b87921;--k2:#4e2d19;--kb:#ffe09b;--kg:#fff1bc}
+.ccard.got.kind-support{--k1:#7655bd;--k2:#302356;--kb:#cdb9ff;--kg:#ebdfff}
+.card-detail.kind-evolution{--k1:#178b92;--kb:#83f4e3}
+.card-detail.kind-ultimate{--k1:#b87921;--kb:#ffe09b}
+.card-detail.kind-support{--k1:#7655bd;--kb:#cdb9ff}
+.card-collection .ccard.evolution-locked{cursor:pointer}
+.evolution-locked:focus-visible{outline:calc(var(--u)*3) solid #ffe09b;outline-offset:calc(var(--u)*3)}
+.evolution-condition{width:100%;box-sizing:border-box;padding:calc(var(--u)*14);border:calc(var(--u)*2) solid var(--kb,#83f4e3);border-radius:calc(var(--u)*12);background:#14253d;color:#fff;box-shadow:inset 0 calc(var(--u)*2) #ffffff20,0 calc(var(--u)*4) #091325;line-height:1.65;font-size:calc(var(--u)*17)}
+.evolution-condition b{color:var(--kb,#83f4e3)}
+.evolution-condition p{margin:calc(var(--u)*8) 0;overflow-wrap:anywhere}
+.evolution-condition small{color:#d0dfec}
+.modal:has(.evolution-condition){padding:calc(var(--u)*12);box-sizing:border-box}
+.modal .box:has(.evolution-condition){max-height:100%;overflow-y:auto;min-height:0}
+   
