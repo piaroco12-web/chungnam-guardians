@@ -50,7 +50,7 @@ test('normal, ultimate and support conditions match the playable level-up choice
 test('64 learning cards still grant every original bonus without collecting evolutions',()=>{
  resetAll();save.cards=CARDS.filter(c=>!c.evolution).map(c=>c.id);assert.equal(view.doneSets().length,5);
  assert.deepEqual(view.bonus(),{hp:8,atk:.04,guard:.04,xp:.05,ult:.08});
- resetAll();save.cards=EVOLUTION_CARDS.map(c=>c.id);assert.equal(view.doneSets().length,0);
+ resetAll();save.cards=EVOLUTION_CARDS.map(c=>c.id);assert.deepEqual(view.doneSets().map(s=>s.id),['evolution']);
 });
 test('evolution cards survive reload and account merge; teacher preview cannot write progress',async()=>{
  resetAll();const id=EVOLUTION_CARDS[0].id;save.cards=[id];persist();

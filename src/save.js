@@ -2,6 +2,7 @@
 import { CARDS, REGIONS } from '../data/content.js';
 import { ZONES, sigunOf } from '../data/regions.js';
 import { BOONS, DUOS, LEGENDS } from '../data/boons.js';
+import { STORY } from '../data/extras.js';
 import { SHIP_UNLOCK, PILOT_UNLOCK, SETS, BASE_COLOR, CURRENT_UNLOCK_RULE } from '../data/unlocks.js';
 import { MW } from '../data/weapons.js';
 import { quizHistoryMerge } from './daily-quiz.js';
@@ -135,15 +136,21 @@ export const view = {
   shipUnlocked: s => { const u = SHIP_UNLOCK[s.id]; return save.teacher || !u || (u.combo ? save.combos.includes(comboKey(u.combo)) : u.bosses.filter(id => save.bosses.includes(id)).length >= (u.n || u.bosses.length)); },
   shipProgress: s => { const u = SHIP_UNLOCK[s.id], n = u?.n || u?.bosses?.length; return !u || u.combo ? null : [Math.min(n, u.bosses.filter(id => save.bosses.includes(id)).length), n]; },
   // 범주를 모두 모았나 (kind 가 없으면 64장 전부)
-  setDone: set => cardsOf(set.kind).every(c => view.hasCard(c.id)),
-  setCount: set => { const all = cardsOf(set.kind); return [all.filter(c => view.hasCard(c.id)).length, all.length]; },
+  setDone: set => { const [a, t] = view.setCount(set); return a >= t; },
+  setCount: set => {
+    const [ids, has] = set.group === 'evolution' ? [CARDS.filter(c => c.evolution).map(c => c.id), view.hasCard]
+      : set.group === 'story' ? [STORY.map(s => s.id), id => save.teacher || save.story.includes(id)]
+      : set.group === 'boon' ? [[...BOONS, ...DUOS, ...LEGENDS].map(b => b.id), view.inCodex]
+      : [cardsOf(set.kind).map(c => c.id), view.hasCard];
+    return [ids.filter(has).length, ids.length];
+  },
   doneSets: () => SETS.filter(s => view.setDone(s)),
   // 범주 완성 영구 능력치 합계
   bonus: () => { const b = { hp: 0, atk: 0, guard: 0, xp: 0, ult: 0 }; for (const s of view.doneSets()) b[s.stat] += s.val; return b; },
-  colors: () => [BASE_COLOR, ...view.doneSets().map(s => s.color)],
+  colors: () => [BASE_COLOR, ...view.doneSets().filter(s => s.color).map(s => s.color)],
   shipColor: () => view.colors().find(c => c.id === save.shipColor) || BASE_COLOR,
   // 가장 높은 칭호 (64장 전부면 수호대장, 아니면 완성한 범주)
-  title: () => { const d = view.doneSets(); return d.length ? d[d.length - 1].title : ''; },
+  title: () => { const d = view.doneSets().filter(s => s.title); return d.length ? d[d.length - 1].title : ''; },
   hellUnlocked: () => save.teacher || save.beatLegend,
   hasCard: id => save.teacher || save.cards.includes(id),
   inCodex: id => save.teacher || save.codex.includes(id),

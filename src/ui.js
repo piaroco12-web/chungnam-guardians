@@ -22,7 +22,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.15.3';
+export const VERSION = '2.15.4';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -178,7 +178,9 @@ function codex(bb) {
   const sealed = () => pic.sealed() ? `<img class="sealed-emblem" src="${pic.sealed()}" alt="미확인 가호">` : '<span class="sealed-fallback">?</span>';
   const cell = (id, cls = '') => `<div class="cell ${got(id) ? 'got ' + cls : 'unseen ' + cls}" data-b="${id}">${got(id) ? boonIcon(id) : sealed()}</div>`;
   const n = [...BOONS, ...DUOS, ...LEGENDS].filter(b => got(b.id)).length;
+  const bset = SETS.find(s => s.id === 'boon'), bdone = n >= totalCodex();
   bb.innerHTML = `<h2 class="ol">가호 도감 ${n}/${totalCodex()}</h2>
+    <p class="note backed">${bdone ? '✓ 완성' : '모두 모으면'} 영구 보너스 ${esc(bset.label)}</p>
     <p class="note backed">제단에서 가호 등급이 나올 확률: ${RARITY.map(r => `${r.name} ${r.w}%`).join(' · ')}</p>
     ${GODS.map(g => `<div class="sec-label">${g.e} ${g.name} · ${g.elem}</div><div class="grid">${BOONS.filter(b => b.god === g.id).map(b => cell(b.id)).join('')}</div>`).join('')}
     <div class="sec-label">듀오 가호</div><div class="grid">${DUOS.map(d => cell(d.id, 'duo')).join('')}</div>
@@ -211,13 +213,12 @@ function cardsTab(bb) {
   const groups = ['지역 상식', 'SW·AI 개념', '예방 수칙', 'AI 역량', '일반 진화', '궁극 진화', '보조무기 진화'];
   const n = CARDS.filter(c => view.hasCard(c.id)).length;
   const setLine = (set, kind) => { if (!set) { const cards = CARDS.filter(c => c.kind === kind); return `<span class="set-prog">${cards.filter(c => view.hasCard(c.id)).length}/${cards.length} · 진화를 선택하면 카드 해금</span>`; } const [a, t] = view.setCount(set), done = a >= t || view.setDone(set);
-    return `<span class="set-prog ${done ? 'done' : ''}">${done ? '✓ 완성' : `${a}/${t}`} · ${esc(set.label)} · 🏅${esc(set.title)}</span>`; };
-  const all = SETS.find(s => !s.kind);
-  bb.innerHTML = `<h2 class="ol">카드첩 ${n}/${totalCards()}</h2><div class="set-all">${setLine(all)}<small>학습 카드 64장을 모으면 영구 보너스·칭호·기체 색을 받아요. 진화 카드 20종은 별도로 수집해요.</small></div>${groups.map(gname => `<div class="sec-label">${gname} ${setLine(SETS.find(s => s.kind === gname), gname)}</div><div class="grid cards">${CARDS.filter(c => c.kind === gname).map(c => view.hasCard(c.id)
+    return `<span class="set-prog ${done ? 'done' : ''}">${done ? '✓ 완성' : `${a}/${t}`} · ${esc(set.label)}${set.title ? ` · 🏅${esc(set.title)}` : ''}</span>`; };
+  const all = SETS.find(s => s.id === 'all'), setOf = id => SETS.find(s => s.id === id);
+  bb.innerHTML = `<h2 class="ol">카드첩 ${n}/${totalCards()}</h2><div class="set-all">${setLine(all)}<small>학습 카드 64장을 모으면 영구 보너스·칭호·기체 색을 받아요.</small>${setLine(setOf('evolution'))}<small>무기 진화 카드 20종을 모두 모으면 영구 보너스·칭호를 받아요.</small></div>${groups.map(gname => `<div class="sec-label">${gname} ${setLine(SETS.find(s => s.kind === gname), gname)}</div><div class="grid cards">${CARDS.filter(c => c.kind === gname).map(c => view.hasCard(c.id)
     ? `<div class="ccard got ${kindClass(c)}" data-c="${c.id}"><span class="e">${cardArt(c)}</span><b>${gridTitle(c.title)}</b></div>`
     : `<div class="ccard unopened ${c.evolution ? kindClass(c) + ' evolution-locked' : ''}" ${c.evolution ? `data-c="${c.id}" role="button" tabindex="0"` : ''} aria-label="미확인 카드 · ${esc(hintFor(c))}"><img class="unopened-art" src="${pic.unopened() || pic.cardBack()}" alt=""><span class="unopened-hint">${hintFor(c)}</span></div>`).join('')}</div>`).join('')}`;
-  const opened = STORY.filter(st => save.teacher || save.story.includes(st.id));
-  bb.insertAdjacentHTML('beforeend', `<div class="sec-label">이야기 조각 ${opened.length}/${STORY.length}</div><div class="rows">${STORY.map(st => (save.teacher || save.story.includes(st.id))
+  bb.insertAdjacentHTML('beforeend', `<div class="sec-label">이야기 조각 ${setLine(setOf('story'))}</div><div class="rows">${STORY.map(st => (save.teacher || save.story.includes(st.id))
     ? `<div class="row story" data-st="${st.id}"><div class="ic" style="width:calc(var(--u)*72);height:calc(var(--u)*72);overflow:hidden">${pic.story(st.id) ? `<img src="${pic.story(st.id)}" alt="" style="width:100%;height:100%;object-fit:cover">` : st.e}</div><div class="tx"><b>${esc(st.who)}</b><p style="color:#fff">${esc(st.text)}</p></div></div>`
     : '<div class="row locked" style="opacity:.6"><div class="ic">🔒</div><div class="tx"><p>출격을 거듭하면 열려요</p></div></div>').join('')}</div>`);
   click('[data-c]', (e, el) => cardModal(CARDS.find(c => c.id === el.dataset.c)), bb);
@@ -302,7 +303,7 @@ export function select(step, sel, act) {
   if (step === 'ship') body = head(2, '기체 선택') + `<div class="picks">${SHIPS.map(s => { const ok = view.shipUnlocked(s), u = SHIP_UNLOCK[s.id];
       return `<button class="pick ${ok ? '' : 'lock'}" data-v="${s.id}" ${ok ? '' : 'aria-disabled="true"'}><div class="pic"><img src="${pic.hangar(s, view.shipColor().id)}" alt=""></div>
       <div class="tx"><b>${esc(s.name)}</b><span class="tag">${esc(s.tag)}</span><p>${ok ? `${esc(s.desc)}<br>필살기: ${esc(s.ult.name)}` : `🔒 ${esc(u.text)} 열려요${view.shipProgress(s) ? ` (지금 ${view.shipProgress(s).join('/')}종)` : ''}`}</p></div></button>`; }).join('')}
-      <div class="colors"><b class="ol">기체 색</b><div class="chips">${[BASE_COLOR, ...SETS.map(s => s.color)].map(cl => { const set = SETS.find(s => s.color.id === cl.id), ok = !set || view.setDone(set);
+      <div class="colors"><b class="ol">기체 색</b><div class="chips">${[BASE_COLOR, ...SETS.filter(s => s.color).map(s => s.color)].map(cl => { const set = SETS.find(s => s.color?.id === cl.id), ok = !set || view.setDone(set);
         return `<button class="chip-c c-${cl.id} ${view.shipColor().id === cl.id ? 'on' : ''} ${ok ? '' : 'locked'}" data-color="${cl.id}" aria-pressed="${view.shipColor().id === cl.id}" title="${ok ? esc(cl.name) : `${esc(set.kind || '카드 64장')} 모두 모으면 열려요`}"><i></i>${esc(cl.name)}${ok ? '' : ' 🔒'}</button>`; }).join('')}</div></div>
       <p class="note">추천 조합 · 충남이+번개호 보스 화력형 · 에듀이+드론호 생존형 · 센터이+별빛호 가호 조합형</p></div>`;
   if (step === 'weapon') {
@@ -571,7 +572,7 @@ async function openBoard(day) {
 
 // ───────── 해금·범주 완성 축하 ─────────
 export function newsName(n) {
-  if (n.type === 'set') return `${n.set.kind || '카드 64장'} 완성 (${n.set.title})`;
+  if (n.type === 'set') return `${n.set.kind || '카드 64장'} 완성${n.set.title ? ` (${n.set.title})` : ''}`;
   if (n.type === 'pilot') return '파일럿 ' + PILOTS.find(p => p.id === n.id).name;
   return '기체 ' + SHIPS.find(s => s.id === n.id).name;
 }
@@ -582,9 +583,9 @@ export function celebrate(news, done) {
   let k, art, ttl, body;
   if (n.type === 'set') {
     const s = n.set;
-    k = s.kind ? `${s.kind} 카드 완성!` : '카드 64장 모두 모았어요!';
-    art = `<span class="medal">🏅</span>`; ttl = s.title;
-    body = `<p>칭호 <strong>${esc(s.title)}</strong></p><p>영구 보너스 <strong>${esc(s.label)}</strong></p><p>새 기체 색 <span class="chip-c c-${s.color.id} on" style="pointer-events:none"><i></i>${esc(s.color.name)}</span></p>`;
+    k = s.group ? `${s.kind} 완성!` : s.kind ? `${s.kind} 카드 완성!` : '카드 64장 모두 모았어요!';
+    art = `<span class="medal">🏅</span>`; ttl = s.title || s.kind;
+    body = `${s.title ? `<p>칭호 <strong>${esc(s.title)}</strong></p>` : ''}<p>영구 보너스 <strong>${esc(s.label)}</strong></p>${s.color ? `<p>새 기체 색 <span class="chip-c c-${s.color.id} on" style="pointer-events:none"><i></i>${esc(s.color.name)}</span></p>` : ''}`;
   } else if (n.type === 'pilot') {
     const p = PILOTS.find(x => x.id === n.id);
     k = '새 파일럿 해금!'; art = `<img src="${pic.pilot(p)}" alt="" class="news-art">`; ttl = p.name;

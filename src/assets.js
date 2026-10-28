@@ -236,7 +236,7 @@ function roundedBug(elite) {
 
 // ───────── 기체 색 (범주 완성 보상) ─────────
 // 칠해진 부분(채도가 있는 픽셀)의 색상만 바꾸고 밝기·흰색·검은 테두리는 그대로 둔다. 무지개는 가로 위치로 색상이 바뀐다.
-const COLOR_OF = Object.fromEntries(SETS.map(s => [s.color.id, s.color]));
+const COLOR_OF = Object.fromEntries(SETS.filter(s => s.color).map(s => [s.color.id, s.color]));
 function tinted(im, colorId) {
   const col = COLOR_OF[colorId];
   if (!im || !col) return im;

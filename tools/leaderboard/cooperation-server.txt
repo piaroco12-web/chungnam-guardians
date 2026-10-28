@@ -71,7 +71,7 @@ function coopAdmin_(d) {
     if(!list.length||list.length>50||list.some(c=>!/^(?:[1-9]|1[0-2])-(?:[1-9]|[1-9][0-9])$/.test(c)))return {ok:false,error:'참여 학급을 학년-반으로 넣어 주세요.'};
     const classes=[...new Set(list)].map(c=>school+'|'+c);
     let roster=0;classes.forEach(id=>{roster+=coopRead_('class|'+id,coopFreshClass(id)).roster;});
-    const event={id:Utilities.getUuid(),region:COOP_REGIONS.includes(d.region)?d.region:COOP_REGIONS[0],title:clip_(d.title,40)||'함께 지키는 충남',start,end,classes,target:int_(d.target||roster*3,1,150000),total:0,records:{}};
+    const event={id:Utilities.getUuid(),region:COOP_REGIONS.includes(d.region)?d.region:COOP_REGIONS[0],title:clip_(d.title,40)||'함께 지키는 충남',start,end,classes,target:int_(d.target||coopTarget(roster),1,150000),total:0,records:{}};
     coopWrite_('event|'+school,event);return {ok:true,event:coopPublicEvent_(event,now)};
   }
   return {ok:false,error:'지원하지 않는 선생님 설정이에요.'};
