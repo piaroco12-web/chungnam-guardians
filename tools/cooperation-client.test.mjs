@@ -27,7 +27,7 @@ test('new sorties require the upgraded server and login while the teacher previe
   save.teacher=true;assert.equal((await m.coopStart()).preview,true);assert.equal(calls.length,0);
   save.teacher=false;assert.equal((await m.coopStart()).needsServer,true);
  },()=>({ok:false}));
- await fixture(async(m)=>{save.account=null;assert.equal((await m.coopStart()).login,true);},()=>({ok:true,api:'coop-1'}));
+ await fixture(async(m)=>{save.account=null;const g=await m.coopStart();assert.equal(g.ok,true);assert.equal(g.guest,true);assert.equal(g.ticket,null);assert.equal((await m.coopStart('daily')).guest,true);assert.equal((await m.coopStart('event')).login,true);},()=>({ok:true,api:'coop-1'}));
 });
 test('offline resume reuses an owned ticket, cannot create a new one or use another account ticket',async()=>{
  await fixture(async(m,calls)=>{
