@@ -159,7 +159,7 @@ async function startRun(region,event=false) {
     clearRun();
     const effectiveRegion=event?(sigunOf(result.ticket?.eventRegion)?.zone??region):region;
     const run=newRun({pilot:state.pilot,ship:state.ship,mainWeapon:state.weapon,diff:state.diff,region:effectiveRegion,pacts:[...(state.sel.pacts||[])]});
-    run.coopTicket=result.ticket;run.coopMinutes=result.minutes??save.settings.classMin;
+    run.coopTicket=result.ticket;run.guest=!!result.guest;run.coopMinutes=result.minutes??save.settings.classMin;
     if(event&&result.ticket?.eventId){let seed=0;for(const c of result.ticket.eventId)seed=(Math.imul(seed,31)+c.charCodeAt(0))>>>0;Math.random=seeded(seed);run.coopSeed=seed;run.route=ZONES.map(z=>z.sigun[Math.floor(Math.random()*z.sigun.length)]);run.route[effectiveRegion]=result.ticket.eventRegion;run.mids=run.route.map((id,i)=>pickMid(id,i));}
     chooseSigun(run,effectiveRegion,()=>beginBattle(run));
   }finally{launching=false;}
@@ -185,14 +185,14 @@ async function startDaily() {
     const result=await sortieTicket('daily',startDaily);if(!result)return;
     clearRun();const d=dailyInfo();Math.random=seeded(d.seed);
     const run=newRun({pilot:d.pilot,ship:d.ship,mainWeapon:d.weapon,diff:'chall',daily:d.key,region:d.region,route:d.route,mids:d.mids});
-    run.coopTicket=result.ticket;run.coopMinutes=result.minutes??save.settings.classMin;chooseSigun(run,d.region,()=>beginBattle(run));
+    run.coopTicket=result.ticket;run.guest=!!result.guest;run.coopMinutes=result.minutes??save.settings.classMin;chooseSigun(run,d.region,()=>beginBattle(run));
   }finally{launching=false;}
 }
 async function continueRun() {
   if(launching)return;launching=true;
   try {
     const run=loadRun();if(!run)return toBase();
-    const result=await coopResume(run.coopTicket);
+    const result=run.guest?{ok:true}:await coopResume(run.coopTicket);   // 손님 출격은 표 없이 이어한다
     if(!result.ok){if(result.login)ui.askStudent(continueRun,()=>toBase(),'출격했던 계정으로 이어하기');else ui.toast(result.error);return;}
     run.coopMinutes=result.minutes??run.coopMinutes??save.settings.classMin;
     state.pilot=run.pilot;state.ship=run.ship;state.diff=run.diff;if(run.mainWeapon)state.weapon=run.mainWeapon;

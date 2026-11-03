@@ -59,8 +59,10 @@ export async function coopStatus() {
 }
 export async function coopStart(kind='normal') {
   if(save.teacher)return {ok:true,ticket:kind==='event'&&coopCached()?.event?{eventId:coopCached().event.id,eventRegion:coopCached().event.region}:null,preview:true};
+  // 손님 출격: 계정 없이 누구나 바로 시작(행사·체험). 학급 기여·하루 3회 제한에는 들어가지 않는다. 연합 행사는 학급이 필요해 로그인
+  if(!save.account&&kind!=='event')return {ok:true,guest:true,ticket:null};
   if(!await coopCapability())return {ok:false,needsServer:true,error:'협동 서버에 연결해야 새 출격 횟수를 확인할 수 있어요. 이어하기와 도감은 계속 이용할 수 있어요.'};
-  if(!save.account)return {ok:false,login:true,error:'하루 3회 출격은 내 계정을 기준으로 세어요.'};
+  if(!save.account)return {ok:false,login:true,error:'연합 행사는 내 계정으로 우리 반과 함께 출격해요.'};
   const storeKey=pendingKey();let pending=read(storeKey,null);
   if(pending&&pending.kind!==kind)return {ok:false,error:'이전 출격 요청을 확인 중이에요. 같은 출격 종류를 다시 눌러 주세요.'};
   if(!pending)pending={requestId:requestId(),kind};
