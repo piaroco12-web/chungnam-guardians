@@ -148,7 +148,7 @@ function toSelect(step) {
 let launching=false;
 async function sortieTicket(kind,retry) {
   const result=await coopStart(kind);
-  if(result.login){ui.askStudent(retry,()=>toBase(),'내 계정 · 하루 3회 출격');return null;}
+  if(result.login)return new Promise(res=>ui.askStudent(()=>{res(null);setTimeout(retry);},()=>res({ok:true,ticket:{guest:true}}),'내 계정 · 하루 3회 출격'));   // 건너뛰기: 계정 없이 손님으로 출격
   if(!result.ok){ui.toast(result.error);return null;}
   return result;
 }

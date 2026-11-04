@@ -72,6 +72,7 @@ export async function coopStart(kind='normal') {
 }
 export async function coopResume(ticket) {
   if(save.teacher)return {ok:true};
+  if(ticket?.guest)return {ok:true};   // 손님 출격 이어하기
   // New sorties always carry a server ticket; preserve the old file but never turn it into an unlimited free run.
   if(!ticket)return {ok:false,error:'새 출격 규칙이 적용되기 전 기록이에요. 기지에서 새 출격을 시작해 주세요.'};
   if(ticket.owner!==save.account?.key)return {ok:false,error:'이어서 하려면 출격했던 계정으로 들어와 주세요.',login:true};
