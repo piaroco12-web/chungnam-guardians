@@ -580,13 +580,16 @@ export function askStudent(onDone, onSkip, title = '내 계정 · 오늘의 도�
       const checked = studentFields(fields), nick = checked.nick;
       const msg = t => { const m = document.getElementById('amsg'); if (m) m.textContent = t; };
       if (checked.error) { msg(checked.error); return false; }
-      msg('확인하는 중…');
+      // 아이디 생성 중에는 큰 안내를 화면 가득 띄우고 다른 버튼을 못 누르게 막는다
+      const wait = document.createElement('div');
+      wait.innerHTML = `<div style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(10,14,40,.85);text-align:center"><div><b class="ol" style="font-size:calc(var(--u)*36);line-height:1.5;color:#fff">아이디 생성 중<br>기다려주세요</b><p style="font-size:calc(var(--u)*18);color:#cdd7ff;margin-top:calc(var(--u)*10)">잠시만요…</p></div></div>`;
+      document.querySelector('.modal')?.appendChild(wait);
       login(fields).then(res => {
-        if (!res.ok) { msg(res.error || '들어가지 못했어요'); return; }
+        if (!res.ok) { wait.remove(); msg(res.error || '들어가지 못했어요'); return; }
         document.querySelector('.modal')?.remove();
         toast(res.created ? `${nick} 계정을 만들었어요!` : `${nick}, 다시 만나서 반가워요!`);
         onDone && onDone(save.account);
-      });
+      }).catch(() => { wait.remove(); msg('들어가지 못했어요. 다시 눌러 주세요.'); });
       return false;
     }], ['건너뛰기', 'gray', () => onSkip && onSkip()]]);
 }
