@@ -1,6 +1,6 @@
 // Shared with Apps Script by tools/build_cooperation.py. KST and server day govern limits.
 export const COOP_API = 'coop-1';
-export const COOP_DAILY_RUNS = 3;
+export const COOP_DAILY_RUNS = 5;
 export const COOP_ROLES = ['battle','quiz','explore'];
 export const COOP_REGIONS = ['cheonan','asan','dangjin','gongju','buyeo','cheongyang','nonsan','gyeryong','geumsan','seosan','taean','boryeong','seocheon','naepo','yesan'];
 export function coopDay(time=Date.now()) { return new Date(time+9*3600000).toISOString().slice(0,10); }
@@ -21,7 +21,7 @@ export function coopNewDay() { return {requests:[],roles:{battle:false,quiz:fals
 export function coopReserve(day,requestId,ticket) {
   const old=day.requests.find(t=>t.requestId===requestId);
   if(old)return {ok:true,ticket:old,left:COOP_DAILY_RUNS-day.requests.length};
-  if(day.requests.length>=COOP_DAILY_RUNS)return {ok:false,error:'오늘 출격 3회를 모두 사용했어요. 도감과 지역 이야기는 계속 볼 수 있어요.',limit:true,left:0};
+  if(day.requests.length>=COOP_DAILY_RUNS)return {ok:false,error:'오늘 출격 ' + COOP_DAILY_RUNS + '회를 모두 사용했어요. 도감과 지역 이야기는 계속 볼 수 있어요.',limit:true,left:0};
   day.requests.push({...ticket,requestId,closed:false});
   return {ok:true,ticket:day.requests[day.requests.length-1],left:COOP_DAILY_RUNS-day.requests.length};
 }

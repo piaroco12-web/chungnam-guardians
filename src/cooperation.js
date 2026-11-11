@@ -35,7 +35,7 @@ export async function coopCapability(force=false) {
   try{return await probePending;}finally{probePending=null;}
 }
 export function coopCached() { return cached?.owner===scope()?cached:null; }
-export function coopPreview() {return {ok:true,preview:true,date:coopDay(),left:3,roles:{battle:false,quiz:false,explore:false},group:coopClassView(coopFreshClass('선생님 미리보기',25)),event:null};}
+export function coopPreview() {return {ok:true,preview:true,date:coopDay(),left:5,roles:{battle:false,quiz:false,explore:false},group:coopClassView(coopFreshClass('선생님 미리보기',25)),event:null};}
 function remember(r) {if(r.ok&&r.group)cached={...r,owner:scope(),receivedAt:Date.now()};return r;}
 async function flush() {
   if(flushing||!save.account)return;flushing=true;
@@ -60,7 +60,7 @@ export async function coopStatus() {
 export async function coopStart(kind='normal') {
   if(save.teacher)return {ok:true,ticket:kind==='event'&&coopCached()?.event?{eventId:coopCached().event.id,eventRegion:coopCached().event.region}:null,preview:true};
   if(!await coopCapability())return {ok:false,needsServer:true,error:'협동 서버에 연결해야 새 출격 횟수를 확인할 수 있어요. 이어하기와 도감은 계속 이용할 수 있어요.'};
-  if(!save.account)return {ok:false,login:true,error:'하루 3회 출격은 내 계정을 기준으로 세어요.'};
+  if(!save.account)return {ok:false,login:true,error:'하루 5회 출격은 내 계정을 기준으로 세어요.'};
   const storeKey=pendingKey();let pending=read(storeKey,null);
   if(pending&&pending.kind!==kind)return {ok:false,error:'이전 출격 요청을 확인 중이에요. 같은 출격 종류를 다시 눌러 주세요.'};
   if(!pending)pending={requestId:requestId(),kind};

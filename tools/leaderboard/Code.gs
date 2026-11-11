@@ -9,7 +9,7 @@
  *   기록 저장     { action:'save', key, hash, nick, data }                    → '계정' 탭에 기록(JSON) 저장
  *   ※ 비밀번호는 게임이 암호화(SHA-256)해서 보내므로 시트에는 암호만 남는다. 선생님도 원래 숫자를 볼 수 없다.
  *   ※ 비밀번호를 5번 틀리면 10분 잠김. 학생이 비밀번호를 잊으면 '계정' 탭에서 그 학생의 '비밀번호(암호)' 칸을 지우면
- *     다음에 들어올 때 새 비밀번호로 정해진다(기록은 그대로).
+ *     다음에 들어올 때 새 비밀번호로 정해진다(기록은 그대로). 잠긴 계정은 '틀린 횟수'와 '잠금 끝' 칸도 함께 지워주세요.
  * GET (교사 모드 순위표)
  *   ?date=2026-10-25&key=읽기열쇠 → 그날 학생별 최고 기록 순위
  */
@@ -73,12 +73,12 @@ const validHash_ = (h) => typeof h === 'string' && /^[0-9a-f]{64}$/.test(h);
 function check_(sh, row, hash) {
   const r = sh.getRange(row, 1, 1, ACC_HEAD.length).getValues()[0];
   const lockUntil = r[C.lock] ? new Date(r[C.lock]).getTime() : 0;
-  if (lockUntil > Date.now()) return { error: '비밀번호를 여러 번 틀려서 10분 동안 잠겼어요. 잠시 뒤에 다시 해 보세요.' };
+  if (lockUntil > Date.now()) return { error: '비밀번호를 여러 번 틀려서 10분 동안 잠겼어요. 선생님께 말씀해 주세요. 선생님이 시트에서 바로 풀어줄 수 있어요.' };
   if (!r[C.hash]) { sh.getRange(row, C.hash + 1).setValue(hash); return { r }; }   // 선생님이 비밀번호를 지웠으면 새로 정함
   if (r[C.hash] !== hash) {
     const fails = (Number(r[C.fails]) || 0) + 1;
     sh.getRange(row, C.fails + 1, 1, 2).setValues([[fails, fails >= 5 ? new Date(Date.now() + 10 * 60000) : '']]);
-    return { error: fails >= 5 ? '비밀번호를 5번 틀려서 10분 동안 잠겼어요.' : `비밀번호가 달라요 (${fails}/5)` };
+    return { error: fails >= 5 ? '비밀번호를 5번 틀려서 10분 동안 잠겼어요. 선생님께 말씀해 주세요. 선생님이 시트에서 바로 풀어줄 수 있어요.' : `비밀번호가 달라요 (${fails}/5)` };
   }
   if (r[C.fails]) sh.getRange(row, C.fails + 1, 1, 2).setValues([[0, '']]);
   return { r };
@@ -143,7 +143,7 @@ function doGet(e) {
 // BEGIN GENERATED COOPERATION
 // Shared with Apps Script by tools/build_cooperation.py. KST and server day govern limits.
 const COOP_API = 'coop-1';
-const COOP_DAILY_RUNS = 3;
+const COOP_DAILY_RUNS = 5;
 const COOP_ROLES = ['battle','quiz','explore'];
 const COOP_REGIONS = ['cheonan','asan','dangjin','gongju','buyeo','cheongyang','nonsan','gyeryong','geumsan','seosan','taean','boryeong','seocheon','naepo','yesan'];
 function coopDay(time=Date.now()) { return new Date(time+9*3600000).toISOString().slice(0,10); }
@@ -164,7 +164,7 @@ function coopNewDay() { return {requests:[],roles:{battle:false,quiz:false,explo
 function coopReserve(day,requestId,ticket) {
   const old=day.requests.find(t=>t.requestId===requestId);
   if(old)return {ok:true,ticket:old,left:COOP_DAILY_RUNS-day.requests.length};
-  if(day.requests.length>=COOP_DAILY_RUNS)return {ok:false,error:'오늘 출격 3회를 모두 사용했어요. 도감과 지역 이야기는 계속 볼 수 있어요.',limit:true,left:0};
+  if(day.requests.length>=COOP_DAILY_RUNS)return {ok:false,error:'오늘 출격 ' + COOP_DAILY_RUNS + '회를 모두 사용했어요. 도감과 지역 이야기는 계속 볼 수 있어요.',limit:true,left:0};
   day.requests.push({...ticket,requestId,closed:false});
   return {ok:true,ticket:day.requests[day.requests.length-1],left:COOP_DAILY_RUNS-day.requests.length};
 }

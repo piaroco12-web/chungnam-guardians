@@ -566,7 +566,7 @@ export function altar(run, choices, onPick, onReroll) {
 export function askStudent(onDone, onSkip, title = '내 계정 · 오늘의 도전 기록') {
   const a = save.account || {}, parts = accountParts(a);
   modal(`<b class="ol" style="font-size:calc(var(--u)*24)">${esc(title)}</b>
-    <p style="font-size:calc(var(--u)*15)">처음이면 계정이 새로 만들어져요. 다른 기기에서도 같은 정보로 들어오면 해금·강화·카드가 그대로 이어져요.<br><b>닉네임에 진짜 이름은 쓰지 마세요.</b></p>
+    <p style="font-size:calc(var(--u)*15)">처음이면 계정이 새로 만들어져요. 다른 기기에서도 같은 정보로 들어오면 해금·강화·카드가 그대로 이어져요.<br><b>닉네임에 진짜 이름은 쓰지 마세요.</b><br>계정 없이 바로 해보려면 아래 '손님으로 출격하기'를 눌러요. 손님 출격은 기록이 저장되지 않아요.</p>
     <div class="acct-form">
       <label>학교<input id="asch" placeholder="홍성초" value="${esc(a.school || '')}" autocomplete="off"></label>
       <div class="acct-row"><label>학년<input id="agrade" type="text" inputmode="numeric" maxlength="2" placeholder="5" value="${esc(parts.grade)}" autocomplete="off"></label><label>반<input id="acls" type="text" inputmode="numeric" maxlength="2" placeholder="2" value="${esc(parts.cls)}" autocomplete="off"></label><label>번호<input id="anum" type="text" inputmode="numeric" maxlength="2" placeholder="13" value="${a.num || ''}" autocomplete="off"></label></div>
@@ -591,7 +591,7 @@ export function askStudent(onDone, onSkip, title = '내 계정 · 오늘의 도�
         onDone && onDone(save.account);
       }).catch(() => { wait.remove(); msg('들어가지 못했어요. 다시 눌러 주세요.'); });
       return false;
-    }], ['건너뛰기', 'gray', () => onSkip && onSkip()]]);
+    }], ['손님으로 출격하기', 'gray', () => onSkip && onSkip()]]);
 }
 
 function dayKey(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
