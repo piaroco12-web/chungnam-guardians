@@ -23,7 +23,7 @@ import { mountFlow } from './bgart.js';
 
 export function initUi() { bouncy(root()); }
 
-export const VERSION = '2.15.7';
+export const VERSION = '2.15.8';
 const root = () => document.getElementById('ui');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function show(html) { const r = root(); r.innerHTML = html; return r; }
@@ -102,6 +102,7 @@ export function title({ onStart, hasRun, onContinue }) {
     <button class="btn sm sound-hint" id="sound" hidden>🔊 소리 켜기</button>
     <div class="tap ol">화면을 터치해서 시작</div>
     <div class="title-btns">${hasRun ? '<button class="btn blue sm" id="cont">이어하기</button>' : ''}</div>
+    <a class="privacy-link ol" href="privacy.html" target="_blank" rel="noopener">개인정보 처리방침</a>
   </div>`);
   scatterText(r.querySelector('.logo'));
   // 브라우저가 타이틀 음악 자동재생을 막으면, 첫 터치는 시작 대신 소리만 켜서 타이틀 음악을 듣게 한다.
@@ -122,6 +123,7 @@ export function title({ onStart, hasRun, onContinue }) {
   screen.addEventListener('click', e => {
     pressing = false;
     if (e.target.id === 'cont') { off(); return; }
+    if (e.target.closest('.privacy-link')) { pressing = false; return; }   // 처리방침 링크는 시작으로 치지 않는다
     if (needSound) { asked = true; needSound = false; unlockAudio(); sync(false); return; }
     off(); sfx.click(); onStart();
   });
@@ -291,6 +293,7 @@ function settings(bb, state, act) {
     <div class="row"><div class="tx"><b>조작 방법</b><p>화면을 드래그해서 이동, 손을 떼면 슬로우 모션. PC는 방향키·WASD로 이동, Space 필살기, Esc 일시정지.</p></div></div>
     <div class="row"><div class="tx"><b>충남 15시군 그림관</b><p>새 지역·보스·정화 모습 미리 보기</p></div><a class="btn blue sm" href="art-preview.html" target="_blank" rel="noopener">보기</a></div>
     <div class="row"><div class="tx"><b>만든 사람들</b><p>음악·효과음·그림 출처와 라이선스</p></div><button class="btn blue sm" id="credits">보기</button></div>
+    <div class="row"><div class="tx"><b>개인정보 처리방침</b><p>어떤 정보를 왜 저장하고 언제 지우는지 알려 드려요.</p></div><a class="btn blue sm" href="privacy.html" target="_blank" rel="noopener">보기</a></div>
     <div class="row"><div class="tx"><b>기록 초기화</b><p>코인·강화·카드·도감을 모두 지워요.</p></div><button class="btn red sm" id="reset">초기화</button></div>
     ${save.teacher && save.home ? `<div class="row"><div class="tx"><b>우리 고장 다시 고르기</b><p>지금 ${esc(sigunOf(save.home).name)}. 지우면 이 기기 학생이 다음 출격 때 다시 골라요.</p></div><button class="btn gray sm" id="rehome">지우기</button></div>` : ''}
     ${save.teacher ? `${row('kiosk', '체험관 모드', '공용 기기용. 게임을 새로 열 때마다 학생 기록이 처음 상태로 돌아가고, 결과 화면에 \'다음 친구에게 넘기기\' 버튼이 생겨요.')}
@@ -566,7 +569,7 @@ export function altar(run, choices, onPick, onReroll) {
 export function askStudent(onDone, onSkip, title = '내 계정 · 오늘의 도전 기록') {
   const a = save.account || {}, parts = accountParts(a);
   modal(`<b class="ol" style="font-size:calc(var(--u)*24)">${esc(title)}</b>
-    <p style="font-size:calc(var(--u)*15)">처음이면 계정이 새로 만들어져요. 다른 기기에서도 같은 정보로 들어오면 해금·강화·카드가 그대로 이어져요.<br><b>닉네임에 진짜 이름은 쓰지 마세요.</b><br>계정 없이 바로 해보려면 아래 '손님으로 출격하기'를 눌러요. 손님 출격은 기록이 저장되지 않아요.</p>
+    <p style="font-size:calc(var(--u)*15)">처음이면 계정이 새로 만들어져요. 다른 기기에서도 같은 정보로 들어오면 해금·강화·카드가 그대로 이어져요.<br><b>닉네임에 진짜 이름은 쓰지 마세요.</b><br>계정 없이 바로 해보려면 아래 '손님으로 출격하기'를 눌러요. 손님 출격은 기록이 저장되지 않아요. <a class="acct-privacy" href="privacy.html" target="_blank" rel="noopener">개인정보 처리방침</a></p>
     <div class="acct-form">
       <label>학교<input id="asch" placeholder="홍성초" value="${esc(a.school || '')}" autocomplete="off"></label>
       <div class="acct-row"><label>학년<input id="agrade" type="text" inputmode="numeric" maxlength="2" placeholder="5" value="${esc(parts.grade)}" autocomplete="off"></label><label>반<input id="acls" type="text" inputmode="numeric" maxlength="2" placeholder="2" value="${esc(parts.cls)}" autocomplete="off"></label><label>번호<input id="anum" type="text" inputmode="numeric" maxlength="2" placeholder="13" value="${a.num || ''}" autocomplete="off"></label></div>
